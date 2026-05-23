@@ -4,7 +4,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <NuxtLink to="/" class="text-xl font-bold text-gray-900 dark:text-white">
-            📚 知识库
+            📚 海洋能源资源宏观知识库
           </NuxtLink>
           <nav class="flex items-center gap-4">
             <NuxtLink to="/" class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300">

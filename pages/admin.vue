@@ -5,6 +5,8 @@ const { data: sourcesData } = await useFetch('/api/sources');
 const importLoading = ref(false);
 const vectorizeLoading = ref(false);
 const fetchContentLoading = ref(false);
+const fetchContentPolling = ref<ReturnType<typeof setInterval> | null>(null);
+const fetchContentTotal = ref(0); // 开始抓取时的待抓取总数
 const importResult = ref('');
 const vectorizeResult = ref('');
 const fetchContentResult = ref('');
@@ -37,6 +39,12 @@ async function handleImport(event: Event) {
 async function fetchAllContent() {
   fetchContentLoading.value = true;
   fetchContentResult.value = '';
+  fetchContentTotal.value = stats.value?.missingContentArticles || 0;
+
+  // 启动轮询，每 3 秒刷新统计数据
+  fetchContentPolling.value = setInterval(() => {
+    refreshStats();
+  }, 3000);
 
   try {
     const result = await $fetch('/api/articles/fetch-content', {
@@ -44,10 +52,15 @@ async function fetchAllContent() {
       body: { all: true },
     });
     fetchContentResult.value = `抓取完成：成功 ${result.fetched} 篇，失败 ${result.failed} 篇`;
+    refreshStats();
   } catch (e: any) {
     fetchContentResult.value = `抓取失败：${e.data?.message || e.message}`;
   } finally {
     fetchContentLoading.value = false;
+    if (fetchContentPolling.value) {
+      clearInterval(fetchContentPolling.value);
+      fetchContentPolling.value = null;
+    }
   }
 }
 
@@ -128,8 +141,26 @@ async function vectorizeAll() {
       <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
         通过文章链接抓取微信公众号文章正文内容，为后续向量化提供完整文本
       </p>
+      <div v-if="stats" class="flex items-center gap-4 mb-4 text-sm text-gray-600 dark:text-gray-400">
+        <span>文章总数：<strong class="text-gray-900 dark:text-white">{{ stats.totalArticles }}</strong></span>
+        <span>待抓取正文：<strong class="text-orange-500">{{ stats.missingContentArticles }}</strong></span>
+        <span>已有正文：<strong class="text-green-600">{{ stats.totalArticles - stats.missingContentArticles }}</strong></span>
+      </div>
+      <!-- 进度条 -->
+      <div v-if="fetchContentLoading && fetchContentTotal > 0" class="mb-4">
+        <div class="flex justify-between text-xs text-gray-500 mb-1">
+          <span>抓取进度</span>
+          <span>{{ fetchContentTotal - (stats?.missingContentArticles || 0) }} / {{ fetchContentTotal }}</span>
+        </div>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+          <div
+            class="bg-blue-500 h-2.5 rounded-full transition-all duration-500"
+            :style="{ width: `${Math.min(100, ((fetchContentTotal - (stats?.missingContentArticles || 0)) / fetchContentTotal) * 100)}%` }"
+          />
+        </div>
+      </div>
       <div class="flex items-center gap-4">
-        <UButton @click="fetchAllContent" :loading="fetchContentLoading" color="blue">
+        <UButton @click="fetchAllContent" :loading="fetchContentLoading" color="blue" :disabled="stats?.missingContentArticles === 0">
           抓取全部缺失正文
         </UButton>
         <span v-if="fetchContentResult" class="text-sm" :class="fetchContentResult.includes('失败') ? 'text-red-500' : 'text-green-600'">

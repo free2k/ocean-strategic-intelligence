@@ -1,9 +1,9 @@
-import { eq } from 'drizzle-orm';
+import { eq, and, isNotNull } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 import type { ImportBatch } from '~/types/article';
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody<ImportBatch>(event);
+  const body = await readBody<ImportBatch & { autoClassify?: boolean }>(event);
 
   if (!body?.accounts?.length) {
     throw createError({ statusCode: 400, message: '无效的导入数据' });
@@ -56,10 +56,45 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  // Optional: auto-classify newly imported articles
+  let classifyResult = null;
+  if (body.autoClassify) {
+    const { classifyArticle } = await import('~/server/utils/classification');
+
+    // Get all pending articles that were just imported (have content)
+    const pendingArticles = await db.select({
+      id: schema.articles.id,
+      title: schema.articles.title,
+      content: schema.articles.content,
+    })
+      .from(schema.articles)
+      .where(and(
+        eq(schema.articles.filterStatus, 'pending'),
+        isNotNull(schema.articles.content),
+      ));
+
+    let accepted = 0, rejected = 0, pending = 0;
+    for (const article of pendingArticles) {
+      const result = await classifyArticle({
+        id: article.id,
+        title: article.title,
+        content: article.content!,
+      });
+      await db.update(schema.articles)
+        .set({ filterStatus: result.status, matchedTopic: result.matchedTopic })
+        .where(eq(schema.articles.id, article.id));
+      if (result.status === 'accepted') accepted++;
+      else if (result.status === 'rejected') rejected++;
+      else pending++;
+    }
+    classifyResult = { accepted, rejected, pending, total: pendingArticles.length };
+  }
+
   return {
     success: true,
     imported: importedCount,
     skipped: skippedCount,
     total: body.total_articles,
+    classification: classifyResult,
   };
 });

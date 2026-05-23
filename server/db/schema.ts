@@ -31,6 +31,14 @@ export const articles = pgTable('articles', {
   filterStatus: varchar('filter_status', { length: 16 }).default('pending').notNull(),
   /** 匹配到的行业主题（正向过滤命中时记录） */
   matchedTopic: varchar('matched_topic', { length: 128 }),
+  /** 排除原因（反向过滤命中时记录命中的关键词） */
+  rejectReason: varchar('reject_reason', { length: 255 }),
+  /** 分类方法: keyword=关键词匹配, llm=LLM语义分类 */
+  classifyMethod: varchar('classify_method', { length: 16 }),
+  /** LLM 生成的摘要文本 */
+  summary: text('summary'),
+  /** 摘要生成状态: pending | generated | failed */
+  summaryStatus: varchar('summary_status', { length: 16 }).default('pending').notNull(),
 }, (table) => ({
   sourceIdx: index('articles_source_idx').on(table.sourceId),
   publishedIdx: index('articles_published_idx').on(table.publishedAt),

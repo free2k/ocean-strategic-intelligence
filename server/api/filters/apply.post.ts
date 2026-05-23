@@ -41,18 +41,22 @@ export default defineEventHandler(async () => {
 
     // 1. 检查反向规则（排除）
     let isRejected = false;
+    let rejectReason = '';
     for (const rule of excludeRules) {
-      const titleHit = (rule.titleKeywords as string[]).some(kw => titleText.includes(kw));
-      const contentHit = (rule.contentKeywords as string[]).some(kw => contentText.includes(kw));
-      if (titleHit || contentHit) {
+      const hitTitleKw = (rule.titleKeywords as string[]).find(kw => titleText.includes(kw));
+      const hitContentKw = (rule.contentKeywords as string[]).find(kw => contentText.includes(kw));
+      if (hitTitleKw || hitContentKw) {
         isRejected = true;
+        const hitKw = hitTitleKw || hitContentKw;
+        const hitSource = hitTitleKw ? '标题' : '正文';
+        rejectReason = `${hitSource}命中排除词「${hitKw}」`;
         break;
       }
     }
 
     if (isRejected) {
       await db.update(schema.articles)
-        .set({ filterStatus: 'rejected', updatedAt: new Date() })
+        .set({ filterStatus: 'rejected', rejectReason, updatedAt: new Date() })
         .where(eq(schema.articles.id, article.id));
       rejected++;
       continue;

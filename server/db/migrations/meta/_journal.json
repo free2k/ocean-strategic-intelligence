@@ -15,6 +15,20 @@
       "when": 1779556242254,
       "tag": "0001_faithful_tomorrow_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779561452831,
+      "tag": "0002_tiny_silver_samurai",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779567076513,
+      "tag": "0003_even_lockheed",
+      "breakpoints": true
     }
   ]
 }
