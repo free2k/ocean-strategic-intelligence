@@ -15,6 +15,47 @@ const newRule = ref({
   contentKeywords: '',
 });
 
+// 编辑状态
+const editingId = ref<number | null>(null);
+const editForm = ref({
+  topic: '',
+  description: '',
+  titleKeywords: '',
+  contentKeywords: '',
+});
+
+function startEdit(rule: any) {
+  editingId.value = rule.id;
+  editForm.value = {
+    topic: rule.topic || '',
+    description: rule.description || '',
+    titleKeywords: (rule.titleKeywords as string[]).join('\n'),
+    contentKeywords: (rule.contentKeywords as string[]).join('\n'),
+  };
+}
+
+function cancelEdit() {
+  editingId.value = null;
+}
+
+async function saveEdit(id: number) {
+  try {
+    await $fetch(`/api/filters/${id}`, {
+      method: 'PUT',
+      body: {
+        topic: editForm.value.topic || undefined,
+        description: editForm.value.description || undefined,
+        titleKeywords: editForm.value.titleKeywords.split('\n').map(s => s.trim()).filter(Boolean),
+        contentKeywords: editForm.value.contentKeywords.split('\n').map(s => s.trim()).filter(Boolean),
+      },
+    });
+    editingId.value = null;
+    refresh();
+  } catch (e: any) {
+    alert(e.data?.message || '保存失败');
+  }
+}
+
 async function addRule() {
   try {
     await $fetch('/api/filters', {
@@ -156,24 +197,51 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
       </template>
       <div v-if="includeRules.length" class="space-y-4">
         <div v-for="rule in includeRules" :key="rule.id" class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <span class="font-medium">{{ rule.topic }}</span>
-              <UBadge :color="rule.enabled ? 'green' : 'gray'" size="xs">
-                {{ rule.enabled ? '启用' : '禁用' }}
-              </UBadge>
+          <!-- 编辑模式 -->
+          <div v-if="editingId === rule.id" class="space-y-4">
+            <div class="flex gap-4">
+              <UFormGroup label="行业/主题" class="flex-1">
+                <UInput v-model="editForm.topic" placeholder="如：海洋油气装备" />
+              </UFormGroup>
+              <UFormGroup label="描述" class="flex-1">
+                <UInput v-model="editForm.description" placeholder="规则说明（可选）" />
+              </UFormGroup>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <UFormGroup label="标题关键词（每行一个）">
+                <UTextarea v-model="editForm.titleKeywords" :rows="6" />
+              </UFormGroup>
+              <UFormGroup label="正文关键词（每行一个）">
+                <UTextarea v-model="editForm.contentKeywords" :rows="6" />
+              </UFormGroup>
             </div>
             <div class="flex items-center gap-2">
-              <UButton @click="toggleRule(rule.id, rule.enabled)" size="xs" color="gray" variant="ghost">
-                {{ rule.enabled ? '禁用' : '启用' }}
-              </UButton>
-              <UButton @click="deleteRule(rule.id)" size="xs" color="red" variant="ghost">删除</UButton>
+              <UButton @click="saveEdit(rule.id)" color="primary" size="sm">保存</UButton>
+              <UButton @click="cancelEdit" color="gray" size="sm" variant="ghost">取消</UButton>
             </div>
           </div>
-          <p v-if="rule.description" class="text-sm text-gray-500 mb-2">{{ rule.description }}</p>
-          <div class="flex gap-4 text-xs text-gray-400">
-            <span>标题关键词: {{ (rule.titleKeywords as string[]).length }} 个</span>
-            <span>正文关键词: {{ (rule.contentKeywords as string[]).length }} 个</span>
+          <!-- 展示模式 -->
+          <div v-else>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="font-medium">{{ rule.topic }}</span>
+                <UBadge :color="rule.enabled ? 'green' : 'gray'" size="xs">
+                  {{ rule.enabled ? '启用' : '禁用' }}
+                </UBadge>
+              </div>
+              <div class="flex items-center gap-2">
+                <UButton @click="startEdit(rule)" size="xs" color="blue" variant="ghost">编辑</UButton>
+                <UButton @click="toggleRule(rule.id, rule.enabled)" size="xs" color="gray" variant="ghost">
+                  {{ rule.enabled ? '禁用' : '启用' }}
+                </UButton>
+                <UButton @click="deleteRule(rule.id)" size="xs" color="red" variant="ghost">删除</UButton>
+              </div>
+            </div>
+            <p v-if="rule.description" class="text-sm text-gray-500 mb-2">{{ rule.description }}</p>
+            <div class="flex gap-4 text-xs text-gray-400">
+              <span>标题关键词: {{ (rule.titleKeywords as string[]).length }} 个</span>
+              <span>正文关键词: {{ (rule.contentKeywords as string[]).length }} 个</span>
+            </div>
           </div>
         </div>
       </div>
@@ -187,28 +255,55 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
       </template>
       <div v-if="excludeRules.length" class="space-y-4">
         <div v-for="rule in excludeRules" :key="rule.id" class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <span class="font-medium">{{ rule.topic || '排除规则' }}</span>
-              <UBadge :color="rule.enabled ? 'green' : 'gray'" size="xs">
-                {{ rule.enabled ? '启用' : '禁用' }}
-              </UBadge>
+          <!-- 编辑模式 -->
+          <div v-if="editingId === rule.id" class="space-y-4">
+            <div class="flex gap-4">
+              <UFormGroup label="名称" class="flex-1">
+                <UInput v-model="editForm.topic" placeholder="排除规则名称" />
+              </UFormGroup>
+              <UFormGroup label="描述" class="flex-1">
+                <UInput v-model="editForm.description" placeholder="规则说明（可选）" />
+              </UFormGroup>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <UFormGroup label="标题排除关键词（每行一个）">
+                <UTextarea v-model="editForm.titleKeywords" :rows="6" />
+              </UFormGroup>
+              <UFormGroup label="正文排除关键词（每行一个）">
+                <UTextarea v-model="editForm.contentKeywords" :rows="6" />
+              </UFormGroup>
             </div>
             <div class="flex items-center gap-2">
-              <UButton @click="toggleRule(rule.id, rule.enabled)" size="xs" color="gray" variant="ghost">
-                {{ rule.enabled ? '禁用' : '启用' }}
-              </UButton>
-              <UButton @click="deleteRule(rule.id)" size="xs" color="red" variant="ghost">删除</UButton>
+              <UButton @click="saveEdit(rule.id)" color="primary" size="sm">保存</UButton>
+              <UButton @click="cancelEdit" color="gray" size="sm" variant="ghost">取消</UButton>
             </div>
           </div>
-          <div class="text-sm text-gray-600 dark:text-gray-400">
-            <div class="flex flex-wrap gap-1 mt-1">
-              <UBadge v-for="kw in (rule.titleKeywords as string[]).slice(0, 15)" :key="kw" color="red" size="xs" variant="subtle">
-                {{ kw }}
-              </UBadge>
-              <span v-if="(rule.titleKeywords as string[]).length > 15" class="text-xs text-gray-400">
-                +{{ (rule.titleKeywords as string[]).length - 15 }} 更多
-              </span>
+          <!-- 展示模式 -->
+          <div v-else>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="font-medium">{{ rule.topic || '排除规则' }}</span>
+                <UBadge :color="rule.enabled ? 'green' : 'gray'" size="xs">
+                  {{ rule.enabled ? '启用' : '禁用' }}
+                </UBadge>
+              </div>
+              <div class="flex items-center gap-2">
+                <UButton @click="startEdit(rule)" size="xs" color="blue" variant="ghost">编辑</UButton>
+                <UButton @click="toggleRule(rule.id, rule.enabled)" size="xs" color="gray" variant="ghost">
+                  {{ rule.enabled ? '禁用' : '启用' }}
+                </UButton>
+                <UButton @click="deleteRule(rule.id)" size="xs" color="red" variant="ghost">删除</UButton>
+              </div>
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              <div class="flex flex-wrap gap-1 mt-1">
+                <UBadge v-for="kw in (rule.titleKeywords as string[]).slice(0, 15)" :key="kw" color="red" size="xs" variant="subtle">
+                  {{ kw }}
+                </UBadge>
+                <span v-if="(rule.titleKeywords as string[]).length > 15" class="text-xs text-gray-400">
+                  +{{ (rule.titleKeywords as string[]).length - 15 }} 更多
+                </span>
+              </div>
             </div>
           </div>
         </div>

@@ -1,13 +1,70 @@
 <script setup lang="ts">
 import { subDays, subMonths, format } from 'date-fns';
 
-// --- 导出功能 ---
+// --- 筛选条件 ---
+const sourceType = ref('');
+const filterStatus = ref('');
+const matchedTopic = ref('');
 const rangePreset = ref('2weeks');
+
+const { data: sourcesData } = await useFetch('/api/sources');
+const { data: topicsData } = await useFetch('/api/topics');
+
+/** 将 rangePreset 转为 API 的 dateRange 参数 */
+function getDateRangeParam(): string | undefined {
+  switch (rangePreset.value) {
+    case '2weeks': return '2w';
+    case '1month': return '1m';
+    case '3months': return '3m';
+    case 'custom': return undefined;
+    default: return undefined;
+  }
+}
+
+// 预览文章列表（根据筛选条件实时查询）
+const { data: previewData } = await useFetch('/api/articles', {
+  query: computed(() => ({
+    pageSize: 100,
+    sourceType: sourceType.value || undefined,
+    filterStatus: filterStatus.value || undefined,
+    matchedTopic: matchedTopic.value || undefined,
+    dateRange: getDateRangeParam(),
+  })),
+  watch: [sourceType, filterStatus, matchedTopic, rangePreset],
+});
+
+const sourceTypeOptions = [
+  { label: '全部渠道', value: '' },
+  { label: '微信公众号', value: 'wechat' },
+  { label: 'RSS', value: 'rss' },
+  { label: '网页', value: 'web' },
+  { label: '手动录入', value: 'manual' },
+];
+
+const filterStatusOptions = [
+  { label: '全部状态', value: '' },
+  { label: '待筛选', value: 'pending' },
+  { label: '已通过', value: 'accepted' },
+  { label: '已排除', value: 'rejected' },
+];
+
+const topicOptions = computed(() => {
+  const list = topicsData.value?.topics || [];
+  return [{ label: '全部分类', value: '' }, ...list.map(t => ({ label: `${t.name} (${t.articleCount})`, value: t.name }))];
+});
+
+// --- 导出功能 ---
 const customStart = ref('');
 const customEnd = ref('');
+const exportFormat = ref('markdown');
 const loading = ref(false);
 const result = ref<{ content: string; articleCount: number; categories: string[]; message?: string } | null>(null);
 const error = ref('');
+
+const formatOptions = [
+  { label: 'Markdown', value: 'markdown' },
+  { label: 'Word 文档 (.docx)', value: 'docx' },
+];
 
 const presetOptions = [
   { label: '最近 2 周', value: '2weeks' },
@@ -32,6 +89,15 @@ function getDateRange() {
   return { startDate: customStart.value, endDate: customEnd.value };
 }
 
+/** 构建筛选参数 */
+function getFilterParams() {
+  const params: Record<string, any> = {};
+  if (sourceType.value) params.sourceType = sourceType.value;
+  if (filterStatus.value) params.filterStatus = filterStatus.value;
+  if (matchedTopic.value) params.topic = matchedTopic.value;
+  return params;
+}
+
 async function doExport() {
   const { startDate, endDate } = getDateRange();
   if (!startDate || !endDate) {
@@ -43,12 +109,32 @@ async function doExport() {
   error.value = '';
   result.value = null;
 
+  const filters = getFilterParams();
+
   try {
-    const data = await $fetch('/api/export/markdown', {
-      method: 'POST',
-      body: { startDate, endDate, format: 'markdown' },
-    });
-    result.value = data as any;
+    if (exportFormat.value === 'docx') {
+      const response = await $fetch('/api/articles/export-docx', {
+        method: 'POST',
+        body: { dateRange: getDateRangeParam(), ...filters },
+        responseType: 'blob',
+      });
+      const blob = new Blob([response as any], {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `信息资讯推送_${startDate}_${endDate}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      result.value = { content: '', articleCount: 0, categories: [], message: 'Word 文档已下载' };
+    } else {
+      const data = await $fetch('/api/articles/export-summary', {
+        method: 'POST',
+        body: { dateRange: getDateRangeParam(), ...filters },
+      });
+      result.value = { content: (data as any).content, articleCount: (data as any).articleCount, categories: [], message: undefined };
+    }
   } catch (e: any) {
     error.value = e.data?.message || '导出失败，请稍后重试';
   } finally {
@@ -143,17 +229,15 @@ function togglePushTask(id: number) {
           <!-- 导出配置 -->
           <UCard>
             <div class="space-y-4">
-              <div class="flex items-center gap-4">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300 w-20">时间范围</label>
-                <USelect
-                  v-model="rangePreset"
-                  :options="presetOptions"
-                  value-attribute="value"
-                  option-attribute="label"
-                  class="w-40"
-                />
+              <!-- 筛选条件 -->
+              <div class="flex flex-wrap items-center gap-3">
+                <USelect v-model="rangePreset" :options="presetOptions" value-attribute="value" option-attribute="label" class="w-36" />
+                <USelect v-model="sourceType" :options="sourceTypeOptions" value-attribute="value" option-attribute="label" class="w-36" />
+                <USelect v-model="filterStatus" :options="filterStatusOptions" value-attribute="value" option-attribute="label" class="w-32" />
+                <USelect v-model="matchedTopic" :options="topicOptions" value-attribute="value" option-attribute="label" class="w-44" />
               </div>
 
+              <!-- 自定义日期 -->
               <div v-if="rangePreset === 'custom'" class="flex items-center gap-4">
                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300 w-20">起止日期</label>
                 <input
@@ -169,12 +253,16 @@ function togglePushTask(id: number) {
                 />
               </div>
 
+              <!-- 导出格式 + 按钮 -->
               <div class="flex items-center gap-4">
                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300 w-20">导出格式</label>
-                <UBadge color="blue" size="sm">Markdown</UBadge>
-              </div>
-
-              <div class="pt-2">
+                <USelect
+                  v-model="exportFormat"
+                  :options="formatOptions"
+                  value-attribute="value"
+                  option-attribute="label"
+                  class="w-48"
+                />
                 <UButton @click="doExport" :loading="loading" :disabled="loading" color="primary">
                   导出资讯报告
                 </UButton>
@@ -185,8 +273,53 @@ function togglePushTask(id: number) {
           <!-- 错误提示 -->
           <UAlert v-if="error" color="red" :title="error" />
 
+          <!-- 待导出文章预览 -->
+          <UCard v-if="previewData?.articles?.length">
+            <template #header>
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold">待导出文章</h3>
+                <span class="text-sm text-gray-500">共 {{ previewData.total }} 篇</span>
+              </div>
+            </template>
+            <div class="max-h-80 overflow-y-auto">
+              <table class="w-full text-sm">
+                <thead class="text-xs text-gray-500 border-b border-gray-200 dark:border-gray-700">
+                  <tr>
+                    <th class="text-left py-2 pr-3">标题</th>
+                    <th class="text-left py-2 px-3 w-28">分类</th>
+                    <th class="text-left py-2 pl-3 w-24">发布时间</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                  <tr v-for="article in previewData.articles" :key="article.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    <td class="py-2 pr-3">
+                      <a :href="article.link" target="_blank" class="text-gray-900 dark:text-white hover:text-primary-600 line-clamp-1">
+                        {{ article.title }}
+                      </a>
+                    </td>
+                    <td class="py-2 px-3">
+                      <UBadge v-if="article.matchedTopic" color="blue" size="xs" variant="subtle">{{ article.matchedTopic }}</UBadge>
+                      <span v-else class="text-gray-400">-</span>
+                    </td>
+                    <td class="py-2 pl-3 text-gray-500 whitespace-nowrap">
+                      {{ new Date(article.publishedAt).toLocaleDateString('zh-CN') }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-if="previewData.total > 100" class="pt-3 text-xs text-gray-400 border-t border-gray-200 dark:border-gray-700 mt-3">
+              仅显示前 100 篇，导出时最多处理 200 篇
+            </div>
+          </UCard>
+
+          <UAlert v-else-if="previewData && !previewData.articles?.length" color="yellow" title="当前筛选条件下无文章" />
+
           <!-- 空结果提示 -->
-          <UAlert v-if="result && !result.content" color="yellow" :title="result.message || '无可导出内容'" />
+          <UAlert v-if="result && !result.content && result.message" color="yellow" :title="result.message" />
+
+          <!-- Word 下载成功提示 -->
+          <UAlert v-if="result && !result.content && result.message === 'Word 文档已下载'" color="green" :title="result.message" />
 
           <!-- 导出结果 -->
           <UCard v-if="result?.content">

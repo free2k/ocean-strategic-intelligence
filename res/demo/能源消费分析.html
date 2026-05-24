@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中国能源消费总量分析</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; 
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .header {
+      text-align: center;
+      padding: 30px 0 20px;
+    }
+    .header h1 {
+      color: #fff;
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .header p {
+      color: #888;
+      font-size: 14px;
+    }
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .chart-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .chart-card.full-width {
+      grid-column: 1 / -1;
+    }
+    .chart-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1f2329;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #f0f2f5;
+    }
+    .chart { height: 400px; }
+    .chart-pie { height: 380px; }
+    .highlight {
+      color: #5470C6;
+      font-weight: 500;
+    }
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      max-width: 1400px;
+      margin: 0 auto 24px;
+    }
+    .stat-card {
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+    .stat-card .value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .stat-card .label {
+      font-size: 13px;
+      color: #888;
+      margin-top: 4px;
+    }
+    .stat-card .change {
+      font-size: 12px;
+      margin-top: 6px;
+    }
+    .stat-card .change.up { color: #f56c6c; }
+    .stat-card .change.down { color: #67c23a; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>⚡ 中国能源消费总量数据分析</h1>
+    <p>数据来源：国家统计局 | 2016-2025年度数据</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="value">61.7亿吨</div>
+      <div class="label">2025年能源消费总量</div>
+      <div class="change up">↑ 3.5% (较2024)</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">51.4%</div>
+      <div class="label">煤炭占比 (2025)</div>
+      <div class="change down">↓ 持续下降</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">8.8%</div>
+      <div class="label">天然气占比 (2024)</div>
+      <div class="change up">↑ 持续增长</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">8.84万亿</div>
+      <div class="label">电力消费量 (2024)</div>
+      <div class="change up">↑ 6.8%</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <!-- 能源消费总量趋势 -->
+    <div class="chart-card full-width">
+      <div class="chart-title">📈 能源消费总量趋势 (2016-2025)</div>
+      <div id="chart-line" class="chart"></div>
+    </div>
+
+    <!-- 能源结构占比 -->
+    <div class="chart-card">
+      <div class="chart-title">🥧 能源消费结构占比 (2024)</div>
+      <div id="chart-pie" class="chart-pie"></div>
+    </div>
+
+    <!-- 煤炭消费量趋势 -->
+    <div class="chart-card">
+      <div class="chart-title">🏭 主要能源消费品趋势</div>
+      <div id="chart-bar" class="chart-pie"></div>
+    </div>
+
+    <!-- 电力消费增长 -->
+    <div class="chart-card">
+      <div class="chart-title">⚡ 电力消费量增长趋势</div>
+      <div id="chart-electricity" class="chart-pie"></div>
+    </div>
+
+    <!-- 天然气消费趋势 -->
+    <div class="chart-card">
+      <div class="chart-title">🔥 天然气消费量增长趋势</div>
+      <div id="chart-gas" class="chart-pie"></div>
+    </div>
+  </div>
+
+  <script>
+    // 通用主题色
+    const colors = ['#5470C6', '#91CC75', '#FAC858', '#EE6666', '#73C0DE', '#3BA272', '#FC8452', '#9A60B4'];
+
+    // ===== 图1：能源消费总量趋势 =====
+    var chartLine = echarts.init(document.getElementById('chart-line'));
+    var optionLine = {
+      tooltip: { trigger: 'axis', backgroundColor: 'rgba(0,0,0,0.8)', borderColor: '#333', textStyle: { color: '#fff' } },
+      grid: { left: '8%', right: '5%', bottom: '12%', top: '15%' },
+      xAxis: {
+        type: 'category',
+        data: ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025'],
+        axisLabel: { color: '#666', fontSize: 12 }
+      },
+      yAxis: {
+        type: 'value',
+        name: '万吨标准煤',
+        axisLabel: { color: '#666', formatter: function(v) { return (v/10000).toFixed(0) + '万'; } }
+      },
+      series: [{
+        name: '能源消费总量',
+        type: 'line',
+        data: [441492, 455827, 471925, 485584, 496514, 525027, 541274, 571327, 596000, 617000],
+        smooth: true,
+        lineStyle: { width: 4, color: '#5470C6' },
+        itemStyle: { color: '#5470C6' },
+        areaStyle: {
+          color: {
+            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(84,112,198,0.4)' },
+              { offset: 1, color: 'rgba(84,112,198,0.05)' }
+            ]
+          }
+        },
+        label: { show: true, position: 'top', formatter: '{c}', fontSize: 10, color: '#5470C6' },
+        markLine: {
+          silent: true,
+          data: [{ type: 'average', name: '平均值' }],
+          lineStyle: { color: '#999', type: 'dashed' },
+          label: { formatter: '均值: {c}' }
+        }
+      }],
+      toolbox: {
+        right: 20, top: 0,
+        feature: { saveAsImage: { title: '下载PNG', name: '能源消费总量趋势', pixelRatio: 2, type: 'png' } }
+      }
+    };
+    chartLine.setOption(optionLine);
+
+    // ===== 图2：能源结构占比饼图 (2024) =====
+    var chartPie = echarts.init(document.getElementById('chart-pie'));
+    var optionPie = {
+      tooltip: { trigger: 'item', formatter: '{b}: {c}% ({d}%)', backgroundColor: 'rgba(0,0,0,0.8)', textStyle: { color: '#fff' } },
+      legend: { bottom: '5%', left: 'center', textStyle: { color: '#666' } },
+      series: [{
+        type: 'pie',
+        radius: ['40%', '70%'],
+        center: ['50%', '45%'],
+        avoidLabelOverlap: true,
+        itemStyle: { borderRadius: 8, borderColor: '#fff', borderWidth: 2 },
+        label: { show: true, formatter: '{b}\n{c}%', color: '#333', fontSize: 12 },
+        emphasis: {
+          label: { show: true, fontSize: 14, fontWeight: 'bold' },
+          itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.3)' }
+        },
+        data: [
+          { value: 53.2, name: '煤炭', itemStyle: { color: '#505050' } },
+          { value: 18.2, name: '石油', itemStyle: { color: '#5470C6' } },
+          { value: 8.8, name: '天然气', itemStyle: { color: '#FAC858' } },
+          { value: 19.8, name: '一次电力及其他', itemStyle: { color: '#91CC75' } }
+        ]
+      }],
+      toolbox: {
+        right: 20, top: 0,
+        feature: { saveAsImage: { title: '下载PNG', name: '能源结构占比', pixelRatio: 2, type: 'png' } }
+      }
+    };
+    chartPie.setOption(optionPie);
+
+    // ===== 图3：主要能源消费品趋势 =====
+    var chartBar = echarts.init(document.getElementById('chart-bar'));
+    var optionBar = {
+      tooltip: { 
+        trigger: 'axis',
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        textStyle: { color: '#fff' },
+        formatter: function(params) {
+          var res = params[0].axisValue + '<br/>';
+          for (var i = 0; i < params.length; i++) {
+            var val = params[i].value;
+            var unit = params[i].seriesName.indexOf('电力') > -1 ? '亿千瓦时' : '万吨';
+            res += params[i].marker + params[i].seriesName + ': ' + val.toLocaleString() + ' ' + unit + '<br/>';
+          }
+          return res;
+        }
+      },
+      legend: { top: 0, textStyle: { color: '#666' }, data: ['煤炭', '原油', '天然气', '电力'] },
+      grid: { left: '10%', right: '5%', bottom: '15%', top: '40px' },
+      xAxis: {
+        type: 'category',
+        data: ['2019', '2020', '2021', '2022', '2023', '2024'],
+        axisLabel: { color: '#666' }
+      },
+      yAxis: [
+        {
+          type: 'value',
+          name: '万吨',
+          axisLabel: { color: '#666', formatter: function(v) { return v.toLocaleString(); } }
+        },
+        {
+          type: 'value',
+          name: '亿m³/亿kWh',
+          axisLabel: { color: '#666' }
+        }
+      ],
+      series: [
+        {
+          name: '煤炭',
+          type: 'bar',
+          data: [391403, 397452, 401915, 404860, 429576, 448246],
+          itemStyle: { color: '#505050', borderRadius: [4,4,0,0] }
+        },
+        {
+          name: '原油',
+          type: 'bar',
+          data: [59402, 63004, 67268, 69477, 72299, 70023],
+          itemStyle: { color: '#5470C6', borderRadius: [4,4,0,0] }
+        },
+        {
+          name: '天然气',
+          type: 'bar',
+          yAxisIndex: 1,
+          data: [2393, 2817, 3059, 3339, 3747, 4006],
+          itemStyle: { color: '#FAC858', borderRadius: [4,4,0,0] }
+        },
+        {
+          name: '电力',
+          type: 'bar',
+          yAxisIndex: 1,
+          data: [65914, 71508, 74866, 77620, 85200, 88358],
+          itemStyle: { color: '#91CC75', borderRadius: [4,4,0,0] }
+        }
+      ],
+      toolbox: {
+        right: 20, top: 0,
+        feature: { saveAsImage: { title: '下载PNG', name: '主要能源消费对比', pixelRatio: 2, type: 'png' } }
+      }
+    };
+    chartBar.setOption(optionBar);
+
+    // ===== 图4：电力消费增长趋势 =====
+    var chartElectricity = echarts.init(document.getElementById('chart-electricity'));
+    var optionElectricity = {
+      tooltip: { trigger: 'axis', backgroundColor: 'rgba(0,0,0,0.8)', textStyle: { color: '#fff' } },
+      grid: { left: '12%', right: '8%', bottom: '15%', top: '15%' },
+      xAxis: { type: 'category', data: ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'], axisLabel: { color: '#666' } },
+      yAxis: { type: 'value', name: '亿千瓦小时', axisLabel: { color: '#666', formatter: function(v) { return v.toLocaleString(); } } },
+      series: [{
+        name: '电力消费',
+        type: 'line',
+        data: [61205, 65914, 68588, 72254, 76382, 83295, 86380, 92200, 94393],
+        smooth: true,
+        lineStyle: { width: 3, color: '#91CC75' },
+        itemStyle: { color: '#91CC75' },
+        areaStyle: { color: 'rgba(145,204,117,0.2)' },
+        label: { show: true, position: 'top', formatter: '{c}', fontSize: 9, color: '#91CC75' }
+      }],
+      toolbox: {
+        right: 20, top: 0,
+        feature: { saveAsImage: { title: '下载PNG', name: '电力消费增长趋势', pixelRatio: 2, type: 'png' } }
+      }
+    };
+    chartElectricity.setOption(optionElectricity);
+
+    // ===== 图5：天然气消费增长趋势 =====
+    var chartGas = echarts.init(document.getElementById('chart-gas'));
+    var optionGas = {
+      tooltip: { trigger: 'axis', backgroundColor: 'rgba(0,0,0,0.8)', textStyle: { color: '#fff' } },
+      grid: { left: '12%', right: '8%', bottom: '15%', top: '15%' },
+      xAxis: { type: 'category', data: ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'], axisLabel: { color: '#666' } },
+      yAxis: { type: 'value', name: '亿立方米', axisLabel: { color: '#666', formatter: function(v) { return v.toLocaleString(); } } },
+      series: [{
+        name: '天然气消费',
+        type: 'line',
+        data: [2078, 2193, 2393, 2766, 3070, 3693, 4039, 4347, 4747],
+        smooth: true,
+        lineStyle: { width: 3, color: '#FAC858' },
+        itemStyle: { color: '#FAC858' },
+        areaStyle: { color: 'rgba(250,200,88,0.2)' },
+        label: { show: true, position: 'top', formatter: '{c}', fontSize: 9, color: '#FAC858' }
+      }],
+      toolbox: {
+        right: 20, top: 0,
+        feature: { saveAsImage: { title: '下载PNG', name: '天然气消费增长趋势', pixelRatio: 2, type: 'png' } }
+      }
+    };
+    chartGas.setOption(optionGas);
+
+    // 响应式
+    window.addEventListener('resize', function() {
+      chartLine.resize();
+      chartPie.resize();
+      chartBar.resize();
+      chartElectricity.resize();
+      chartGas.resize();
+    });
+  </script>
+</body>
+</html>

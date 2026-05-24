@@ -12,12 +12,15 @@ export default defineNuxtConfig({
     chatModel: process.env.CHAT_MODEL || 'gpt-4o-mini',
     embeddingDimension: parseInt(process.env.EMBEDDING_DIMENSION || '1536'),
     public: {
-      appName: '海洋能源资源宏观知识库',
+      appName: '海洋能源资源情报分析',
     },
   },
   app: {
     head: {
-      title: '海洋能源资源宏观知识库 - 文章管理与智能问答',
+      title: '海洋能源资源情报分析 - 文章管理与智能问答',
+      link: [
+        { rel: 'icon', type: 'image/png', href: '/favicon.png' },
+      ],
       meta: [
         { name: 'description', content: '基于向量检索的文章知识库，支持多渠道文章管理和智能问答' },
       ],

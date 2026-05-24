@@ -1,18 +1,31 @@
-import { sql } from 'drizzle-orm';
+import { sql, eq } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 
 export default defineEventHandler(async () => {
   const db = useDB();
 
-  const sources = await db.select({
-    id: schema.sources.id,
-    fakeid: schema.sources.fakeid,
-    name: schema.sources.name,
-    alias: schema.sources.alias,
-    type: schema.sources.type,
-    createdAt: schema.sources.createdAt,
-    articleCount: sql<number>`(SELECT count(*) FROM articles WHERE source_id = ${schema.sources.id})`,
-  }).from(schema.sources);
+  // 先查所有来源
+  const allSources = await db.select().from(schema.sources);
+
+  // 再统计每个来源的文章数
+  const counts = await db.select({
+    sourceId: schema.articles.sourceId,
+    count: sql<string>`count(*)`,
+  })
+    .from(schema.articles)
+    .groupBy(schema.articles.sourceId);
+
+  const countMap = new Map(counts.map(c => [c.sourceId, Number(c.count)]));
+
+  const sources = allSources.map(s => ({
+    id: s.id,
+    fakeid: s.fakeid,
+    name: s.name,
+    alias: s.alias,
+    type: s.type,
+    createdAt: s.createdAt,
+    articleCount: countMap.get(s.id) || 0,
+  }));
 
   return { sources };
 });

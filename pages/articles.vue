@@ -48,8 +48,8 @@ const filterStatusOptions = [
 const sourceTypeOptions = [
   { label: '全部渠道', value: '' },
   { label: '微信公众号', value: 'wechat' },
-  { label: '网页', value: 'web' },
   { label: 'RSS', value: 'rss' },
+  { label: '网页', value: 'web' },  
   { label: '手动录入', value: 'manual' },
 ];
 
@@ -124,13 +124,40 @@ async function vectorizeOne(articleId: number) {
 
 // 导出总结
 const exportLoading = ref(false);
+const exportCountLoading = ref(false);
+const exportCount = ref<number | null>(null);
+const showExportConfirm = ref(false);
 
-async function exportSummary() {
-  if (!matchedTopic.value && !dateRange.value) {
-    alert('请至少选择一个行业分类或时间范围');
+// 获取可导出文章数量
+async function previewExportCount() {
+  if (!matchedTopic.value && !dateRange.value && !sourceType.value) {
+    alert('请至少选择一个筛选条件（行业分类、时间范围或渠道）');
     return;
   }
 
+  exportCountLoading.value = true;
+  try {
+    const res = await $fetch('/api/articles/export-count', {
+      method: 'POST',
+      body: {
+        topic: matchedTopic.value || undefined,
+        dateRange: dateRange.value || undefined,
+        sourceType: sourceType.value || undefined,
+        sourceId: sourceId.value ? Number(sourceId.value) : undefined,
+        filterStatus: filterStatus.value || undefined,
+      },
+    });
+    exportCount.value = res.count;
+    showExportConfirm.value = true;
+  } catch (e: any) {
+    alert(e.data?.message || '查询失败');
+  } finally {
+    exportCountLoading.value = false;
+  }
+}
+
+async function confirmExport() {
+  showExportConfirm.value = false;
   exportLoading.value = true;
   try {
     const result = await $fetch('/api/articles/export-summary', {
@@ -140,6 +167,7 @@ async function exportSummary() {
         dateRange: dateRange.value || undefined,
         sourceType: sourceType.value || undefined,
         sourceId: sourceId.value ? Number(sourceId.value) : undefined,
+        filterStatus: filterStatus.value || undefined,
       },
     });
 
@@ -157,6 +185,11 @@ async function exportSummary() {
     exportLoading.value = false;
   }
 }
+
+function cancelExport() {
+  showExportConfirm.value = false;
+  exportCount.value = null;
+}
 </script>
 
 <template>
@@ -170,7 +203,7 @@ async function exportSummary() {
       <div class="relative z-10 flex items-center justify-between">
         <h1 class="text-2xl font-bold text-white">文章列表</h1>
         <div class="flex items-center gap-3">
-        <UButton @click="exportSummary" :loading="exportLoading" color="green" size="sm">
+        <UButton @click="previewExportCount" :loading="exportCountLoading || exportLoading" color="green" size="sm">
           导出总结
         </UButton>
         <span class="text-sm text-blue-100" v-if="data">共 {{ data.total }} 篇</span>
@@ -234,5 +267,30 @@ async function exportSummary() {
     <div v-else class="text-center py-12 text-gray-500">
       暂无文章
     </div>
+
+    <!-- 导出确认弹窗 -->
+    <UModal v-model="showExportConfirm">
+      <UCard>
+        <template #header>
+          <h3 class="font-semibold text-lg">确认导出</h3>
+        </template>
+        <div class="space-y-3">
+          <p class="text-gray-700 dark:text-gray-300">
+            当前筛选条件下共有 <span class="text-primary-600 font-bold text-lg">{{ exportCount }}</span> 篇文章可导出。
+          </p>
+          <p class="text-sm text-gray-500">
+            每篇文章将生成约 400 字的摘要总结，按行业分类分组输出为 Markdown 文档。
+          </p>
+        </div>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton @click="cancelExport" color="gray" variant="ghost">取消</UButton>
+            <UButton @click="confirmExport" :loading="exportLoading" color="green">
+              确认导出 {{ exportCount }} 篇
+            </UButton>
+          </div>
+        </template>
+      </UCard>
+    </UModal>
   </div>
 </template>
