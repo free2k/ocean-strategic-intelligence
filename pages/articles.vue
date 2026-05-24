@@ -161,13 +161,20 @@ async function exportSummary() {
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">文章列表</h1>
-      <div class="flex items-center gap-3">
+    <!-- 页面标题带背景 -->
+    <div
+      class="relative rounded-xl overflow-hidden py-6 px-6 mb-2"
+      style="background-image: url('/bg/bg1.jpg'); background-size: cover; background-position: center bottom;"
+    >
+      <div class="absolute inset-0 bg-gradient-to-r from-blue-900/75 to-indigo-800/60" />
+      <div class="relative z-10 flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-white">文章列表</h1>
+        <div class="flex items-center gap-3">
         <UButton @click="exportSummary" :loading="exportLoading" color="green" size="sm">
           导出总结
         </UButton>
-        <span class="text-sm text-gray-500" v-if="data">共 {{ data.total }} 篇</span>
+        <span class="text-sm text-blue-100" v-if="data">共 {{ data.total }} 篇</span>
+        </div>
       </div>
     </div>
 
