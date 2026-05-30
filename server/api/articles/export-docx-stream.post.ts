@@ -1,4 +1,4 @@
-import { desc, eq, and, gte } from 'drizzle-orm';
+import { desc, eq, and, gte, inArray } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 import { chatCompletion } from '~/server/utils/embedding';
 import {
@@ -83,6 +83,7 @@ export default defineEventHandler(async (event) => {
     sourceType?: string;
     sourceId?: number;
     filterStatus?: string;
+    overseas?: string;
   }>(event);
 
   const db = useDB();
@@ -96,6 +97,19 @@ export default defineEventHandler(async (event) => {
   if (body?.sourceType) conditions.push(eq(schema.articles.sourceType, body.sourceType));
   if (body?.sourceId) conditions.push(eq(schema.articles.sourceId, body.sourceId));
   if (body?.filterStatus) conditions.push(eq(schema.articles.filterStatus, body.filterStatus));
+
+  // Filter by overseas status
+  if (body?.overseas === 'true' || body?.overseas === 'false') {
+    const overseasSources = await db.select({ id: schema.sources.id })
+      .from(schema.sources)
+      .where(eq(schema.sources.isOverseas, body.overseas === 'true'));
+    const ids = overseasSources.map(s => s.id);
+    if (ids.length > 0) {
+      conditions.push(inArray(schema.articles.sourceId, ids));
+    } else if (body.overseas === 'true') {
+      throw createError({ statusCode: 400, message: '没有符合条件的文章' });
+    }
+  }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -143,12 +157,33 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // 按行业分组（外网来源归入"外网资讯"）
-  const grouped: Record<string, typeof articles> = {};
-  for (const article of deduped) {
-    const topic = article.isOverseas ? '外网资讯' : (article.matchedTopic || '未分类');
-    if (!grouped[topic]) grouped[topic] = [];
-    grouped[topic].push(article);
+  // 按国内/外网 + 行业分组
+  const hasBothDomesticAndOverseas = !body?.overseas;
+  const domesticArticles = deduped.filter(a => !a.isOverseas);
+  const overseasArticles = deduped.filter(a => a.isOverseas);
+
+  function groupByTopic(articles: typeof deduped): Record<string, typeof deduped> {
+    const grouped: Record<string, typeof deduped> = {};
+    for (const article of articles) {
+      const topic = article.matchedTopic || '未分类';
+      if (!grouped[topic]) grouped[topic] = [];
+      grouped[topic].push(article);
+    }
+    return grouped;
+  }
+
+  interface SectionGroup { [topic: string]: typeof deduped }
+  const sections: { name: string; groups: SectionGroup }[] = [];
+
+  if (hasBothDomesticAndOverseas) {
+    if (domesticArticles.length > 0) {
+      sections.push({ name: '国内资讯', groups: groupByTopic(domesticArticles) });
+    }
+    if (overseasArticles.length > 0) {
+      sections.push({ name: '外网资讯', groups: groupByTopic(overseasArticles) });
+    }
+  } else {
+    sections.push({ name: '', groups: groupByTopic(deduped) });
   }
 
   // 日期范围
@@ -190,67 +225,85 @@ export default defineEventHandler(async (event) => {
   docChildren.push(new Paragraph({
     children: [new TableOfContents('目录', {
       hyperlink: true,
-      headingStyleRange: '1-2',
-      stylesWithLevels: [new StyleLevel('Heading1', 1), new StyleLevel('Heading2', 2)],
+      headingStyleRange: '1-3',
+      stylesWithLevels: [new StyleLevel('Heading1', 1), new StyleLevel('Heading2', 2), new StyleLevel('Heading3', 3)],
     })],
   }));
 
   docChildren.push(new Paragraph({ children: [new PageBreak()] }));
 
-  for (const [topic, topicArticles] of Object.entries(grouped)) {
-    const prefix = topicNumbers[topicIndex] || String(topicIndex + 1);
-    topicIndex++;
+  for (const section of sections) {
+    // 如果有大分类标题（国内资讯/外网资讯）
+    if (section.name) {
+      const sectionPrefix = topicNumbers[topicIndex] || String(topicIndex + 1);
+      topicIndex++;
+      docChildren.push(new Paragraph({
+        heading: HeadingLevel.HEADING_1,
+        spacing: { before: 400, after: 200 },
+        children: [new TextRun({ text: `${sectionPrefix}、${section.name}`, bold: true, size: 28 })],
+      }));
+    }
 
-    docChildren.push(new Paragraph({
-      heading: HeadingLevel.HEADING_1,
-      spacing: { before: 400, after: 200 },
-      children: [new TextRun({ text: `${prefix}、${topic}`, bold: true, size: 28 })],
-    }));
-
-    for (let i = 0; i < topicArticles.length; i += 5) {
-      const batch = topicArticles.slice(i, i + 5);
-
-      for (const article of batch) {
-        sendEvent({ type: 'progress', current: processed + 1, total: deduped.length, title: article.title });
+    for (const [topic, topicArticles] of Object.entries(section.groups)) {
+      // 行业子分类标题：追加"要闻"后缀
+      let topicDisplay = topic;
+      if (topic !== '未分类' && !topic.endsWith('要闻') && !topic.endsWith('资讯')) {
+        topicDisplay = `${topic}要闻`;
       }
 
-      const summaries = await Promise.all(batch.map(a => generateArticleSummary(a)));
+      docChildren.push(new Paragraph({
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 300, after: 150 },
+        children: [new TextRun({ text: section.name ? `${topicDisplay}` : `${topicNumbers[topicIndex] || String(topicIndex + 1)}、${topicDisplay}`, bold: true, size: 26 })],
+      }));
+      if (!section.name) topicIndex++;
 
-      for (let j = 0; j < batch.length; j++) {
-        const article = batch[j];
-        const summaryText = summaries[j];
-        const articleDate = new Date(article.publishedAt).toLocaleDateString('zh-CN');
+      for (let i = 0; i < topicArticles.length; i += 5) {
+        const batch = topicArticles.slice(i, i + 5);
 
-        docChildren.push(new Paragraph({
-          heading: HeadingLevel.HEADING_2,
-          spacing: { before: 300, after: 100 },
-          children: [new TextRun({ text: `《${article.title}》`, bold: true, size: 24 })],
-        }));
-
-        docChildren.push(new Paragraph({
-          spacing: { after: 100 },
-          children: [new TextRun({ text: summaryText, size: 21 })],
-        }));
-
-        docChildren.push(new Paragraph({
-          spacing: { after: 50 },
-          children: [new TextRun({ text: `来源：${article.sourceName || '未知'}，${articleDate}`, size: 18, color: '666666' })],
-        }));
-
-        if (article.link) {
-          docChildren.push(new Paragraph({
-            spacing: { after: 200 },
-            children: [
-              new ExternalHyperlink({
-                children: [new TextRun({ text: article.link, size: 18, color: '0563C1', underline: {} })],
-                link: article.link,
-              }),
-            ],
-          }));
+        for (const article of batch) {
+          sendEvent({ type: 'progress', current: processed + 1, total: deduped.length, title: article.title });
         }
 
-        processed++;
-        sendEvent({ type: 'progress', current: processed, total: deduped.length, title: article.title });
+        const summaries = await Promise.all(batch.map(a => generateArticleSummary(a)));
+
+        for (let j = 0; j < batch.length; j++) {
+          const article = batch[j];
+          const summaryText = summaries[j];
+          const articleDate = new Date(article.publishedAt).toLocaleDateString('zh-CN');
+
+          // 文章标题 (Heading 3 - 出现在目录中)
+          docChildren.push(new Paragraph({
+            heading: HeadingLevel.HEADING_3,
+            spacing: { before: 200, after: 100 },
+            children: [new TextRun({ text: `《${article.title}》`, bold: true, size: 24 })],
+          }));
+
+          docChildren.push(new Paragraph({
+            spacing: { after: 100 },
+            children: [new TextRun({ text: summaryText, size: 21 })],
+          }));
+
+          docChildren.push(new Paragraph({
+            spacing: { after: 50 },
+            children: [new TextRun({ text: `来源：${article.sourceName || '未知'}，${articleDate}`, size: 18, color: '666666' })],
+          }));
+
+          if (article.link) {
+            docChildren.push(new Paragraph({
+              spacing: { after: 200 },
+              children: [
+                new ExternalHyperlink({
+                  children: [new TextRun({ text: article.link, size: 18, color: '0563C1', underline: {} })],
+                  link: article.link,
+                }),
+              ],
+            }));
+          }
+
+          processed++;
+          sendEvent({ type: 'progress', current: processed, total: deduped.length, title: article.title });
+        }
       }
     }
   }

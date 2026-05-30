@@ -1,4 +1,4 @@
-import { desc, eq, and, gte } from 'drizzle-orm';
+import { desc, eq, and, gte, inArray } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 import { chatCompletion } from '~/server/utils/embedding';
 
@@ -74,6 +74,7 @@ export default defineEventHandler(async (event) => {
     sourceType?: string;
     sourceId?: number;
     filterStatus?: string;
+    overseas?: string;
   }>(event);
 
   const db = useDB();
@@ -87,6 +88,19 @@ export default defineEventHandler(async (event) => {
   if (body?.sourceType) conditions.push(eq(schema.articles.sourceType, body.sourceType));
   if (body?.sourceId) conditions.push(eq(schema.articles.sourceId, body.sourceId));
   if (body?.filterStatus) conditions.push(eq(schema.articles.filterStatus, body.filterStatus));
+
+  // Filter by overseas status
+  if (body?.overseas === 'true' || body?.overseas === 'false') {
+    const overseasSources = await db.select({ id: schema.sources.id })
+      .from(schema.sources)
+      .where(eq(schema.sources.isOverseas, body.overseas === 'true'));
+    const ids = overseasSources.map(s => s.id);
+    if (ids.length > 0) {
+      conditions.push(inArray(schema.articles.sourceId, ids));
+    } else if (body.overseas === 'true') {
+      throw createError({ statusCode: 400, message: '没有符合条件的文章' });
+    }
+  }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -134,12 +148,36 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // 按行业分组（外网来源归入"外网资讯"）
-  const grouped: Record<string, typeof articles> = {};
-  for (const article of deduped) {
-    const topic = article.isOverseas ? '外网资讯' : (article.matchedTopic || '未分类');
-    if (!grouped[topic]) grouped[topic] = [];
-    grouped[topic].push(article);
+  // 按国内/外网 + 行业分组
+  const hasBothDomesticAndOverseas = !body?.overseas; // 没传 overseas 参数说明两个都选了
+  const domesticArticles = deduped.filter(a => !a.isOverseas);
+  const overseasArticles = deduped.filter(a => a.isOverseas);
+
+  // 按行业分组的辅助函数
+  function groupByTopic(articles: typeof deduped): Record<string, typeof deduped> {
+    const grouped: Record<string, typeof deduped> = {};
+    for (const article of articles) {
+      const topic = article.matchedTopic || '未分类';
+      if (!grouped[topic]) grouped[topic] = [];
+      grouped[topic].push(article);
+    }
+    return grouped;
+  }
+
+  // 构建最终的分组结构：{ sectionName: { topic: articles[] } }
+  interface SectionGroup { [topic: string]: typeof deduped }
+  const sections: { name: string; groups: SectionGroup }[] = [];
+
+  if (hasBothDomesticAndOverseas) {
+    if (domesticArticles.length > 0) {
+      sections.push({ name: '国内资讯', groups: groupByTopic(domesticArticles) });
+    }
+    if (overseasArticles.length > 0) {
+      sections.push({ name: '外网资讯', groups: groupByTopic(overseasArticles) });
+    }
+  } else {
+    // 只选了一个方向，直接按行业分组（不加国内/外网大标题）
+    sections.push({ name: '', groups: groupByTopic(deduped) });
   }
 
   // 日期范围
@@ -164,32 +202,38 @@ export default defineEventHandler(async (event) => {
   let content = `# 信息资讯参考 ${startDate}-${endDate}\n\n---\n`;
   let processed = 0;
 
-  for (const [topic, topicArticles] of Object.entries(grouped)) {
-    content += `\n## ${topic}\n\n`;
+  for (const section of sections) {
+    // 如果有大分类标题（国内/外网）
+    if (section.name) {
+      content += `\n# ${section.name}\n\n`;
+    }
 
-    for (let i = 0; i < topicArticles.length; i += 5) {
-      const batch = topicArticles.slice(i, i + 5);
+    for (const [topic, topicArticles] of Object.entries(section.groups)) {
+      content += `\n## ${topic}\n\n`;
 
-      // 发送当前正在处理的文章标题
-      for (const article of batch) {
-        sendEvent({ type: 'progress', current: processed + 1, total: deduped.length, title: article.title });
-      }
+      for (let i = 0; i < topicArticles.length; i += 5) {
+        const batch = topicArticles.slice(i, i + 5);
 
-      const summaries = await Promise.all(batch.map(a => generateArticleSummary(a)));
+        for (const article of batch) {
+          sendEvent({ type: 'progress', current: processed + 1, total: deduped.length, title: article.title });
+        }
 
-      for (let j = 0; j < batch.length; j++) {
-        const article = batch[j];
-        const articleDate = new Date(article.publishedAt).toLocaleDateString('zh-CN');
-        const summaryText = summaries[j];
+        const summaries = await Promise.all(batch.map(a => generateArticleSummary(a)));
 
-        content += `### 《${article.title}》\n\n`;
-        content += `${summaryText}\n\n`;
-        content += `来源：${article.sourceName || '未知'}，${articleDate}\n`;
-        content += `${article.link}\n\n`;
-        content += `---\n\n`;
+        for (let j = 0; j < batch.length; j++) {
+          const article = batch[j];
+          const articleDate = new Date(article.publishedAt).toLocaleDateString('zh-CN');
+          const summaryText = summaries[j];
 
-        processed++;
-        sendEvent({ type: 'progress', current: processed, total: deduped.length, title: article.title });
+          content += `### 《${article.title}》\n\n`;
+          content += `${summaryText}\n\n`;
+          content += `来源：${article.sourceName || '未知'}，${articleDate}\n`;
+          content += `${article.link}\n\n`;
+          content += `---\n\n`;
+
+          processed++;
+          sendEvent({ type: 'progress', current: processed, total: deduped.length, title: article.title });
+        }
       }
     }
   }

@@ -1,62 +1,147 @@
 {
   "topics": {
+    "海洋能源资源宏观政策": {
+      "description": "国家级/地方政府及国际层面发布的海洋能源、海洋资源开发相关顶层规划、指导意见、管理办法",
+      "includeTitle": [
+        "海洋能源政策", "海洋资源规划", "海洋能源规划", "海洋生态保护",
+        "自然资源部", "能源局", "海洋能源", "海洋资源开发",
+        "海洋产业政策", "海洋发展规划", "海洋战略", "蓝色经济",
+        "海洋强国", "海洋经济", "海域使用", "海洋管理办法",
+        "海洋能源标准", "海洋产业路线图", "海洋开发准入",
+        "国际海洋合作", "全球海洋能源", "联合国海洋", "国际能源署"
+      ],
+      "includeContent": [
+        "海洋能源政策", "海洋资源规划", "海洋能源规划", "海洋生态保护",
+        "自然资源部", "国家能源局", "海洋能源", "海洋资源开发",
+        "海洋产业政策", "海洋发展规划", "海洋战略", "蓝色经济",
+        "海洋强国", "海洋经济发展", "海域使用管理", "海洋管理办法",
+        "海洋能源标准", "海洋产业路线图", "海洋开发准入规则",
+        "国际海洋合作框架", "全球海洋能源发展", "联合国海洋机构",
+        "顶层规划", "指导意见", "中长期发展",
+        "marine energy policy", "ocean energy strategy", "blue economy",
+        "marine resource development", "ocean governance",
+        "maritime energy planning", "offshore energy regulation",
+        "IEA ocean energy", "UN ocean", "marine spatial planning"
+      ]
+    },
+    "海洋油气": {
+      "description": "海洋油气勘探开发、产业动态及安全环保（不含装备类）",
+      "priority": 2,
+      "includeTitle": [
+        "海洋油气", "海上油气", "深海油气", "深水油气", "近海油气",
+        "油气勘探", "油气田开发", "海上油田", "油气发现", "油气储量",
+        "深海开发", "海洋石油", "中海油", "海油工程", "溢油应急"
+      ],
+      "includeContent": [
+        "海洋油气", "海上油气", "深海油气", "深水油气", "近海油气",
+        "油气勘探", "油气田开发", "海上油田投产", "油气重大发现", "油气储量评估",
+        "深海开发项目", "海洋石油", "中海油", "海油工程", "溢油应急处置",
+        "深海采油", "海底管道", "海上天然气",
+        "offshore oil and gas", "deepwater oil", "subsea production",
+        "offshore drilling", "offshore platform",
+        "oil exploration", "gas field development",
+        "offshore petroleum", "oil discovery",
+        "offshore reserves", "marine oil spill"
+      ]
+    },
     "海洋油气装备": {
-      "description": "海洋油气装备国内外合作资讯",
+      "description": "海洋油气装备国内外合作、技术突破与国产化应用（必须涉及装备/设备概念）",
+      "priority": 1,
+      "requireAll": true,
+      "groups": [
+        ["油气", "海洋油气", "海上油气", "深海油气", "海工", "offshore oil", "deepwater oil", "subsea", "offshore"],
+        ["装备", "设备", "平台", "船舶", "工程船", "钻井平台", "FPSO", "半潜式", "安装船", "起重船", "铺管船", "equipment", "rig", "vessel", "platform", "FPSO", "ship", "crane"]
+      ],
       "includeTitle": [
         "海洋油气装备", "海工装备", "海上油气装备", "深海油气装备",
-        "水下油气生产系统", "FPSO", "半潜式钻井平台", "深海采矿装备",
-        "风电安装船", "油气工程船舶",
-        "国际合作", "海外合作", "中外合资", "技术合作", "项目合作",
-        "联合研发", "订单签署", "供应链合作", "装备出口", "装备引进",
-        "EPCI总承包", "联合投标", "跨境交付", "技术转让", "战略合作",
-        "合作备忘录", "合资建厂",
-        "签约", "中标", "新订单", "合作进展"
+        "水下油气生产系统", "半潜式钻井平台", "深海采矿装备",
+        "风电安装船", "油气工程船舶", "海洋工程装备", "FPSO",
+        "EPCI总承包", "装备出口", "装备引进", "装备国产化",
+        "新订单", "中标", "签约", "交付"
       ],
       "includeContent": [
         "海洋油气装备", "海工装备", "海上油气装备", "深海油气装备",
-        "水下油气生产系统", "FPSO", "半潜式钻井平台", "深海采矿装备",
-        "风电安装船", "油气工程船舶",
-        "国际合作", "国内外合作", "海外合作", "中外合资", "技术合作",
-        "项目合作", "联合研发", "订单签署", "供应链合作", "装备出口",
-        "装备引进", "EPCI总承包", "联合投标", "跨境交付", "技术转让",
-        "战略合作", "合作备忘录", "合资建厂",
-        "offshore oil and gas equipment", "subsea oil and gas equipment",
-        "offshore engineering equipment", "FPSO",
-        "semi-submersible drilling rig", "deepsea oil and gas equipment",
-        "international cooperation", "Sino-foreign cooperation",
-        "joint R&D", "project cooperation", "EPC contract", "EPCI contract",
-        "supply chain cooperation", "equipment export", "equipment import",
-        "order signing", "strategic partnership", "technology transfer",
-        "cross-border delivery"
+        "水下油气生产系统", "半潜式钻井平台", "深海采矿装备",
+        "风电安装船", "油气工程船舶", "海洋工程装备", "FPSO",
+        "EPCI总承包", "装备出口", "装备引进", "装备国产化",
+        "联合研发", "订单签署", "供应链合作", "技术转让",
+        "offshore oil and gas equipment", "subsea equipment",
+        "offshore engineering equipment", "FPSO construction",
+        "semi-submersible drilling rig", "deepwater equipment",
+        "EPC contract", "EPCI contract", "equipment export",
+        "order signing", "shipbuilding order", "technology transfer"
       ]
     },
-    "海洋碳产业": {
-      "description": "海洋碳产业交易机制",
+    "海洋新能源": {
+      "description": "海上风电、海上光伏、海水制氢、波浪能、潮汐能等海洋可再生能源全产业链",
       "includeTitle": [
+        "海上风电", "海上光伏", "海水制氢", "漂浮式风电",
+        "波浪能", "潮汐能", "温差能", "盐差能", "海洋可再生能源",
+        "海上风机", "海底电缆", "海上储能", "海上并网",
+        "深远海风电", "海上风电场", "海上新能源", "海上发电"
+      ],
+      "includeContent": [
+        "海上风电", "海上光伏", "海水制氢", "漂浮式风电",
+        "波浪能", "潮汐能", "温差能", "盐差能", "海洋可再生能源",
+        "海上风机", "海底电缆", "海上储能", "海上并网消纳",
+        "深远海风电", "海上风电场", "海上新能源", "海上发电",
+        "海上风电补贴", "海域使用", "海上装机规模",
+        "offshore wind", "offshore solar", "offshore photovoltaic",
+        "floating wind", "wave energy", "tidal energy",
+        "ocean thermal energy", "marine renewable energy",
+        "offshore wind turbine", "subsea cable", "offshore hydrogen",
+        "offshore wind farm", "offshore energy storage"
+      ]
+    },
+    "海洋多能融合": {
+      "description": "海上多种能源跨领域融合模式、试点项目与商业模式创新",
+      "includeTitle": [
+        "多能融合", "多能互补", "渔光互补", "海上牧场",
+        "风渔融合", "风光渔", "海上微电网", "综合能源岛",
+        "油气平台供电", "海水淡化耦合", "海洋微藻", "生物质能",
+        "海上综合能源", "融合供电"
+      ],
+      "includeContent": [
+        "多能融合", "多能互补", "渔光互补", "海上牧场一体化",
+        "风渔融合", "风光渔互补", "海上微电网", "综合能源岛",
+        "油气平台融合供电", "海水淡化耦合", "海洋微藻生物质能",
+        "海上综合能源", "融合供电", "商业模式创新", "综合能效提升",
+        "multi-energy integration", "offshore microgrid",
+        "wind-fishery integration", "offshore energy island",
+        "hybrid offshore energy", "ocean multi-energy",
+        "offshore desalination coupling", "marine biomass energy"
+      ]
+    },
+    "海洋低碳领域": {
+      "description": "海洋碳汇、蓝碳交易、海洋减排降碳、负碳技术及国际合作",
+      "includeTitle": [
+        "海洋碳汇", "蓝碳", "蓝色碳汇", "海洋碳产业", "滨海蓝碳",
+        "红树林碳汇", "海草床碳汇", "盐沼碳汇", "渔业碳汇",
+        "碳交易", "蓝碳交易", "海洋碳汇交易", "碳交易机制",
+        "碳排放权交易", "海洋碳定价", "蓝碳核算", "蓝碳标准",
+        "海洋碳封存", "海底碳封存", "海洋碱化固碳",
+        "CCER", "海洋碳金融", "海洋气候治理",
+        "海上船舶低碳", "港口岸电", "甲烷减排"
+      ],
+      "includeContent": [
         "海洋碳汇", "蓝碳", "蓝色碳汇", "海洋碳产业", "滨海蓝碳",
         "红树林碳汇", "海草床碳汇", "盐沼碳汇", "渔业碳汇",
         "碳交易", "蓝碳交易", "海洋碳汇交易", "碳交易机制",
         "碳排放权交易", "碳交易市场", "海洋碳定价", "蓝碳核算",
         "蓝碳标准", "碳交易试点", "碳汇质押", "海洋碳金融",
-        "CCER", "蓝碳项目备案", "海洋碳汇上市"
-      ],
-      "includeContent": [
-        "海洋碳汇", "蓝碳", "蓝色碳汇", "海洋碳产业", "滨海蓝碳",
-        "红树林碳汇", "海草床碳汇", "盐沼碳汇", "渔业碳汇",
-        "碳交易", "蓝碳交易", "海洋碳汇交易", "碳交易机制",
-        "碳排放权交易", "碳交易市场", "海洋碳定价", "蓝碳核算",
-        "蓝碳标准", "交易规则", "碳交易试点", "碳汇质押",
-        "海洋碳金融", "CCER", "国家核证自愿减排量", "VER",
-        "核证碳标准", "碳减排量", "碳交易政策", "蓝碳项目备案",
-        "海洋碳汇上市",
+        "CCER", "蓝碳项目备案", "海洋碳汇上市",
+        "海洋碳封存", "海底二氧化碳地质封存", "海洋碱化固碳",
+        "海上船舶低碳燃料", "港口岸电", "海洋油气甲烷减排",
+        "全球海洋气候治理", "跨国海洋低碳合作",
         "blue carbon", "marine carbon sink", "coastal blue carbon",
         "mangrove carbon sink", "seagrass carbon sink",
         "ocean carbon trading", "blue carbon trading",
         "carbon trading mechanism", "carbon emission trading",
         "carbon market", "blue carbon accounting", "blue carbon standard",
-        "carbon pricing", "carbon credit", "verified carbon standard",
-        "VCS", "CCER", "marine carbon finance", "blue carbon project",
-        "carbon trading policy"
+        "carbon pricing", "carbon credit", "CCER",
+        "marine carbon capture", "subsea carbon storage",
+        "ocean alkalinity enhancement", "marine carbon finance",
+        "ocean climate governance", "low-carbon shipping"
       ]
     }
   }

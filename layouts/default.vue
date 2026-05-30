@@ -2,12 +2,12 @@
 const route = useRoute();
 
 const navItems = [
-  { label: '首页', to: '/', exact: true },
-  { label: '文章抓取', to: '/wechat' },
-  { label: '文章列表', to: '/articles' },
-  { label: '图表可视化', to: '/charts' },
-  { label: '导出与推送', to: '/export' },
-  { label: '管理', to: '/admin' },
+  { label: '首页', to: '/', exact: true, icon: '/icon/home.png' },
+  { label: '文章抓取', to: '/wechat', icon: '/icon/claw.png' },
+  { label: '文章列表', to: '/articles', icon: '/icon/articles.png' },
+  { label: '图表可视化', to: '/charts', icon: '/icon/graph.png' },
+  { label: '导出与推送', to: '/export', icon: '/icon/send.png' },
+  { label: '管理', to: '/admin', icon: '/icon/setting.png' },
 ];
 
 function isNavActive(item: { to: string; exact?: boolean }): boolean {
@@ -25,16 +25,17 @@ function isNavActive(item: { to: string; exact?: boolean }): boolean {
             <img src="/favicon.png" alt="logo" class="w-7 h-7" />
             海洋能源资源情报分析
           </NuxtLink>
-          <nav class="flex items-center gap-4">
+          <nav class="flex items-center gap-5">
             <NuxtLink
               v-for="item in navItems"
               :key="item.to"
               :to="item.to"
-              class="text-sm px-2 py-1 rounded transition-colors"
+              class="flex items-center gap-2 text-base px-3 py-1.5 rounded transition-colors"
               :class="isNavActive(item)
                 ? 'text-primary-600 dark:text-primary-400 font-semibold bg-primary-50 dark:bg-primary-900/30'
                 : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'"
             >
+              <img :src="item.icon" :alt="item.label" class="w-5 h-5" />
               {{ item.label }}
             </NuxtLink>
           </nav>

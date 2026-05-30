@@ -9,6 +9,9 @@ export default defineEventHandler(async (event) => {
     titleKeywords?: string[];
     contentKeywords?: string[];
     enabled?: boolean;
+    priority?: number;
+    requireAll?: boolean;
+    groups?: string[][];
   }>(event);
 
   const db = useDB();
@@ -19,6 +22,9 @@ export default defineEventHandler(async (event) => {
   if (body.titleKeywords !== undefined) updates.titleKeywords = body.titleKeywords;
   if (body.contentKeywords !== undefined) updates.contentKeywords = body.contentKeywords;
   if (body.enabled !== undefined) updates.enabled = body.enabled;
+  if (body.priority !== undefined) updates.priority = body.priority;
+  if (body.requireAll !== undefined) updates.requireAll = body.requireAll;
+  if (body.groups !== undefined) updates.groups = body.groups;
 
   const [rule] = await db.update(schema.filterRules)
     .set(updates)

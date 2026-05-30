@@ -200,11 +200,17 @@ export default defineEventHandler(async (event) => {
     const prefix = topicNumbers[topicIndex] || String(topicIndex + 1);
     topicIndex++;
 
+    // 分类名称：如果不以"要闻"或"资讯"结尾，自动追加"要闻"
+    let topicDisplay = topic;
+    if (topic !== '未分类' && topic !== '外网资讯' && !topic.endsWith('要闻') && !topic.endsWith('资讯')) {
+      topicDisplay = `${topic}要闻`;
+    }
+
     // 行业标题 (Heading 1)
     docChildren.push(new Paragraph({
       heading: HeadingLevel.HEADING_1,
       spacing: { before: 400, after: 200 },
-      children: [new TextRun({ text: `${prefix}、${topic}`, bold: true, size: 28 })],
+      children: [new TextRun({ text: `${prefix}、${topicDisplay}`, bold: true, size: 28 })],
     }));
 
     // 生成摘要

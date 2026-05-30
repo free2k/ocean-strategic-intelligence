@@ -1,4 +1,4 @@
-import { desc, eq, and, gte } from 'drizzle-orm';
+import { desc, eq, and, gte, inArray, sql } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 
 function parseDateRange(range: string): Date | null {
@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
     sourceType?: string;
     sourceId?: number;
     filterStatus?: string;
+    overseas?: string;
   }>(event);
 
   const db = useDB();
@@ -42,12 +43,23 @@ export default defineEventHandler(async (event) => {
   if (body?.filterStatus) {
     conditions.push(eq(schema.articles.filterStatus, body.filterStatus));
   }
+  if (body?.overseas === 'true' || body?.overseas === 'false') {
+    const overseasSources = await db.select({ id: schema.sources.id })
+      .from(schema.sources)
+      .where(eq(schema.sources.isOverseas, body.overseas === 'true'));
+    const ids = overseasSources.map(s => s.id);
+    if (ids.length > 0) {
+      conditions.push(inArray(schema.articles.sourceId, ids));
+    } else if (body.overseas === 'true') {
+      return { count: 0 };
+    }
+  }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
-  const articles = await db.select({ id: schema.articles.id })
+  const [result] = await db.select({ count: sql<number>`count(*)` })
     .from(schema.articles)
     .where(where);
 
-  return { count: articles.length };
+  return { count: Number(result.count) };
 });

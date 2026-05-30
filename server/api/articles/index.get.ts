@@ -24,6 +24,7 @@ export default defineEventHandler(async (event) => {
   const filterStatus = (query.filterStatus as string) || '';
   const matchedTopic = (query.matchedTopic as string) || '';
   const dateRange = (query.dateRange as string) || '';
+  const overseas = (query.overseas as string) || '';  // 'true' = only overseas, 'false' = exclude overseas
 
   const db = useDB();
   const offset = (page - 1) * pageSize;
@@ -62,6 +63,19 @@ export default defineEventHandler(async (event) => {
     const since = parseDateRange(dateRange);
     if (since) {
       conditions.push(gte(schema.articles.publishedAt, since));
+    }
+  }
+
+  // Filter by overseas status
+  if (overseas === 'true' || overseas === 'false') {
+    const overseasSourceIds = await db.select({ id: schema.sources.id })
+      .from(schema.sources)
+      .where(eq(schema.sources.isOverseas, overseas === 'true'));
+    const ids = overseasSourceIds.map(s => s.id);
+    if (ids.length > 0) {
+      conditions.push(inArray(schema.articles.sourceId, ids));
+    } else if (overseas === 'true') {
+      conditions.push(sql`1 = 0`);
     }
   }
 

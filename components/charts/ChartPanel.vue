@@ -68,15 +68,37 @@ function exportPng() {
   link.click()
 }
 
-// Export as JSON
-function exportJson() {
+// Export as HTML (standalone ECharts page)
+function exportHtml() {
   if (!props.option) return
-  const json = JSON.stringify(props.option, null, 2)
-  const blob = new Blob([json], { type: 'application/json' })
+  const optionJson = JSON.stringify(props.option)
+  const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图表</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"><\/script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #fff; }
+    #chart { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+  <script>
+    var chart = echarts.init(document.getElementById('chart'));
+    chart.setOption(${optionJson});
+    window.addEventListener('resize', function() { chart.resize(); });
+  <\/script>
+</body>
+</html>`
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `chart-config-${Date.now()}.json`
+  link.download = `chart-${Date.now()}.html`
   link.click()
   URL.revokeObjectURL(url)
 }
@@ -106,9 +128,9 @@ function exportJson() {
           color="gray"
           variant="ghost"
           :disabled="!hasChart"
-          @click="exportJson"
+          @click="exportHtml"
         >
-          导出 JSON
+          导出 HTML
         </UButton>
       </div>
     </div>

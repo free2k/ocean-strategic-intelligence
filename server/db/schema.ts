@@ -74,6 +74,12 @@ export const filterRules = pgTable('filter_rules', {
   titleKeywords: jsonb('title_keywords').$type<string[]>().default([]).notNull(),
   /** 正文关键词列表 */
   contentKeywords: jsonb('content_keywords').$type<string[]>().default([]).notNull(),
+  /** 优先级（数字越小越优先，默认 99） */
+  priority: integer('priority').default(99).notNull(),
+  /** 是否需要组合匹配（所有 groups 都命中才算匹配） */
+  requireAll: boolean('require_all').default(false).notNull(),
+  /** 组合匹配的关键词分组（每组至少命中一个词） */
+  groups: jsonb('groups').$type<string[][]>().default([]).notNull(),
   /** 是否启用 */
   enabled: boolean('enabled').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),

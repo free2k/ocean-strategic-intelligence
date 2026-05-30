@@ -26,6 +26,9 @@ const editForm = ref({
   description: '',
   titleKeywords: '',
   contentKeywords: '',
+  priority: 99,
+  requireAll: false,
+  groups: '' as string, // 每组一行，组内关键词用逗号分隔
 });
 
 function startEdit(rule: any) {
@@ -35,11 +38,19 @@ function startEdit(rule: any) {
     description: rule.description || '',
     titleKeywords: (rule.titleKeywords as string[]).join('\n'),
     contentKeywords: (rule.contentKeywords as string[]).join('\n'),
+    priority: rule.priority ?? 99,
+    requireAll: rule.requireAll ?? false,
+    groups: (rule.groups as string[][] || []).map((g: string[]) => g.join('、')).join('\n'),
   };
 }
 
 function cancelEdit() {
   editingId.value = null;
+}
+
+function parseGroups(text: string): string[][] {
+  if (!text.trim()) return [];
+  return text.split('\n').map(line => line.split(/[、,，]/).map(s => s.trim()).filter(Boolean)).filter(g => g.length > 0);
 }
 
 async function saveEdit(id: number) {
@@ -51,6 +62,9 @@ async function saveEdit(id: number) {
         description: editForm.value.description || undefined,
         titleKeywords: editForm.value.titleKeywords.split('\n').map(s => s.trim()).filter(Boolean),
         contentKeywords: editForm.value.contentKeywords.split('\n').map(s => s.trim()).filter(Boolean),
+        priority: editForm.value.priority,
+        requireAll: editForm.value.requireAll,
+        groups: parseGroups(editForm.value.groups),
       },
     });
     editingId.value = null;
@@ -234,6 +248,9 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
               <UFormGroup label="描述" class="flex-1">
                 <UInput v-model="editForm.description" placeholder="规则说明（可选）" />
               </UFormGroup>
+              <UFormGroup label="优先级" class="w-24">
+                <UInput v-model.number="editForm.priority" type="number" :min="1" placeholder="99" />
+              </UFormGroup>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <UFormGroup label="标题关键词（每行一个）">
@@ -242,6 +259,23 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
               <UFormGroup label="正文关键词（每行一个）">
                 <UTextarea v-model="editForm.contentKeywords" :rows="6" />
               </UFormGroup>
+            </div>
+            <!-- 组合匹配 -->
+            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-3">
+              <div class="flex items-center gap-3">
+                <UCheckbox v-model="editForm.requireAll" label="启用组合匹配" />
+                <span class="text-xs text-gray-500">启用后，文章必须同时命中所有分组中各至少一个词才算匹配</span>
+              </div>
+              <div v-if="editForm.requireAll">
+                <UFormGroup label="关键词分组（每行一组，组内关键词用顿号或逗号分隔）">
+                  <UTextarea
+                    v-model="editForm.groups"
+                    :rows="4"
+                    placeholder="油气、海洋油气、海上油气、offshore oil&#10;装备、设备、平台、船舶、FPSO、rig、vessel"
+                  />
+                </UFormGroup>
+                <p class="text-xs text-gray-400 mt-1">示例：第一行是"油气领域词"，第二行是"装备概念词"，文章需同时命中两组</p>
+              </div>
             </div>
             <div class="flex items-center gap-2">
               <UButton @click="saveEdit(rule.id)" color="primary" size="sm">保存</UButton>
@@ -269,6 +303,8 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
             <div class="flex gap-4 text-xs text-gray-400">
               <span>标题关键词: {{ (rule.titleKeywords as string[]).length }} 个</span>
               <span>正文关键词: {{ (rule.contentKeywords as string[]).length }} 个</span>
+              <span v-if="rule.priority && rule.priority < 99">优先级: {{ rule.priority }}</span>
+              <UBadge v-if="rule.requireAll" color="orange" size="xs" variant="subtle">组合匹配</UBadge>
             </div>
           </div>
         </div>
