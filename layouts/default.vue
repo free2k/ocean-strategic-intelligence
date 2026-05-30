@@ -1,3 +1,21 @@
+<script setup lang="ts">
+const route = useRoute();
+
+const navItems = [
+  { label: '首页', to: '/', exact: true },
+  { label: '文章抓取', to: '/wechat' },
+  { label: '文章', to: '/articles' },
+  { label: '图表可视化', to: '/charts' },
+  { label: '导出与推送', to: '/export' },
+  { label: '管理', to: '/admin' },
+];
+
+function isNavActive(item: { to: string; exact?: boolean }): boolean {
+  if (item.exact) return route.path === item.to;
+  return route.path === item.to || route.path.startsWith(item.to + '/');
+}
+</script>
+
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <header class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
@@ -8,23 +26,16 @@
             海洋能源资源情报分析
           </NuxtLink>
           <nav class="flex items-center gap-4">
-            <NuxtLink to="/" class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300">
-              首页
-            </NuxtLink>
-            <NuxtLink to="/wechat" class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300">
-              文章抓取
-            </NuxtLink>
-            <NuxtLink to="/articles" class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300">
-              文章
-            </NuxtLink>
-            <NuxtLink to="/charts" class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300">
-              图表可视化
-            </NuxtLink>
-            <NuxtLink to="/export" class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300">
-              导出与推送
-            </NuxtLink>
-            <NuxtLink to="/admin" class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300">
-              管理
+            <NuxtLink
+              v-for="item in navItems"
+              :key="item.to"
+              :to="item.to"
+              class="text-sm px-2 py-1 rounded transition-colors"
+              :class="isNavActive(item)
+                ? 'text-primary-600 dark:text-primary-400 font-semibold bg-primary-50 dark:bg-primary-900/30'
+                : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'"
+            >
+              {{ item.label }}
             </NuxtLink>
           </nav>
         </div>
