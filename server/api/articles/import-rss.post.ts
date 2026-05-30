@@ -189,12 +189,25 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  // 5. Auto-classify imported articles using filter rules
+  let classified = 0;
+  if (imported > 0) {
+    try {
+      const res = await $fetch('/api/filters/apply', { method: 'POST', body: {} });
+      classified = (res as any)?.accepted || 0;
+    } catch (e) {
+      // Classification failure is non-critical, articles remain pending
+      console.warn('[RSS Import] Auto-classification failed:', e);
+    }
+  }
+
   return {
     success: true,
     total: parseResult.total,
     imported,
     skipped,
     failed,
+    classified,
     errors,
   };
 });

@@ -1,4 +1,8 @@
 <script setup lang="ts">
+const emit = defineEmits<{
+  changed: [];
+}>();
+
 const { data, refresh } = await useFetch('/api/filters');
 
 const applyLoading = ref(false);
@@ -51,6 +55,7 @@ async function saveEdit(id: number) {
     });
     editingId.value = null;
     refresh();
+    emit('changed');
   } catch (e: any) {
     alert(e.data?.message || '保存失败');
   }
@@ -71,6 +76,7 @@ async function addRule() {
     showAddForm.value = false;
     newRule.value = { type: 'include', topic: '', description: '', titleKeywords: '', contentKeywords: '' };
     refresh();
+    emit('changed');
   } catch (e: any) {
     alert(e.data?.message || '添加失败');
   }
@@ -80,6 +86,7 @@ async function deleteRule(id: number) {
   if (!confirm('确定删除此规则？')) return;
   await $fetch(`/api/filters/${id}`, { method: 'DELETE' });
   refresh();
+  emit('changed');
 }
 
 async function toggleRule(id: number, enabled: boolean) {
@@ -93,10 +100,28 @@ async function applyFilters() {
   try {
     const result = await $fetch('/api/filters/apply', { method: 'POST' });
     applyResult.value = `筛选完成：通过 ${result.accepted} 篇，排除 ${result.rejected} 篇，未匹配 ${result.pending} 篇`;
+    emit('changed');
   } catch (e: any) {
     applyResult.value = `筛选失败：${e.data?.message || e.message}`;
   } finally {
     applyLoading.value = false;
+  }
+}
+
+const reapplyLoading = ref(false);
+
+async function reapplyAll() {
+  if (!confirm('将重置所有已分类文章并按当前规则重新分类，确定继续？')) return;
+  reapplyLoading.value = true;
+  applyResult.value = '';
+  try {
+    const result = await $fetch('/api/filters/apply', { method: 'POST', body: { reapplyAll: true } });
+    applyResult.value = `重新分类完成：通过 ${result.accepted} 篇，排除 ${result.rejected} 篇，未匹配 ${result.pending} 篇`;
+    emit('changed');
+  } catch (e: any) {
+    applyResult.value = `重新分类失败：${e.data?.message || e.message}`;
+  } finally {
+    reapplyLoading.value = false;
   }
 }
 
@@ -183,6 +208,9 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
       <div class="flex items-center gap-4">
         <UButton @click="applyFilters" :loading="applyLoading" color="green">
           执行筛选
+        </UButton>
+        <UButton @click="reapplyAll" :loading="reapplyLoading" color="orange" variant="soft">
+          重新分类全部
         </UButton>
         <span v-if="applyResult" class="text-sm" :class="applyResult.includes('失败') ? 'text-red-500' : 'text-green-600'">
           {{ applyResult }}

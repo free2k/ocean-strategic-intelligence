@@ -51,6 +51,29 @@ export async function chatCompletion(systemPrompt: string, userMessage: string):
   return response.choices[0]?.message?.content || '';
 }
 
+/** 调用 Chat 模型进行多轮对话（流式返回） */
+export async function* chatCompletionStream(
+  messages: { role: 'system' | 'user' | 'assistant'; content: string }[],
+  options?: { temperature?: number; maxTokens?: number },
+): AsyncGenerator<string> {
+  const config = useRuntimeConfig();
+  const client = getClient();
+  const stream = await client.chat.completions.create({
+    model: config.chatModel,
+    messages,
+    temperature: options?.temperature ?? 0.3,
+    max_tokens: options?.maxTokens ?? 4000,
+    stream: true,
+  });
+
+  for await (const chunk of stream) {
+    const content = chunk.choices[0]?.delta?.content;
+    if (content) {
+      yield content;
+    }
+  }
+}
+
 /** 将文章内容拆分为 chunks */
 export function splitIntoChunks(text: string, maxChunkSize = 500): string[] {
   if (!text) return [];

@@ -5,6 +5,7 @@ interface RssSource {
   id: number;
   name: string;
   alias: string | null; // RSS URL
+  isOverseas: boolean;
   createdAt: string;
 }
 
@@ -178,6 +179,20 @@ async function executeDelete() {
   }
 }
 
+// Toggle overseas flag
+async function toggleOverseas(source: RssSource) {
+  try {
+    await $fetch(`/api/sources/${source.id}/overseas`, {
+      method: 'PATCH',
+      body: { isOverseas: !source.isOverseas },
+    });
+    source.isOverseas = !source.isOverseas;
+    toast.add({ title: source.isOverseas ? '已标记为外网来源' : '已取消外网标记', color: 'green' });
+  } catch (error: any) {
+    toast.add({ title: '操作失败', description: error?.message, color: 'red' });
+  }
+}
+
 onMounted(() => {
   loadSources();
 });
@@ -219,7 +234,10 @@ onMounted(() => {
           class="flex items-center justify-between p-4 rounded-lg border dark:border-gray-700"
         >
           <div class="min-w-0 flex-1">
-            <p class="font-medium">{{ source.name }}</p>
+            <p class="font-medium">
+              {{ source.name }}
+              <UBadge v-if="source.isOverseas" color="orange" size="xs" variant="subtle" class="ml-1">外网</UBadge>
+            </p>
             <!-- Show URL or edit form -->
             <template v-if="editingId === source.id">
               <div class="flex items-center gap-2 mt-1">
@@ -256,6 +274,14 @@ onMounted(() => {
               size="xs"
               @click="openSyncModal(source)"
               title="同步设置"
+            />
+            <UButton
+              :icon="source.isOverseas ? 'i-heroicons-globe-alt' : 'i-heroicons-globe-americas'"
+              :color="source.isOverseas ? 'orange' : 'gray'"
+              variant="ghost"
+              size="xs"
+              :title="source.isOverseas ? '取消外网标记' : '标记为外网来源'"
+              @click="toggleOverseas(source)"
             />
             <UButton
               icon="i-heroicons-trash"

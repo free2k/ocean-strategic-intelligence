@@ -1,15 +1,34 @@
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 
+interface ApplyBody {
+  reapplyAll?: boolean;
+}
+
 /**
- * 对所有 pending 状态的文章应用过滤规则
+ * 对文章应用过滤规则
+ * 
+ * Body:
+ * - reapplyAll (optional): 如果为 true，先将所有已分类文章重置为 pending，再重新分类
+ * 
  * 逻辑：
  * 1. 先检查反向规则（排除），命中则标记 rejected
  * 2. 再检查正向规则（目标行业），命中则标记 accepted 并记录匹配主题
  * 3. 两者都未命中的保持 pending
  */
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+  const body = await readBody<ApplyBody>(event).catch(() => ({}));
   const db = useDB();
+
+  // 如果 reapplyAll，先重置所有已分类文章为 pending
+  if (body?.reapplyAll) {
+    await db.update(schema.articles)
+      .set({ filterStatus: 'pending', matchedTopic: null, rejectReason: null, classifyMethod: null, updatedAt: new Date() })
+      .where(or(
+        eq(schema.articles.filterStatus, 'accepted'),
+        eq(schema.articles.filterStatus, 'rejected'),
+      ));
+  }
 
   // 获取所有启用的规则
   const rules = await db.select().from(schema.filterRules).where(eq(schema.filterRules.enabled, true));

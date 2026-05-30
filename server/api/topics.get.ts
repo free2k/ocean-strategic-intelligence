@@ -16,10 +16,26 @@ export default defineEventHandler(async () => {
     ))
     .groupBy(schema.articles.matchedTopic);
 
-  return {
-    topics: results.map(r => ({
-      name: r.topic,
-      articleCount: Number(r.count),
-    })),
-  };
+  // 统计外网来源的文章数
+  const [overseasCount] = await db.select({
+    count: sql<number>`count(*)`,
+  })
+    .from(schema.articles)
+    .innerJoin(schema.sources, eq(schema.articles.sourceId, schema.sources.id))
+    .where(eq(schema.sources.isOverseas, true));
+
+  const topics = results.map(r => ({
+    name: r.topic,
+    articleCount: Number(r.count),
+  }));
+
+  // 如果有外网文章，添加"外网资讯"虚拟分类
+  if (overseasCount && Number(overseasCount.count) > 0) {
+    topics.push({
+      name: '外网资讯',
+      articleCount: Number(overseasCount.count),
+    });
+  }
+
+  return { topics };
 });

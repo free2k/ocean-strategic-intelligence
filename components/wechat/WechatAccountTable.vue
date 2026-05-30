@@ -19,6 +19,7 @@ interface Account {
   name: string;
   alias: string | null;
   avatar: string | null;
+  isOverseas: boolean;
   articleCount: number;
   lastSyncTime: string | null;
 }
@@ -346,6 +347,20 @@ function formatDate(dateStr: string | null): string {
   return date.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
+// Toggle overseas flag
+async function toggleOverseas(account: Account) {
+  try {
+    await $fetch(`/api/sources/${account.id}/overseas`, {
+      method: 'PATCH',
+      body: { isOverseas: !account.isOverseas },
+    });
+    account.isOverseas = !account.isOverseas;
+    toast.add({ title: account.isOverseas ? '已标记为外网来源' : '已取消外网标记', color: 'green' });
+  } catch (error: any) {
+    toast.add({ title: '操作失败', description: error?.message, color: 'red' });
+  }
+}
+
 // Cleanup
 onUnmounted(() => {
   for (const timer of syncPollers.values()) clearInterval(timer);
@@ -410,6 +425,7 @@ onMounted(() => {
           <div class="max-w-[180px]">
             <span class="font-medium truncate block">{{ row.name }}</span>
             <span v-if="row.alias" class="text-xs text-gray-400">({{ row.alias }})</span>
+            <UBadge v-if="row.isOverseas" color="orange" size="xs" variant="subtle" class="ml-1">外网</UBadge>
           </div>
         </template>
 
@@ -464,6 +480,14 @@ onMounted(() => {
               </UButton>
               <UButton icon="i-heroicons-cog-6-tooth" color="gray" variant="ghost" size="xs" @click="openSyncModal(row)" title="同步设置" />
             </template>
+            <UButton
+              :icon="row.isOverseas ? 'i-heroicons-globe-alt' : 'i-heroicons-globe-americas'"
+              :color="row.isOverseas ? 'orange' : 'gray'"
+              variant="ghost"
+              size="xs"
+              :title="row.isOverseas ? '取消外网标记' : '标记为外网来源'"
+              @click="toggleOverseas(row)"
+            />
             <UButton icon="i-heroicons-trash" color="red" variant="ghost" size="xs" @click="confirmDelete(row)" />
           </div>
         </template>

@@ -4,7 +4,7 @@ const route = useRoute();
 const navItems = [
   { label: '首页', to: '/', exact: true },
   { label: '文章抓取', to: '/wechat' },
-  { label: '文章', to: '/articles' },
+  { label: '文章列表', to: '/articles' },
   { label: '图表可视化', to: '/charts' },
   { label: '导出与推送', to: '/export' },
   { label: '管理', to: '/admin' },

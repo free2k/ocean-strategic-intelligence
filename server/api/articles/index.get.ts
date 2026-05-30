@@ -1,4 +1,4 @@
-import { desc, eq, like, sql, and, gte } from 'drizzle-orm';
+import { desc, eq, like, sql, and, gte, inArray } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 
 function parseDateRange(range: string): Date | null {
@@ -42,7 +42,21 @@ export default defineEventHandler(async (event) => {
     conditions.push(eq(schema.articles.filterStatus, filterStatus));
   }
   if (matchedTopic) {
-    conditions.push(eq(schema.articles.matchedTopic, matchedTopic));
+    if (matchedTopic === '外网资讯') {
+      // 筛选来自外网来源的文章
+      const overseasSourceIds = await db.select({ id: schema.sources.id })
+        .from(schema.sources)
+        .where(eq(schema.sources.isOverseas, true));
+      const ids = overseasSourceIds.map(s => s.id);
+      if (ids.length > 0) {
+        conditions.push(inArray(schema.articles.sourceId, ids));
+      } else {
+        // 没有外网来源，返回空结果
+        conditions.push(sql`1 = 0`);
+      }
+    } else {
+      conditions.push(eq(schema.articles.matchedTopic, matchedTopic));
+    }
   }
   if (dateRange) {
     const since = parseDateRange(dateRange);

@@ -114,6 +114,7 @@ export default defineEventHandler(async (event) => {
     publishedAt: schema.articles.publishedAt,
     summary: schema.articles.summary,
     sourceName: schema.sources.name,
+    isOverseas: schema.sources.isOverseas,
   })
     .from(schema.articles)
     .leftJoin(schema.sources, eq(schema.articles.sourceId, schema.sources.id))
@@ -146,10 +147,10 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // 按行业分组
+  // 按行业分组（外网来源归入"外网资讯"）
   const grouped: Record<string, typeof articles> = {};
   for (const article of deduped) {
-    const topic = article.matchedTopic || '未分类';
+    const topic = article.isOverseas ? '外网资讯' : (article.matchedTopic || '未分类');
     if (!grouped[topic]) grouped[topic] = [];
     grouped[topic].push(article);
   }

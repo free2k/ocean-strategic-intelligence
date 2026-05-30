@@ -8,6 +8,7 @@ interface AccountWithStats {
   alias: string | null;
   avatar: string | null;
   type: string;
+  isOverseas: boolean;
   createdAt: Date;
   articleCount: number;
   lastSyncTime: Date | null;
@@ -32,6 +33,7 @@ export default defineEventHandler(async (): Promise<{ list: AccountWithStats[] }
       alias: schema.sources.alias,
       avatar: schema.sources.avatar,
       type: schema.sources.type,
+      isOverseas: schema.sources.isOverseas,
       createdAt: schema.sources.createdAt,
       articleCount: count(schema.articles.id),
       lastSyncTime: max(schema.articles.publishedAt),
@@ -48,6 +50,7 @@ export default defineEventHandler(async (): Promise<{ list: AccountWithStats[] }
     alias: row.alias,
     avatar: row.avatar,
     type: row.type,
+    isOverseas: row.isOverseas,
     createdAt: row.createdAt,
     articleCount: Number(row.articleCount),
     lastSyncTime: row.lastSyncTime,

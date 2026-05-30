@@ -8,6 +8,8 @@ export const sources = pgTable('sources', {
   alias: varchar('alias', { length: 255 }),
   avatar: text('avatar'),
   type: varchar('type', { length: 32 }).notNull().default('wechat'), // wechat | web | rss | manual
+  /** 是否为外网来源（导出时归入"外网资讯"分类） */
+  isOverseas: boolean('is_overseas').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

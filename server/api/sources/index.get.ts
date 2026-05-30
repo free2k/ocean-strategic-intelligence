@@ -23,6 +23,7 @@ export default defineEventHandler(async () => {
     name: s.name,
     alias: s.alias,
     type: s.type,
+    isOverseas: s.isOverseas,
     createdAt: s.createdAt,
     articleCount: countMap.get(s.id) || 0,
   }));
