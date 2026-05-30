@@ -235,6 +235,76 @@ describe('useWechatAuth', () => {
     });
   });
 
+  describe('expiresAt', () => {
+    it('calculates expiresAt (4 days from now) on confirmed login', async () => {
+      const fakeNow = new Date('2024-06-01T12:00:00Z').getTime();
+      vi.setSystemTime(fakeNow);
+
+      fetchMock.mockResolvedValueOnce({
+        success: true,
+        imageUrl: 'data:image/jpeg;base64,qr',
+        sessionId: 'sess-1',
+      });
+
+      fetchMock.mockResolvedValueOnce({
+        status: 'confirmed',
+        authKey: 'auth-key-123',
+        nickname: 'User',
+        avatar: 'https://avatar.url',
+      });
+
+      const { login, expiresAt } = useWechatAuth();
+
+      await login();
+      await vi.advanceTimersByTimeAsync(2000);
+
+      // After advancing 2s, Date.now() is fakeNow + 2000
+      const fourDaysMs = 4 * 24 * 60 * 60 * 1000;
+      const expectedExpiry = fakeNow + 2000 + fourDaysMs;
+      expect(expiresAt.value).toBe(expectedExpiry);
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('wechat-expires-at', String(expectedExpiry));
+    });
+
+    it('restores expiresAt from localStorage on init', async () => {
+      const storedExpiry = String(Date.now() + 2 * 24 * 60 * 60 * 1000);
+      localStorageMock.setItem('wechat-auth-key', 'some-key');
+      localStorageMock.setItem('wechat-expires-at', storedExpiry);
+
+      vi.resetModules();
+      const mod = await import('../../composables/useWechatAuth');
+      const { expiresAt } = mod.useWechatAuth();
+
+      expect(expiresAt.value).toBe(Number(storedExpiry));
+    });
+
+    it('clears expiresAt on logout', async () => {
+      localStorageMock.setItem('wechat-auth-key', 'key');
+      localStorageMock.setItem('wechat-expires-at', '1717300000000');
+
+      vi.resetModules();
+      const mod = await import('../../composables/useWechatAuth');
+      const { logout, expiresAt } = mod.useWechatAuth();
+
+      fetchMock.mockResolvedValueOnce({ success: true });
+      await logout();
+
+      expect(expiresAt.value).toBe(0);
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('wechat-expires-at');
+    });
+
+    it('getExpiresAt returns the current expiry timestamp', async () => {
+      const storedExpiry = '1717300000000';
+      localStorageMock.setItem('wechat-auth-key', 'some-key');
+      localStorageMock.setItem('wechat-expires-at', storedExpiry);
+
+      vi.resetModules();
+      const mod = await import('../../composables/useWechatAuth');
+      const { getExpiresAt } = mod.useWechatAuth();
+
+      expect(getExpiresAt()).toBe(Number(storedExpiry));
+    });
+  });
+
   describe('isLoggedIn computed', () => {
     it('returns true when authKey is set', async () => {
       localStorageMock.setItem('wechat-auth-key', 'some-key');

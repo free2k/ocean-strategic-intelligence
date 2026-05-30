@@ -28,7 +28,7 @@ export async function useAuthGuard(event: H3Event): Promise<AuthCredentials> {
     });
   }
 
-  if (cookieStore.isExpired(authKey)) {
+  if (await cookieStore.isExpired(authKey)) {
     cookieStore.removeCookie(authKey);
     throw createError({
       statusCode: 401,

@@ -5,10 +5,17 @@ import { useAuthGuard, handleWechatError } from '../../../utils/wechat/auth-guar
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 WAE/1.0';
 
+/** Delay between API requests to avoid rate limiting (ms) */
+const REQUEST_DELAY_MS = 3000;
+
+/** Page size for each API request */
+const PAGE_SIZE = 5;
+
 interface SyncBody {
   fakeid: string;
   keyword?: string;
-  begin?: number;
+  maxArticles?: number;
+  sinceDate?: string; // ISO date string, stop syncing when articles are older than this
 }
 
 interface ArticleMeta {
@@ -20,31 +27,47 @@ interface ArticleMeta {
   publishedAt: string;
 }
 
-interface SyncResponse {
-  articles: ArticleMeta[];
+interface SyncProgress {
+  taskId: string;
+  fakeid: string;
+  status: 'running' | 'completed' | 'failed' | 'stopped';
   total: number;
-  isCompleted: boolean;
+  synced: number;
+  currentPage: number;
+  message?: string;
+  startedAt: number;
+  updatedAt: number;
 }
+
+interface SyncStartResponse {
+  taskId: string;
+  message: string;
+}
+
+// In-memory sync task store
+const syncTasks = new Map<string, SyncProgress>();
+
+// Track running tasks per fakeid to prevent duplicate syncs
+const runningFakeids = new Set<string>();
 
 /**
  * POST /api/wechat/articles/sync
  *
- * Syncs article list from a WeChat official account via the appmsgpublish API.
- * Fetches articles in pages of 20 and upserts metadata into the articles table.
- * After sync, updates the account's last sync time and article count.
+ * Starts a background sync task for a WeChat official account.
+ * Fetches articles page by page with rate limiting (3s between requests).
+ * Supports stopping by date or max article count.
  *
  * Body:
  * - fakeid (required): WeChat account unique identifier
  * - keyword (optional): Search keyword to filter articles
- * - begin (optional): Pagination offset, default 0
- *
- * Requirements: 3.1, 3.2, 3.3, 3.4
+ * - maxArticles (optional): Stop after syncing this many articles
+ * - sinceDate (optional): Stop when articles are older than this date (ISO string)
  */
-export default defineEventHandler(async (event): Promise<SyncResponse> => {
+export default defineEventHandler(async (event): Promise<SyncStartResponse> => {
   const { authKey, cookie, token } = await useAuthGuard(event);
 
   const body = await readBody<SyncBody>(event);
-  const { fakeid, keyword = '', begin = 0 } = body;
+  const { fakeid, keyword = '', maxArticles, sinceDate } = body;
 
   if (!fakeid) {
     throw createError({
@@ -53,9 +76,17 @@ export default defineEventHandler(async (event): Promise<SyncResponse> => {
     });
   }
 
+  // Prevent duplicate sync for the same account
+  if (runningFakeids.has(fakeid)) {
+    throw createError({
+      statusCode: 409,
+      statusMessage: '该公众号正在同步中，请等待完成',
+    });
+  }
+
   const db = useDB();
 
-  // Find the source record by fakeid to get sourceId
+  // Find the source record
   const [source] = await db
     .select()
     .from(schema.sources)
@@ -69,114 +100,213 @@ export default defineEventHandler(async (event): Promise<SyncResponse> => {
     });
   }
 
+  // Create task
+  const taskId = `${fakeid}-${Date.now()}`;
+  const now = Date.now();
+  const task: SyncProgress = {
+    taskId,
+    fakeid,
+    status: 'running',
+    total: 0,
+    synced: 0,
+    currentPage: 0,
+    startedAt: now,
+    updatedAt: now,
+  };
+  syncTasks.set(taskId, task);
+  runningFakeids.add(fakeid);
+
+  // Parse sinceDate
+  const sinceDateTs = sinceDate ? new Date(sinceDate).getTime() / 1000 : 0;
+
+  // Start background sync (non-blocking)
+  runSync(task, { cookie, token, authKey, fakeid, keyword, maxArticles, sinceDateTs, sourceId: source.id });
+
+  return {
+    taskId,
+    message: '同步任务已启动',
+  };
+});
+
+/** Background sync loop */
+async function runSync(
+  task: SyncProgress,
+  opts: {
+    cookie: string;
+    token: string;
+    authKey: string;
+    fakeid: string;
+    keyword: string;
+    maxArticles?: number;
+    sinceDateTs: number;
+    sourceId: number;
+  },
+) {
+  const db = useDB();
+  let begin = 0;
+  let totalSynced = 0;
+  let reachedDateLimit = false;
+
   try {
-    const searchQuery = keyword ? encodeURIComponent(keyword) : '';
-    const apiUrl = `https://mp.weixin.qq.com/cgi-bin/appmsgpublish?sub=list&search_field=null&begin=${begin}&count=20&query=${searchQuery}&fakeid=${fakeid}&type=101_1&free_publish_type=1&sub_action=list_ex&token=${token}&lang=zh_CN&f=json&ajax=1`;
+    // First request to get total count
+    while (true) {
+      task.currentPage++;
+      task.updatedAt = Date.now();
 
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'User-Agent': USER_AGENT,
-        Referer: `https://mp.weixin.qq.com/cgi-bin/appmsg?t=media/appmsg_edit_v2&action=edit&isNew=1&type=77&token=${token}&lang=zh_CN`,
-        Cookie: cookie,
-      },
-    });
+      const searchQuery = opts.keyword ? encodeURIComponent(opts.keyword) : '';
+      const apiUrl = `https://mp.weixin.qq.com/cgi-bin/appmsgpublish?sub=list&search_field=null&begin=${begin}&count=${PAGE_SIZE}&query=${searchQuery}&fakeid=${opts.fakeid}&type=101_1&free_publish_type=1&sub_action=list_ex&token=${opts.token}&lang=zh_CN&f=json&ajax=1`;
 
-    if (!response.ok) {
-      throw createError({
-        statusCode: 502,
-        statusMessage: '无法连接微信公众号平台',
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'User-Agent': USER_AGENT,
+          Referer: 'https://mp.weixin.qq.com/',
+          Origin: 'https://mp.weixin.qq.com',
+          'Accept-Encoding': 'identity',
+          Cookie: opts.cookie,
+        },
       });
-    }
 
-    const data = await response.json() as {
-      base_resp: { ret: number; err_msg: string };
-      publish_page: {
-        publish_list: string;
-        total_count: number;
+      if (!response.ok) {
+        task.status = 'failed';
+        task.message = '无法连接微信公众号平台';
+        break;
+      }
+
+      const data = await response.json() as {
+        base_resp: { ret: number; err_msg: string };
+        publish_page: any;
       };
-    };
 
-    handleWechatError(data, authKey);
+      // Check for WeChat errors
+      const ret = data.base_resp?.ret;
+      if (ret === 200003) {
+        task.status = 'failed';
+        task.message = '登录已过期，请重新登录';
+        break;
+      }
+      if (ret !== 0) {
+        task.status = 'failed';
+        task.message = `微信接口错误: ${data.base_resp?.err_msg || ret}`;
+        break;
+      }
 
-    // Parse the nested publish_list JSON string
-    const publishList = JSON.parse(data.publish_page?.publish_list || '[]') as Array<{
-      publish_info: {
-        appmsgex: Array<{
-          title: string;
-          link: string;
-          cover: string;
-          digest: string;
-          author_name: string;
-          create_time: number;
-        }>;
-      };
-    }>;
+      // Parse publish_page
+      let publishPage: any = data.publish_page;
+      if (typeof publishPage === 'string') {
+        try { publishPage = JSON.parse(publishPage); } catch { publishPage = {}; }
+      }
 
-    const totalCount = data.publish_page?.total_count || 0;
-    const syncedArticles: ArticleMeta[] = [];
+      const publishListItems: any[] = publishPage?.publish_list || [];
+      const totalCount: number = publishPage?.total_count || 0;
+      task.total = totalCount;
 
-    // Extract articles from the nested structure and upsert into DB
-    for (const publishItem of publishList) {
-      const appmsgex = publishItem.publish_info?.appmsgex || [];
+      if (publishListItems.length === 0) {
+        task.status = 'completed';
+        task.message = '同步完成，没有更多文章';
+        break;
+      }
 
-      for (const article of appmsgex) {
-        const publishedAt = new Date(article.create_time * 1000);
+      // Process articles
+      for (const item of publishListItems) {
+        let publishInfo: any = item.publish_info;
+        if (typeof publishInfo === 'string') {
+          try { publishInfo = JSON.parse(publishInfo); } catch { continue; }
+        }
+        if (!publishInfo) continue;
 
-        const articleMeta: ArticleMeta = {
-          title: article.title,
-          link: article.link,
-          cover: article.cover,
-          digest: article.digest,
-          authorName: article.author_name,
-          publishedAt: publishedAt.toISOString(),
-        };
+        const appmsgex: any[] = publishInfo.appmsgex || [];
 
-        // Upsert: use link as unique identifier to avoid duplicates
-        await db
-          .insert(schema.articles)
-          .values({
-            title: article.title,
-            link: article.link,
-            cover: article.cover || null,
-            digest: article.digest || null,
-            authorName: article.author_name || null,
-            sourceId: source.id,
-            sourceType: 'wechat',
-            publishedAt,
-          })
-          .onConflictDoUpdate({
-            target: schema.articles.link,
-            set: {
+        for (const article of appmsgex) {
+          if (!article.title || !article.link) continue;
+
+          // Check date limit
+          if (opts.sinceDateTs > 0 && article.create_time < opts.sinceDateTs) {
+            reachedDateLimit = true;
+            break;
+          }
+
+          const publishedAt = new Date(article.create_time * 1000);
+
+          await db
+            .insert(schema.articles)
+            .values({
               title: article.title,
+              link: article.link,
               cover: article.cover || null,
               digest: article.digest || null,
               authorName: article.author_name || null,
-              updatedAt: new Date(),
-            },
-          });
+              sourceId: opts.sourceId,
+              sourceType: 'wechat',
+              publishedAt,
+            })
+            .onConflictDoUpdate({
+              target: schema.articles.link,
+              set: {
+                title: article.title,
+                cover: article.cover || null,
+                digest: article.digest || null,
+                authorName: article.author_name || null,
+                updatedAt: new Date(),
+              },
+            });
 
-        syncedArticles.push(articleMeta);
+          totalSynced++;
+          task.synced = totalSynced;
+          task.updatedAt = Date.now();
+
+          // Check max articles limit
+          if (opts.maxArticles && totalSynced >= opts.maxArticles) {
+            reachedDateLimit = true;
+            break;
+          }
+        }
+
+        if (reachedDateLimit) break;
       }
+
+      if (reachedDateLimit) {
+        task.status = 'completed';
+        task.message = opts.maxArticles && totalSynced >= opts.maxArticles
+          ? `已达到最大文章数限制 (${opts.maxArticles})`
+          : '已同步到指定日期';
+        break;
+      }
+
+      // Check if we've fetched all pages
+      begin += publishListItems.length;
+      if (begin >= totalCount) {
+        task.status = 'completed';
+        task.message = '全部文章同步完成';
+        break;
+      }
+
+      // Check if task was stopped externally
+      if (task.status !== 'running') {
+        break;
+      }
+
+      // Rate limiting: wait before next request
+      await sleep(REQUEST_DELAY_MS);
     }
-
-    // Determine if sync is complete (fetched less than a full page or reached total)
-    const isCompleted = begin + 20 >= totalCount;
-
-    return {
-      articles: syncedArticles,
-      total: totalCount,
-      isCompleted,
-    };
   } catch (error: any) {
-    if (error.statusCode) {
-      throw error;
-    }
+    task.status = 'failed';
+    task.message = error?.message || '同步过程中发生错误';
+    console.error('[WeChat Article Sync] Error:', error);
+  } finally {
+    task.updatedAt = Date.now();
+    runningFakeids.delete(opts.fakeid);
 
-    console.error('[WeChat Article Sync] Failed to sync articles:', error);
-    throw createError({
-      statusCode: 500,
-      statusMessage: '文章列表同步失败',
-    });
+    // Clean up old tasks after 10 minutes
+    setTimeout(() => {
+      syncTasks.delete(task.taskId);
+    }, 10 * 60 * 1000);
   }
-});
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Export for use by progress and stop endpoints
+export { syncTasks, runningFakeids };

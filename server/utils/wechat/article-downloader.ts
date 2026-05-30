@@ -3,6 +3,7 @@
  * through proxy nodes. Supports retry with proxy switching, deletion detection,
  * and manual stop.
  */
+import { ProxyAgent } from 'undici';
 import { proxyManager } from './proxy-manager';
 
 /** Maximum retry attempts per article (switching proxy each time) */
@@ -10,6 +11,18 @@ const MAX_RETRIES = 3;
 
 /** Default concurrency limit */
 const DEFAULT_CONCURRENCY = 3;
+
+/**
+ * HTTP proxy for outbound requests (e.g., to access .workers.dev from China).
+ * Set DOWNLOAD_PROXY env var to your local proxy, e.g. "http://127.0.0.1:7890"
+ */
+function getProxyDispatcher() {
+  const proxyUrl = process.env.DOWNLOAD_PROXY || process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
+  if (proxyUrl) {
+    return new ProxyAgent(proxyUrl);
+  }
+  return undefined;
+}
 
 /** HTML markers indicating an article has been deleted or is unavailable */
 const DELETION_MARKERS = [
@@ -52,6 +65,10 @@ export class ArticleDownloader {
   ): Promise<void> {
     this.stopped = false;
     this.running = true;
+
+    // Load proxy nodes from database before starting
+    await proxyManager.loadFromDatabase();
+    console.log('[ArticleDownloader] Loaded proxies:', proxyManager.getProxies().map(p => p.url));
 
     const stats = { completed: 0, failed: 0, deleted: 0, total: articleIds.length };
 
@@ -121,6 +138,7 @@ export class ArticleDownloader {
       const proxyNode = proxyManager.getProxies().find((p) => p.url === proxyUrl);
 
       try {
+        console.log(`[ArticleDownloader] Attempt ${attempt + 1}/${MAX_RETRIES} for article ${article.id} via proxy: ${proxyUrl}`);
         const html = await this.fetchArticleContent(article.link, proxyUrl, proxyNode?.authorization);
         proxyManager.recordSuccess(proxyUrl);
 
@@ -149,6 +167,7 @@ export class ArticleDownloader {
         return;
       } catch (err) {
         lastError = err instanceof Error ? err : new Error(String(err));
+        console.error(`[ArticleDownloader] Attempt ${attempt + 1} failed for article ${article.id}:`, lastError.message);
         proxyManager.recordFailure(proxyUrl);
 
         // If not the last attempt, continue to retry with a different proxy
@@ -171,26 +190,37 @@ export class ArticleDownloader {
 
   /**
    * Fetch article HTML content through a proxy node.
+   * Proxy format follows wechat-article-exporter convention:
+   * ${proxy}?url=${encodeURIComponent(url)}&headers=${encodeURIComponent(JSON.stringify(headers))}
    */
   private async fetchArticleContent(
     articleUrl: string,
     proxyUrl: string,
     authorization?: string,
   ): Promise<string> {
-    const fetchUrl = `${proxyUrl}?url=${encodeURIComponent(articleUrl)}`;
+    // Build proxy URL matching wechat-article-exporter format
+    const articleHeaders: Record<string, string> = {};
+    const targetUrl = `${proxyUrl}?url=${encodeURIComponent(articleUrl)}&headers=${encodeURIComponent(JSON.stringify(articleHeaders))}`;
 
-    const headers: Record<string, string> = {
+    const fetchHeaders: Record<string, string> = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     };
 
+    // Authorization is sent as HTTP header to the proxy, not as query param
     if (authorization) {
-      headers['Authorization'] = authorization;
+      fetchHeaders['Authorization'] = authorization;
     }
 
-    const response = await fetch(fetchUrl, {
-      headers,
-      signal: AbortSignal.timeout(30000), // 30 second timeout
-    });
+    const dispatcher = getProxyDispatcher();
+    const fetchOptions: any = {
+      headers: fetchHeaders,
+      signal: AbortSignal.timeout(30000),
+    };
+    if (dispatcher) {
+      fetchOptions.dispatcher = dispatcher;
+    }
+
+    const response = await fetch(targetUrl, fetchOptions);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);

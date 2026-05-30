@@ -143,14 +143,13 @@ export class ProxyManager {
    */
   async loadFromDatabase(): Promise<void> {
     try {
-      const { db } = await import('../../db');
+      const { useDB } = await import('../../db');
       const { proxyNodes } = await import('../../db/schema');
       const { eq } = await import('drizzle-orm');
 
+      const db = useDB();
       const dbProxies = await db.select().from(proxyNodes).where(eq(proxyNodes.enabled, true));
 
-      // Keep public defaults, replace custom proxies with DB entries
-      const publicProxies = this.proxies.filter((p) => p.isPublic);
       const customProxies: ProxyNode[] = dbProxies.map((row) => ({
         id: row.id,
         url: row.url,
@@ -159,7 +158,11 @@ export class ProxyManager {
         isPublic: row.isPublic,
       }));
 
-      this.proxies = [...publicProxies, ...customProxies];
+      // If user has configured proxies, use only those (discard default placeholders)
+      // Otherwise keep defaults as fallback
+      if (customProxies.length > 0) {
+        this.proxies = customProxies;
+      }
 
       // Initialize status for any new proxies
       for (const proxy of this.proxies) {

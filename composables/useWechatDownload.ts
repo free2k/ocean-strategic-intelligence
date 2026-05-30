@@ -64,15 +64,16 @@ export function useWechatDownload() {
       });
 
       if (!response.ok) {
-        console.error('[useWechatDownload] Server responded with:', response.status);
+        const errorText = await response.text().catch(() => '');
+        console.error('[useWechatDownload] Server responded with:', response.status, errorText);
         loading.value = false;
-        return;
+        throw new Error(`下载服务返回错误 (${response.status}): ${errorText || response.statusText}`);
       }
 
       if (!response.body) {
         console.error('[useWechatDownload] Response body is null');
         loading.value = false;
-        return;
+        throw new Error('下载服务未返回数据流');
       }
 
       // Read the SSE stream using ReadableStream

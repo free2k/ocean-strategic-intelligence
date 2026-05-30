@@ -49,7 +49,7 @@ export class CookieStore {
       return null;
     }
 
-    if (this.isExpired(authKey)) {
+    if (await this.isExpired(authKey)) {
       this.removeCookie(authKey);
       return null;
     }
@@ -67,7 +67,7 @@ export class CookieStore {
    * Store cookies for the given authKey.
    * Parses raw Set-Cookie header strings into CookieEntity objects.
    */
-  async setCookie(authKey: string, token: string, cookies: string[]): Promise<boolean> {
+  async setCookie(authKey: string, token: string, cookies: string[], userInfo?: { nickname?: string; avatar?: string }): Promise<boolean> {
     await this.ensureLoaded();
 
     // Evict LRU entry if cache is full
@@ -79,9 +79,21 @@ export class CookieStore {
     }
 
     const now = Date.now();
+
+    // Parse all cookies and deduplicate by name (later entries win)
+    const parsedCookies = cookies.map(parseCookieString);
+    const cookieMap = new Map<string, CookieEntity>();
+    for (const cookie of parsedCookies) {
+      if (cookie.name && cookie.value && cookie.value !== 'EXPIRED') {
+        cookieMap.set(cookie.name, cookie);
+      }
+    }
+
     const entry: AccountCookie = {
       token,
-      cookies: cookies.map(parseCookieString),
+      cookies: Array.from(cookieMap.values()),
+      nickname: userInfo?.nickname,
+      avatar: userInfo?.avatar,
       createdAt: now,
       expiresAt: now + COOKIE_TTL_MS,
     };
@@ -105,7 +117,7 @@ export class CookieStore {
       return null;
     }
 
-    if (this.isExpired(authKey)) {
+    if (await this.isExpired(authKey)) {
       this.removeCookie(authKey);
       return null;
     }
@@ -127,10 +139,41 @@ export class CookieStore {
   }
 
   /**
+   * Update the nickname and avatar for an existing authKey entry.
+   */
+  async updateUserInfo(authKey: string, nickname?: string, avatar?: string): Promise<void> {
+    await this.ensureLoaded();
+    const entry = this.cache.get(authKey);
+    if (!entry) return;
+
+    entry.nickname = nickname;
+    entry.avatar = avatar;
+
+    // LRU: move to end
+    this.cache.delete(authKey);
+    this.cache.set(authKey, entry);
+
+    await this.persist();
+  }
+
+  /**
+   * Get stored user info (nickname, avatar) for the given authKey.
+   */
+  async getUserInfo(authKey: string): Promise<{ nickname?: string; avatar?: string } | null> {
+    await this.ensureLoaded();
+    const entry = this.cache.get(authKey);
+    if (!entry || Date.now() >= entry.expiresAt) return null;
+    return { nickname: entry.nickname, avatar: entry.avatar };
+  }
+
+  /**
    * Check if the cookie for the given authKey is expired.
    * Returns true if expired or not found.
+   * Ensures data is loaded from file before checking.
    */
-  isExpired(authKey: string): boolean {
+  async isExpired(authKey: string): Promise<boolean> {
+    await this.ensureLoaded();
+
     const entry = this.cache.get(authKey);
     if (!entry) {
       return true;

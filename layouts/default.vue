@@ -11,6 +11,9 @@
             <NuxtLink to="/" class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300">
               首页
             </NuxtLink>
+            <NuxtLink to="/wechat" class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300">
+              文章抓取
+            </NuxtLink>
             <NuxtLink to="/articles" class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300">
               文章
             </NuxtLink>

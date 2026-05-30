@@ -23,6 +23,7 @@ export default defineNuxtConfig({
       ],
       meta: [
         { name: 'description', content: '基于向量检索的文章知识库，支持多渠道文章管理和智能问答' },
+        { name: 'referrer', content: 'no-referrer' },
       ],
     },
   },

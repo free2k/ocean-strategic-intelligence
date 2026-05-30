@@ -51,7 +51,9 @@ export default defineEventHandler(async (event): Promise<AccountSearchResponse> 
       method: 'GET',
       headers: {
         'User-Agent': USER_AGENT,
-        Referer: `https://mp.weixin.qq.com/cgi-bin/appmsg?t=media/appmsg_edit_v2&action=edit&isNew=1&type=77&token=${token}&lang=zh_CN`,
+        Referer: 'https://mp.weixin.qq.com/',
+        Origin: 'https://mp.weixin.qq.com',
+        'Accept-Encoding': 'identity',
         Cookie: cookie,
       },
     });
