@@ -29,6 +29,13 @@
       "when": 1779567076513,
       "tag": "0003_even_lockheed",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780127475518,
+      "tag": "0004_bumpy_boomer",
+      "breakpoints": true
     }
   ]
 }

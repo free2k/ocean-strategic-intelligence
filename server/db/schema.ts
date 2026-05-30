@@ -39,6 +39,8 @@ export const articles = pgTable('articles', {
   summary: text('summary'),
   /** 摘要生成状态: pending | generated | failed */
   summaryStatus: varchar('summary_status', { length: 16 }).default('pending').notNull(),
+  /** 下载状态: pending | downloaded | deleted | failed */
+  downloadStatus: varchar('download_status', { length: 16 }).default('pending').notNull(),
 }, (table) => ({
   sourceIdx: index('articles_source_idx').on(table.sourceId),
   publishedIdx: index('articles_published_idx').on(table.publishedAt),
@@ -75,3 +77,39 @@ export const filterRules = pgTable('filter_rules', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+/** 代理节点配置表 */
+export const proxyNodes = pgTable('proxy_nodes', {
+  id: serial('id').primaryKey(),
+  url: text('url').notNull(),
+  name: varchar('name', { length: 128 }),
+  authorization: text('authorization'),
+  isPublic: boolean('is_public').default(false).notNull(),
+  enabled: boolean('enabled').default(true).notNull(),
+  failureCount: integer('failure_count').default(0).notNull(),
+  successCount: integer('success_count').default(0).notNull(),
+  lastUsedAt: timestamp('last_used_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+/** Cookie 实体类型 */
+export interface CookieEntity {
+  name: string;
+  value: string;
+  domain?: string;
+  path?: string;
+  expires?: number;
+}
+
+/** 微信登录会话表 */
+export const wechatSessions = pgTable('wechat_sessions', {
+  id: serial('id').primaryKey(),
+  authKey: varchar('auth_key', { length: 64 }).notNull().unique(),
+  token: varchar('token', { length: 128 }).notNull(),
+  cookies: jsonb('cookies').$type<CookieEntity[]>().notNull(),
+  nickname: varchar('nickname', { length: 128 }),
+  avatar: text('avatar'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+});
+
