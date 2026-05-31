@@ -121,3 +121,47 @@ export const wechatSessions = pgTable('wechat_sessions', {
   expiresAt: timestamp('expires_at').notNull(),
 });
 
+/** Playwright 操作步骤类型 */
+export interface ScraperStep {
+  action: 'goto' | 'click' | 'waitForSelector' | 'wait' | 'type' | 'select';
+  selector?: string;
+  value?: string;
+  timeout?: number;
+}
+
+/** 抓取认证配置 */
+export interface ScraperAuthConfig {
+  type: 'cookie' | 'login';
+  cookieFile?: string;
+  loginSteps?: ScraperStep[];
+}
+
+/** 抓取数据源配置表 */
+export const scrapeSources = pgTable('scrape_sources', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  url: text('url').notNull(),
+  tableSelector: text('table_selector').notNull(),
+  steps: jsonb('steps').$type<ScraperStep[]>().default([]).notNull(),
+  schedule: varchar('schedule', { length: 64 }),
+  authConfig: jsonb('auth_config').$type<ScraperAuthConfig | null>().default(null),
+  enabled: boolean('enabled').default(true).notNull(),
+  lastScrapedAt: timestamp('last_scraped_at'),
+  lastStatus: varchar('last_status', { length: 16 }).default('pending').notNull(),
+  lastError: text('last_error'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+/** 抓取结果数据表 */
+export const scrapedData = pgTable('scraped_data', {
+  id: serial('id').primaryKey(),
+  sourceId: integer('source_id').references(() => scrapeSources.id).notNull(),
+  data: jsonb('data').$type<Record<string, any>[]>().notNull(),
+  columns: jsonb('columns').$type<string[]>().notNull(),
+  rowCount: integer('row_count').notNull(),
+  scrapedAt: timestamp('scraped_at').defaultNow().notNull(),
+}, (table) => ({
+  sourceIdx: index('scraped_data_source_idx').on(table.sourceId),
+  scrapedAtIdx: index('scraped_data_scraped_at_idx').on(table.scrapedAt),
+}));

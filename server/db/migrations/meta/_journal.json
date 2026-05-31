@@ -36,6 +36,13 @@
       "when": 1780127475518,
       "tag": "0004_bumpy_boomer",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1780208450793,
+      "tag": "0005_massive_dreadnoughts",
+      "breakpoints": true
     }
   ]
 }

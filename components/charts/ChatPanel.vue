@@ -98,6 +98,22 @@ async function handleFileChange(event: Event) {
     target.value = ''
   }
 }
+
+function handleScraperData(result: { data: Record<string, any>[]; columns: string[]; totalRows: number; preview: Record<string, any>[] }) {
+  uploadedFileName.value = '外部数据源'
+  uploadedPreview.value = {
+    data: result.data,
+    columns: result.columns,
+    totalRows: result.totalRows,
+    preview: result.preview,
+  }
+  emit('fileUploaded', {
+    data: result.data,
+    columns: result.columns,
+    totalRows: result.totalRows,
+    preview: result.preview,
+  })
+}
 </script>
 
 <template>
@@ -126,6 +142,11 @@ async function handleFileChange(event: Event) {
       <p v-if="uploadError" class="mt-2 text-sm text-red-500">
         {{ uploadError }}
       </p>
+
+      <!-- Scraper data picker -->
+      <div class="mt-3">
+        <ScraperScraperDataPicker @select="handleScraperData" />
+      </div>
 
       <!-- Data summary -->
       <div v-if="uploadedPreview" class="mt-3 space-y-2">
