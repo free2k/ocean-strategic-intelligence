@@ -217,7 +217,8 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
         <h3 class="font-semibold">执行筛选</h3>
       </template>
       <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-        对所有"待筛选"状态的文章应用过滤规则。先检查反向规则排除，再检查正向规则匹配目标行业。
+        <!-- 对所有"待筛选"状态的文章应用过滤规则。先检查反向规则排除，再检查正向规则匹配目标行业。<br><br> -->
+        "执行筛选"会保留现有已归类的文章，"重新分类"则所有文章按照最新规则重新覆盖分类。
       </p>
       <div class="flex items-center gap-4">
         <UButton @click="applyFilters" :loading="applyLoading" color="green">

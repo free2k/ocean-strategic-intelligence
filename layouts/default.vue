@@ -6,7 +6,7 @@ const navItems = [
   { label: '文章抓取', to: '/wechat', icon: '/icon/claw.png' },
   { label: '文章列表', to: '/articles', icon: '/icon/articles.png' },
   { label: '图表可视化', to: '/charts', icon: '/icon/graph.png' },
-  { label: '导出与推送', to: '/export', icon: '/icon/send.png' },
+  { label: '定期推送', to: '/export', icon: '/icon/send.png' },
   { label: '管理', to: '/admin', icon: '/icon/setting.png' },
 ];
 

@@ -37,8 +37,8 @@ const sourceTypeOptions = [
   { label: '全部渠道', value: '' },
   { label: '微信公众号', value: 'wechat' },
   { label: 'RSS', value: 'rss' },
-  { label: '网页', value: 'web' },
-  { label: '手动录入', value: 'manual' },
+  // { label: '网页', value: 'web' },
+  // { label: '手动录入', value: 'manual' },
 ];
 
 const filterStatusOptions = [
@@ -215,15 +215,15 @@ function togglePushTask(id: number) {
     >
       <div class="absolute inset-0 bg-gradient-to-r from-green-900/75 to-teal-800/60" />
       <div class="relative z-10">
-        <h1 class="text-2xl font-bold text-white">导出与推送</h1>
+        <h1 class="text-2xl font-bold text-white">定期推送</h1>
         <p class="text-green-100 mt-1">
-          导出资讯报告，或设置定时推送到指定邮箱
+          设置定时推送咨询报告到指定邮箱等渠道
         </p>
       </div>
     </div>
 
     <!-- Tabs -->
-    <UTabs :items="[{ label: '手动导出', slot: 'export' }, { label: '定时推送', slot: 'push' }]">
+    <UTabs :items="[{ label: '定时推送', slot: 'push' }]">
       <template #export>
         <div class="space-y-6 pt-4">
           <!-- 导出配置 -->

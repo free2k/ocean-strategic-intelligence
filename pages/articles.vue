@@ -78,8 +78,8 @@ const sourceTypeOptions = [
   { label: '全部渠道', value: '' },
   { label: '微信公众号', value: 'wechat' },
   { label: 'RSS', value: 'rss' },
-  { label: '网页', value: 'web' },
-  { label: '手动录入', value: 'manual' },
+  // { label: '网页', value: 'web' },
+  // { label: '手动录入', value: 'manual' },
 ];
 
 const dateRangeOptions = [
@@ -93,7 +93,7 @@ const dateRangeOptions = [
 ];
 
 const wechatSources = computed(() => {
-  const list = sourcesData.value?.sources?.filter(s => s.type === 'wechat') || [];
+  const list = sourcesData.value?.sources?.filter(s => s.type === 'wechat' && s.isOverseas === isOverseas.value) || [];
   return [{ label: '全部公众号', value: '' }, ...list.map(s => ({ label: s.name, value: String(s.id) }))];
 });
 
@@ -314,7 +314,7 @@ function cancelExport() { showExportConfirm.value = false; exportCount.value = n
       <div class="relative z-10 flex items-center justify-between">
         <h1 class="text-2xl font-bold text-white">文章列表</h1>
         <div class="flex items-center gap-3">
-          <UButton @click="openRulesModal" color="blue" variant="soft" size="sm" icon="i-heroicons-funnel">分类规则</UButton>
+          <UButton @click="openRulesModal" color="orange" variant="soft" size="sm" icon="i-heroicons-funnel">分类规则</UButton>
           <UButton @click="previewExportCount" :loading="exportCountLoading || exportLoading" color="green" size="sm">导出总结</UButton>
           <span class="text-sm text-blue-100" v-if="data">共 {{ data.total }} 篇</span>
         </div>
@@ -322,7 +322,28 @@ function cancelExport() { showExportConfirm.value = false; exportCount.value = n
     </div>
 
     <!-- Tab 切换：国内资讯 / 外网资讯 -->
-    <UTabs v-model="activeTab" :items="[{ label: '国内资讯' }, { label: '外网资讯' }]" />
+    <div class="flex border-b border-gray-200 dark:border-gray-700">
+      <button
+        class="flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors border-b-2"
+        :class="activeTab === 0
+          ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+          : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+        @click="activeTab = 0"
+      >
+        <img src="/icon/inside.png" alt="国内" class="w-5 h-5" />
+        国内资讯
+      </button>
+      <button
+        class="flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors border-b-2"
+        :class="activeTab === 1
+          ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+          : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+        @click="activeTab = 1"
+      >
+        <img src="/icon/outside.png" alt="外网" class="w-5 h-5" />
+        外网资讯
+      </button>
+    </div>
 
     <!-- 筛选栏 -->
     <UCard>

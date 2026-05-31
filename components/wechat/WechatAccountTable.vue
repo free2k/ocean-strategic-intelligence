@@ -64,6 +64,13 @@ const showImportModal = ref(false);
 const importFile = ref<File | null>(null);
 const importing = ref(false);
 
+// Batch search import modal
+const showBatchSearchModal = ref(false);
+const batchSearchText = ref('');
+const batchSearching = ref(false);
+const batchSearchProgress = ref({ total: 0, current: 0, success: 0, skipped: 0, failed: 0 });
+const batchSearchLog = ref<string[]>([]);
+
 // Sync state
 const syncingIds = ref<Set<number>>(new Set());
 const syncTasks = ref<Map<number, SyncTaskInfo>>(new Map());
@@ -326,6 +333,76 @@ async function executeImport() {
   }
 }
 
+// Batch search import: search each name and subscribe
+async function executeBatchSearch() {
+  if (!requireLogin()) return;
+  const lines = batchSearchText.value.split('\n').map((l) => l.trim()).filter(Boolean);
+  if (lines.length === 0) {
+    toast.add({ title: '请输入公众号名称', description: '每行一个公众号名称', color: 'yellow' });
+    return;
+  }
+
+  batchSearching.value = true;
+  batchSearchProgress.value = { total: lines.length, current: 0, success: 0, skipped: 0, failed: 0 };
+  batchSearchLog.value = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const keyword = lines[i];
+    batchSearchProgress.value.current = i + 1;
+
+    try {
+      // Search for the account
+      const searchData = await $fetch<{ list: SearchResult[] }>('/api/wechat/accounts/search', {
+        params: { keyword },
+        headers: authKey.value ? { 'X-Auth-Key': authKey.value } : undefined,
+      });
+
+      if (!searchData.list || searchData.list.length === 0) {
+        batchSearchProgress.value.failed++;
+        batchSearchLog.value.push(`[未找到] ${keyword}`);
+        continue;
+      }
+
+      const result = searchData.list[0];
+
+      // Subscribe to the account
+      const subData = await $fetch<{ success: boolean; created: boolean }>('/api/wechat/accounts/subscribe', {
+        method: 'POST',
+        body: {
+          fakeid: result.fakeid,
+          nickname: result.nickname,
+          avatar: result.avatar,
+          alias: result.alias,
+        },
+      });
+
+      if (subData.created) {
+        batchSearchProgress.value.success++;
+        batchSearchLog.value.push(`[成功] ${result.nickname} (${result.fakeid})`);
+      } else {
+        batchSearchProgress.value.skipped++;
+        batchSearchLog.value.push(`[已存在] ${result.nickname}`);
+      }
+    } catch (error: any) {
+      batchSearchProgress.value.failed++;
+      batchSearchLog.value.push(`[错误] ${keyword}: ${error?.message || '请求失败'}`);
+    }
+
+    // Wait 2 seconds between requests to avoid rate limiting
+    if (i < lines.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+
+  batchSearching.value = false;
+  toast.add({
+    title: '批量搜索完成',
+    description: `成功 ${batchSearchProgress.value.success}，跳过 ${batchSearchProgress.value.skipped}，失败 ${batchSearchProgress.value.failed}`,
+    color: 'green',
+  });
+  await loadAccounts();
+}
+
 // Batch delete
 async function batchDelete() {
   for (const account of selected.value) {
@@ -380,8 +457,11 @@ onMounted(() => {
       <UButton icon="i-heroicons-plus" color="primary" @click="requireLogin() && (showAddModal = true)">
         添加
       </UButton>
-      <UButton icon="i-heroicons-arrow-up-tray" color="gray" variant="solid" @click="showImportModal = true">
+      <!-- <UButton icon="i-heroicons-arrow-up-tray" color="gray" variant="solid" @click="showImportModal = true">
         批量导入
+      </UButton> -->
+      <UButton icon="i-heroicons-magnifying-glass" color="gray" variant="solid" @click="showBatchSearchModal = true">
+        批量查找
       </UButton>
       <template v-if="selected.length > 0">
         <UButton icon="i-heroicons-arrow-path" color="blue" variant="soft" @click="openBatchSyncModal">
@@ -596,6 +676,65 @@ onMounted(() => {
           <div class="flex justify-end gap-3">
             <UButton color="gray" variant="ghost" @click="showImportModal = false">取消</UButton>
             <UButton color="primary" :loading="importing" :disabled="!importFile" @click="executeImport">导入</UButton>
+          </div>
+        </template>
+      </UCard>
+    </UModal>
+
+    <!-- Batch search import modal -->
+    <UModal v-model="showBatchSearchModal" :ui="{ width: 'sm:max-w-xl' }">
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold">批量搜索导入公众号</h3>
+        </template>
+        <div class="space-y-4">
+          <p class="text-sm text-gray-500">
+            输入公众号名称，每行一个。系统将逐个搜索并自动订阅找到的公众号。
+          </p>
+          <UTextarea
+            v-model="batchSearchText"
+            :rows="10"
+            placeholder="中国能源报&#10;南方能源观察&#10;海油工程微讯&#10;..."
+            :disabled="batchSearching"
+          />
+
+          <!-- Progress -->
+          <div v-if="batchSearching || batchSearchProgress.current > 0" class="space-y-2">
+            <div class="flex justify-between text-sm text-gray-600">
+              <span>进度: {{ batchSearchProgress.current }} / {{ batchSearchProgress.total }}</span>
+              <span>
+                <span class="text-green-600">成功 {{ batchSearchProgress.success }}</span> ·
+                <span class="text-yellow-600">跳过 {{ batchSearchProgress.skipped }}</span> ·
+                <span class="text-red-500">失败 {{ batchSearchProgress.failed }}</span>
+              </span>
+            </div>
+            <UProgress :value="batchSearchProgress.total > 0 ? Math.round((batchSearchProgress.current / batchSearchProgress.total) * 100) : 0" size="sm" />
+          </div>
+
+          <!-- Log output -->
+          <div v-if="batchSearchLog.length > 0" class="max-h-40 overflow-y-auto bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-xs font-mono space-y-0.5">
+            <p v-for="(log, idx) in batchSearchLog" :key="idx" :class="{
+              'text-green-600': log.startsWith('[成功]'),
+              'text-yellow-600': log.startsWith('[已存在]'),
+              'text-red-500': log.startsWith('[未找到]') || log.startsWith('[错误]'),
+            }">
+              {{ log }}
+            </p>
+          </div>
+        </div>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton color="gray" variant="ghost" @click="showBatchSearchModal = false" :disabled="batchSearching">
+              {{ batchSearching ? '搜索中...' : '关闭' }}
+            </UButton>
+            <UButton
+              color="primary"
+              :loading="batchSearching"
+              :disabled="!batchSearchText.trim() || batchSearching"
+              @click="executeBatchSearch"
+            >
+              开始搜索导入
+            </UButton>
           </div>
         </template>
       </UCard>

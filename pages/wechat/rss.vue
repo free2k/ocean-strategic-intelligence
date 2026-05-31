@@ -18,6 +18,11 @@ const newName = ref('');
 const newUrl = ref('');
 const adding = ref(false);
 
+// Batch import
+const showBatchModal = ref(false);
+const batchText = ref('');
+const batchImporting = ref(false);
+
 // Sync state
 const syncingIds = ref<Set<number>>(new Set());
 const syncResults = ref<Map<number, string>>(new Map());
@@ -75,6 +80,56 @@ async function addSource() {
     toast.add({ title: '添加失败', description: error?.message, color: 'red' });
   } finally {
     adding.value = false;
+  }
+}
+
+// Batch import RSS sources (format: name\nurl\nname\nurl...)
+async function batchImport() {
+  const lines = batchText.value.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length < 2) {
+    toast.add({ title: '格式错误', description: '请按"名称\\nURL"交替填写，至少一组', color: 'yellow' });
+    return;
+  }
+
+  const pairs: { name: string; url: string }[] = [];
+  for (let i = 0; i < lines.length - 1; i += 2) {
+    const name = lines[i];
+    const url = lines[i + 1];
+    if (name && url && (url.startsWith('http://') || url.startsWith('https://'))) {
+      pairs.push({ name, url });
+    }
+  }
+
+  if (pairs.length === 0) {
+    toast.add({ title: '未识别到有效数据', description: '请确保格式为：名称换行后跟URL', color: 'yellow' });
+    return;
+  }
+
+  batchImporting.value = true;
+  let created = 0;
+  let skipped = 0;
+
+  try {
+    for (const pair of pairs) {
+      try {
+        const result = await $fetch<{ success: boolean; created: boolean }>('/api/rss/sources', {
+          method: 'POST',
+          body: { name: pair.name, url: pair.url },
+        });
+        if (result.created) created++;
+        else skipped++;
+      } catch {
+        skipped++;
+      }
+    }
+    toast.add({ title: '批量导入完成', description: `新增 ${created} 个，跳过 ${skipped} 个`, color: 'green' });
+    batchText.value = '';
+    showBatchModal.value = false;
+    await loadSources();
+  } catch (error: any) {
+    toast.add({ title: '导入失败', description: error?.message, color: 'red' });
+  } finally {
+    batchImporting.value = false;
   }
 }
 
@@ -204,7 +259,12 @@ onMounted(() => {
 
     <!-- Add RSS source form -->
     <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
-      <h3 class="text-sm font-medium">添加 RSS 订阅源</h3>
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-medium">添加 RSS 订阅源</h3>
+        <UButton icon="i-heroicons-arrow-up-tray" color="blue" variant="soft" size="xs" @click="showBatchModal = true">
+          批量导入
+        </UButton>
+      </div>
       <div class="flex items-end gap-3 flex-wrap">
         <div class="flex-1 min-w-[200px]">
           <label class="block text-xs text-gray-500 mb-1">渠道名称</label>
@@ -334,6 +394,35 @@ onMounted(() => {
           <div class="flex justify-end gap-3">
             <UButton color="gray" variant="ghost" @click="showDeleteModal = false">取消</UButton>
             <UButton color="red" :loading="deleting" @click="executeDelete">确认删除</UButton>
+          </div>
+        </template>
+      </UCard>
+    </UModal>
+
+    <!-- Batch import modal -->
+    <UModal v-model="showBatchModal">
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold">批量导入 RSS 订阅源</h3>
+        </template>
+        <div class="space-y-3">
+          <p class="text-sm text-gray-500">
+            每两行为一组：第一行为渠道名称，第二行为 RSS 地址。示例：
+          </p>
+          <pre class="text-xs bg-gray-100 dark:bg-gray-800 rounded p-3 text-gray-600 dark:text-gray-400 overflow-x-auto">S&amp;P Global
+http://cn.todayrss.com/rss/xxx
+OilPrice
+http://cn.todayrss.com/rss/yyy</pre>
+          <UTextarea
+            v-model="batchText"
+            :rows="10"
+            placeholder="渠道名称&#10;RSS地址&#10;渠道名称&#10;RSS地址&#10;..."
+          />
+        </div>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton color="gray" variant="ghost" @click="showBatchModal = false">取消</UButton>
+            <UButton color="primary" :loading="batchImporting" @click="batchImport">确认导入</UButton>
           </div>
         </template>
       </UCard>
