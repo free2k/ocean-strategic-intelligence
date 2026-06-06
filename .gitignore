@@ -5,3 +5,6 @@ dist/
 .data/
 .env
 *.log
+
+# Deploy secrets
+deploy/.env.deploy

@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
     });
 
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
     // 检测页面中所有表格
     const tables = await page.evaluate(() => {

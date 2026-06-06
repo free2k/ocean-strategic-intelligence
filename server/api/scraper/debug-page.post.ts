@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
   try {
     browser = await chromium.launch({ headless: true, executablePath: chromePath });
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForTimeout(3000);
 
     // 提取详细的页面结构

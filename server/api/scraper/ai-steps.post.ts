@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
     // Step 1: 打开页面，提取精简 DOM
     browser = await chromium.launch({ headless: true, executablePath: chromePath });
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
     // 提取页面的可交互元素摘要（精简版 DOM）
     const pageStructure = await page.evaluate(() => {

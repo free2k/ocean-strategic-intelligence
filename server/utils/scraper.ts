@@ -42,10 +42,10 @@ export async function executeScrape(options: {
     const page = await context.newPage();
 
     // 导航到目标页面
-    await page.goto(options.url, { waitUntil: 'networkidle', timeout: 60000 });
+    await page.goto(options.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
     // 等待页面基本渲染完成
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(5000);
 
     // 执行预定义步骤（点击 tab、等待元素等）
     if (options.steps?.length) {
@@ -125,7 +125,7 @@ async function executeSteps(page: Page, steps: ScraperStep[]): Promise<void> {
           break;
         case 'goto':
           if (step.value) {
-            await page.goto(step.value, { waitUntil: 'networkidle', timeout });
+            await page.goto(step.value, { waitUntil: 'domcontentloaded', timeout });
           }
           break;
       }
@@ -266,16 +266,19 @@ async function extractTableData(page: Page, selector: string): Promise<ScrapeRes
   // 先检查元素是否存在
   const elementInfo = await page.evaluate((sel) => {
     const el = document.querySelector(sel);
-    if (!el) return { found: false, tag: '', childCount: 0 };
+    if (!el) return { found: false, tag: '', childCount: 0, html: '' };
     return {
       found: true,
       tag: el.tagName.toLowerCase(),
       childCount: el.children.length,
-      html: el.outerHTML.slice(0, 500),
+      html: el.outerHTML.slice(0, 1000),
     };
   }, selector);
 
   console.log(`[Scraper] 表格元素检测: found=${elementInfo.found}, tag=${elementInfo.tag}, children=${elementInfo.childCount}`);
+  if (elementInfo.found) {
+    console.log(`[Scraper] 表格HTML片段: ${elementInfo.html}`);
+  }
 
   if (!elementInfo.found) {
     // 如果指定选择器找不到，尝试自动检测页面上的表格类结构
@@ -284,9 +287,17 @@ async function extractTableData(page: Page, selector: string): Promise<ScrapeRes
   }
 
   if (elementInfo.tag === 'table') {
-    return await extractStandardTable(page, selector);
+    const result = await extractStandardTable(page, selector);
+    // 如果标准提取失败或只有表头，尝试合并多表格策略
+    if (result.data.length <= 1) {
+      console.log(`[Scraper] 标准提取数据不足(${result.data.length}行)，尝试多表格合并策略`);
+      const mergedResult = await extractMergedTables(page);
+      if (mergedResult.data.length > result.data.length) {
+        return mergedResult;
+      }
+    }
+    return result;
   } else {
-    // 非标准 table，尝试按 div 表格提取
     return await extractDivTable(page, selector);
   }
 }
@@ -299,40 +310,218 @@ async function extractStandardTable(page: Page, selector: string): Promise<Scrap
     const table = document.querySelector(sel);
     if (!table) return { success: false, data: [], columns: [], error: '未找到表格元素' };
 
-    const headers: string[] = [];
-    const headerCells = table.querySelectorAll('thead th, thead td, tr:first-child th, tr:first-child td');
-    headerCells.forEach((cell) => {
-      headers.push((cell as HTMLElement).innerText.trim());
-    });
+    // 调试：输出表格结构
+    const debugInfo = {
+      innerHTML: table.innerHTML.slice(0, 200),
+      childTags: Array.from(table.children).map(c => c.tagName.toLowerCase()),
+      tbodyCount: table.querySelectorAll('tbody').length,
+      trCount: table.querySelectorAll('tr').length,
+      tdCount: table.querySelectorAll('td').length,
+    };
+    console.log('Table debug:', JSON.stringify(debugInfo));
 
-    const rows = table.querySelectorAll('tbody tr, tr');
-    if (headers.length === 0 && rows.length > 0) {
-      rows[0].querySelectorAll('th, td').forEach((cell) => {
-        headers.push((cell as HTMLElement).innerText.trim());
+    // 提取表头
+    const headers: string[] = [];
+    const headerRow = table.querySelector('thead tr') || table.querySelector('tr');
+    if (headerRow) {
+      headerRow.querySelectorAll('th, td').forEach((cell) => {
+        const text = (cell as HTMLElement).innerText.trim();
+        if (text) headers.push(text);
       });
     }
 
+    // 提取数据行 - 多种策略
     const data: Record<string, any>[] = [];
-    const dataRows = table.querySelector('tbody')
-      ? table.querySelectorAll('tbody tr')
-      : Array.from(rows).slice(headers.length > 0 ? 1 : 0);
+
+    // 策略1: tbody 中的 tr
+    let dataRows = table.querySelectorAll('tbody tr');
+
+    // 策略2: 如果 tbody 没有 tr，尝试所有 tr（跳过第一行表头）
+    if (dataRows.length === 0) {
+      const allRows = table.querySelectorAll('tr');
+      dataRows = allRows.length > 1
+        ? (document.querySelectorAll(`${sel} tr:not(:first-child)`) as NodeListOf<Element>)
+        : allRows;
+    }
 
     dataRows.forEach((row) => {
-      const cells = row.querySelectorAll('td, th');
-      if (cells.length === 0) return;
+      const cells = row.querySelectorAll('td');
+      // 如果没有 td，尝试 th（有些表格数据行也用 th）
+      const allCells = cells.length > 0 ? cells : row.querySelectorAll('th');
+      if (allCells.length === 0) return;
+
+      // 跳过表头行（如果混在数据行里）
+      const firstCellText = (allCells[0] as HTMLElement).innerText.trim();
+      if (headers.length > 0 && firstCellText === headers[0]) return;
+
       const rowData: Record<string, any> = {};
-      cells.forEach((cell, idx) => {
+      allCells.forEach((cell, idx) => {
         const key = headers[idx] || `col_${idx}`;
         const value = (cell as HTMLElement).innerText.trim();
         const num = Number(value.replace(/,/g, ''));
         rowData[key] = isNaN(num) || value === '' ? value : num;
       });
-      data.push(rowData);
+
+      // 只添加非空行
+      if (Object.values(rowData).some(v => v !== '' && v !== undefined)) {
+        data.push(rowData);
+      }
     });
 
-    return { success: true, data, columns: headers, error: undefined };
+    // 策略3: 如果还是没数据，尝试直接解析 innerText
+    if (data.length === 0) {
+      const text = (table as HTMLElement).innerText;
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+      if (lines.length >= 2) {
+        // 第一行是表头（已经有了），从第二行开始解析
+        for (let i = 1; i < lines.length; i++) {
+          const cells = lines[i].split('\t').filter(c => c.trim() !== '');
+          if (cells.length < 2) continue;
+          const rowData: Record<string, any> = {};
+          cells.forEach((cell, idx) => {
+            const key = headers[idx] || `col_${idx}`;
+            const value = cell.trim();
+            const num = Number(value.replace(/,/g, ''));
+            rowData[key] = isNaN(num) || value === '' ? value : num;
+          });
+          data.push(rowData);
+        }
+      }
+    }
+
+    return {
+      success: data.length > 0,
+      data,
+      columns: headers,
+      error: data.length === 0 ? `表格有 ${debugInfo.trCount} 个tr, ${debugInfo.tdCount} 个td，但未能提取数据` : undefined,
+    };
   }, selector);
 
+  // 打印 evaluate 中的 console.log
+  console.log(`[Scraper] 标准表格提取: ${result.data.length} 行, ${result.columns.length} 列`);
+  if (result.error) console.log(`[Scraper] 提取问题: ${result.error}`);
+
+  return result as ScrapeResult;
+}
+
+/**
+ * 合并多表格提取策略
+ * 很多数据网站把固定列和滚动列分成多个 table，或者表头和数据体分离
+ * 这个函数会找到页面上所有 table，尝试合并它们的数据
+ */
+async function extractMergedTables(page: Page): Promise<ScrapeResult> {
+  const result = await page.evaluate(() => {
+    const tables = document.querySelectorAll('table');
+    if (tables.length === 0) return { success: false, data: [], columns: [], error: '无table' };
+
+    // 收集所有表格的行数据
+    let allHeaders: string[] = [];
+    let allDataRows: string[][] = [];
+
+    for (const table of tables) {
+      const rows = table.querySelectorAll('tr');
+      if (rows.length === 0) continue;
+
+      for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].querySelectorAll('th, td');
+        const rowTexts: string[] = [];
+        cells.forEach(cell => {
+          rowTexts.push((cell as HTMLElement).innerText.trim());
+        });
+
+        if (rowTexts.length === 0) continue;
+
+        // 判断是否是表头行（包含"指标"或年份格式）
+        const isHeader = rowTexts.some(t => /^\d{4}年/.test(t) || t === '指标');
+        if (isHeader && allHeaders.length === 0) {
+          allHeaders = rowTexts;
+        } else if (rowTexts.some(t => t !== '')) {
+          allDataRows.push(rowTexts);
+        }
+      }
+    }
+
+    // 如果没有通过 tr 拿到数据，尝试用 innerText 整体解析
+    if (allDataRows.length === 0) {
+      // 找到包含表格的最大容器
+      const containers = document.querySelectorAll('[class*="table"], [class*="data"], [class*="grid"]');
+      for (const container of containers) {
+        const text = (container as HTMLElement).innerText;
+        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+        if (lines.length < 3) continue;
+
+        for (let i = 0; i < lines.length; i++) {
+          const cells = lines[i].split('\t').filter(Boolean);
+          if (cells.length < 2) continue;
+
+          const isHeader = cells.some(t => /^\d{4}年/.test(t) || t === '指标');
+          if (isHeader && allHeaders.length === 0) {
+            allHeaders = cells;
+          } else if (!isHeader) {
+            allDataRows.push(cells);
+          }
+        }
+        if (allDataRows.length > 0) break;
+      }
+    }
+
+    // 如果还是没数据，最后尝试：直接获取整个页面可见区域的表格文本
+    if (allDataRows.length === 0) {
+      const bodyText = document.body.innerText;
+      const lines = bodyText.split('\n').map(l => l.trim()).filter(Boolean);
+      
+      // 找到表头行（包含年份的行）
+      let headerIdx = -1;
+      for (let i = 0; i < lines.length; i++) {
+        if (/\d{4}年/.test(lines[i]) && lines[i].split('\t').length >= 2) {
+          headerIdx = i;
+          allHeaders = lines[i].split('\t').filter(Boolean);
+          break;
+        }
+      }
+
+      if (headerIdx >= 0) {
+        for (let i = headerIdx + 1; i < lines.length; i++) {
+          const cells = lines[i].split('\t').filter(Boolean);
+          if (cells.length >= 2) {
+            allDataRows.push(cells);
+          } else {
+            // 遇到不规则行就停止
+            if (allDataRows.length > 0) break;
+          }
+        }
+      }
+    }
+
+    if (allDataRows.length === 0) {
+      return { success: false, data: [], columns: allHeaders, error: '多表格合并策略未提取到数据行' };
+    }
+
+    // 构建数据
+    const data: Record<string, any>[] = [];
+    for (const row of allDataRows) {
+      const rowData: Record<string, any> = {};
+      row.forEach((cell, idx) => {
+        const key = allHeaders[idx] || `col_${idx}`;
+        const num = Number(cell.replace(/,/g, ''));
+        rowData[key] = isNaN(num) || cell === '' ? cell : num;
+      });
+      // 过滤掉全空行和重复表头行
+      const values = Object.values(rowData);
+      if (values.some(v => v !== '' && v !== undefined) && !values.every(v => /^\d{4}年$/.test(String(v)))) {
+        data.push(rowData);
+      }
+    }
+
+    return {
+      success: data.length > 0,
+      data,
+      columns: allHeaders,
+      error: data.length === 0 ? '合并后无有效数据' : undefined,
+    };
+  });
+
+  console.log(`[Scraper] 多表格合并提取: ${result.data.length} 行, columns=[${result.columns.join(',')}]`);
   return result as ScrapeResult;
 }
 
