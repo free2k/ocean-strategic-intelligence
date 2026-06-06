@@ -123,7 +123,7 @@ export const wechatSessions = pgTable('wechat_sessions', {
 
 /** Playwright 操作步骤类型 */
 export interface ScraperStep {
-  action: 'goto' | 'click' | 'waitForSelector' | 'wait' | 'type' | 'select';
+  action: 'goto' | 'click' | 'waitForSelector' | 'wait' | 'type' | 'select' | 'download' | 'slideCaptcha';
   selector?: string;
   value?: string;
   timeout?: number;
@@ -139,6 +139,8 @@ export interface ScraperAuthConfig {
 /** 抓取数据源配置表 */
 export const scrapeSources = pgTable('scrape_sources', {
   id: serial('id').primaryKey(),
+  /** 渠道名称（用于分组，如"国家统计局"、"海关总署"） */
+  channel: varchar('channel', { length: 128 }).notNull().default('默认'),
   name: varchar('name', { length: 255 }).notNull(),
   url: text('url').notNull(),
   tableSelector: text('table_selector').notNull(),
@@ -165,3 +167,18 @@ export const scrapedData = pgTable('scraped_data', {
   sourceIdx: index('scraped_data_source_idx').on(table.sourceId),
   scrapedAtIdx: index('scraped_data_scraped_at_idx').on(table.scrapedAt),
 }));
+
+/** 邮件推送任务表 */
+export const pushTasks = pgTable('push_tasks', {
+  id: serial('id').primaryKey(),
+  email: varchar('email', { length: 255 }).notNull(),
+  frequency: varchar('frequency', { length: 16 }).notNull().default('weekly'), // daily | weekly | biweekly | monthly
+  dateRange: varchar('date_range', { length: 16 }).notNull().default('2w'), // 3d | 1w | 2w | 1m
+  topics: jsonb('topics').$type<string[]>().default([]).notNull(),
+  enabled: boolean('enabled').default(true).notNull(),
+  lastSentAt: timestamp('last_sent_at'),
+  lastStatus: varchar('last_status', { length: 16 }).default('pending'), // pending | success | failed
+  lastError: text('last_error'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});

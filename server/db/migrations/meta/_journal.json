@@ -43,6 +43,20 @@
       "when": 1780208450793,
       "tag": "0005_massive_dreadnoughts",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1780761373105,
+      "tag": "0006_fantastic_flatman",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1780776769772,
+      "tag": "0007_brave_blade",
+      "breakpoints": true
     }
   ]
 }

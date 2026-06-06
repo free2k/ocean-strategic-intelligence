@@ -335,14 +335,19 @@ onMounted(() => {
               @click="openSyncModal(source)"
               title="同步设置"
             />
-            <UButton
-              :icon="source.isOverseas ? 'i-heroicons-globe-alt' : 'i-heroicons-globe-americas'"
-              :color="source.isOverseas ? 'orange' : 'gray'"
-              variant="ghost"
-              size="xs"
-              :title="source.isOverseas ? '取消外网标记' : '标记为外网来源'"
-              @click="toggleOverseas(source)"
-            />
+            <UTooltip :text="source.isOverseas ? '当前为外网渠道，导出时归入「外网资讯」分类' : '开启后该来源文章将归入「外网资讯」分类'">
+              <div class="flex items-center gap-1.5">
+                <UToggle
+                  :model-value="source.isOverseas"
+                  size="sm"
+                  on-icon="i-heroicons-globe-alt"
+                  off-icon="i-heroicons-globe-americas"
+                  :ui="{ active: 'bg-orange-500 dark:bg-orange-400' }"
+                  @update:model-value="toggleOverseas(source)"
+                />
+                <span class="text-xs" :class="source.isOverseas ? 'text-orange-500 font-medium' : 'text-gray-400'">外网</span>
+              </div>
+            </UTooltip>
             <UButton
               icon="i-heroicons-trash"
               color="red"

@@ -19,12 +19,36 @@ export default defineEventHandler(async (event) => {
   let browser;
   try {
     // Step 1: 打开页面，提取精简 DOM
-    browser = await chromium.launch({ headless: true, executablePath: chromePath });
+    browser = await chromium.launch({
+      headless: true,
+      executablePath: chromePath,
+      args: ['--disable-blink-features=AutomationControlled', '--no-sandbox'],
+    });
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    console.log(`[AI-Steps] 正在打开页面: ${url}`);
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.waitForTimeout(5000);
+
+    // 检查是否有 iframe，如果有则进入 iframe
+    const frames = page.frames();
+    let targetFrame = page;
+    if (frames.length > 1) {
+      // 找到内容最多的子 frame
+      for (const frame of frames) {
+        if (frame === page.mainFrame()) continue;
+        const content = await frame.evaluate(() => document.body?.innerText?.length || 0).catch(() => 0);
+        if (content > 100) {
+          targetFrame = frame as any;
+          console.log(`[AI-Steps] 检测到 iframe，切换到子frame (内容长度: ${content})`);
+          break;
+        }
+      }
+    }
+
+    console.log(`[AI-Steps] 页面加载完成，提取DOM结构...`);
 
     // 提取页面的可交互元素摘要（精简版 DOM）
-    const pageStructure = await page.evaluate(() => {
+    const pageStructure = await targetFrame.evaluate(() => {
       function getSelector(el: Element): string {
         if (el.id) return `#${el.id}`;
         if (el.className && typeof el.className === 'string') {
@@ -73,6 +97,7 @@ export default defineEventHandler(async (event) => {
 
     // Step 2: 调用 LLM 生成操作步骤
     const config = useRuntimeConfig();
+    console.log(`[AI-Steps] DOM提取完成(${pageStructure.elements.length}个元素)，调用LLM...`);
     const systemPrompt = `你是一个网页自动化专家。用户会给你一个网页的结构摘要和他们想要获取的数据描述。
 你需要生成 Playwright 操作步骤来帮助用户获取目标数据。
 
@@ -160,6 +185,7 @@ ${pageStructure.elements.join('\n')}
     };
   } catch (error: any) {
     if (browser) await browser.close();
+    console.error(`[AI-Steps] 错误详情:`, error.message, error.stack?.slice(0, 300));
     throw createError({
       statusCode: 500,
       message: error.message || 'AI 步骤生成失败',

@@ -3,6 +3,18 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['@vueuse/nuxt', '@nuxt/ui'],
   ssr: true,
+  colorMode: {
+    preference: 'dark', // 默认暗色，不跟随系统
+    fallback: 'dark',
+  },
+  nitro: {
+    noExternals: false,
+  },
+  vite: {
+    ssr: {
+      external: ['xlsx'],
+    },
+  },
   runtimeConfig: {
     // 服务端私有配置
     databaseUrl: process.env.DATABASE_URL,
@@ -11,6 +23,14 @@ export default defineNuxtConfig({
     embeddingModel: process.env.EMBEDDING_MODEL || 'text-embedding-3-small',
     chatModel: process.env.CHAT_MODEL || 'gpt-4o-mini',
     embeddingDimension: parseInt(process.env.EMBEDDING_DIMENSION || '1536'),
+    // SMTP 邮件配置
+    smtpHost: process.env.SMTP_HOST || '',
+    smtpPort: parseInt(process.env.SMTP_PORT || '465'),
+    smtpUser: process.env.SMTP_USER || '',
+    smtpPass: process.env.SMTP_PASS || '',
+    smtpFrom: process.env.SMTP_FROM || '',
+    // 站点访问密码
+    sitePassword: process.env.SITE_PASSWORD || '',
     public: {
       appName: '海洋能源资源情报分析',
     },

@@ -2,7 +2,7 @@ import { useDB, schema } from '~/server/db';
 import { z } from 'zod';
 
 const stepSchema = z.object({
-  action: z.enum(['goto', 'click', 'waitForSelector', 'wait', 'type', 'select']),
+  action: z.enum(['goto', 'click', 'waitForSelector', 'wait', 'type', 'select', 'download', 'slideCaptcha']),
   selector: z.string().optional(),
   value: z.string().optional(),
   timeout: z.number().optional(),
@@ -12,6 +12,7 @@ const bodySchema = z.object({
   name: z.string().min(1, '名称不能为空'),
   url: z.string().url('请输入有效的 URL'),
   tableSelector: z.string().min(1, '表格选择器不能为空'),
+  channel: z.string().min(1).default('默认'),
   steps: z.array(stepSchema).default([]),
   schedule: z.string().nullable().optional(),
   authConfig: z.object({
@@ -34,6 +35,7 @@ export default defineEventHandler(async (event) => {
       name: parsed.name,
       url: parsed.url,
       tableSelector: parsed.tableSelector,
+      channel: parsed.channel,
       steps: parsed.steps,
       schedule: parsed.schedule || null,
       authConfig: parsed.authConfig || null,

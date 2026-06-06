@@ -270,7 +270,8 @@ export default defineEventHandler(async (event) => {
             children: [new TextRun({
               text: '海洋资源战略研究中心信息推送',
               bold: true,
-              size: 36,
+              size: 52,
+              font: '微软雅黑',
               color: 'CC0000',
             })],
           })],

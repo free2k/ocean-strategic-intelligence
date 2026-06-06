@@ -24,15 +24,25 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   return response.data[0].embedding;
 }
 
-/** 批量生成向量 */
+/** 批量生成向量（自动分批，DashScope 限制每批最多 10 条） */
 export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
   const config = useRuntimeConfig();
   const client = getClient();
-  const response = await client.embeddings.create({
-    model: config.embeddingModel,
-    input: texts,
-  });
-  return response.data.map(d => d.embedding);
+  const BATCH_SIZE = 6; // DashScope 限制 10，留余量用 6
+  const results: number[][] = [];
+
+  for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+    const batch = texts.slice(i, i + BATCH_SIZE);
+    // 截断过长的文本（避免请求体超限）
+    const truncatedBatch = batch.map(t => t.length > 2000 ? t.slice(0, 2000) : t);
+    const response = await client.embeddings.create({
+      model: config.embeddingModel,
+      input: truncatedBatch,
+    });
+    results.push(...response.data.map(d => d.embedding));
+  }
+
+  return results;
 }
 
 /** 调用 Chat 模型进行问答 */

@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 const stepSchema = z.object({
-  action: z.enum(['goto', 'click', 'waitForSelector', 'wait', 'type', 'select']),
+  action: z.enum(['goto', 'click', 'waitForSelector', 'wait', 'type', 'select', 'download', 'slideCaptcha']),
   selector: z.string().optional(),
   value: z.string().optional(),
   timeout: z.number().optional(),
@@ -13,6 +13,7 @@ const bodySchema = z.object({
   name: z.string().min(1).optional(),
   url: z.string().url().optional(),
   tableSelector: z.string().min(1).optional(),
+  channel: z.string().min(1).optional(),
   steps: z.array(stepSchema).optional(),
   schedule: z.string().nullable().optional(),
   authConfig: z.object({

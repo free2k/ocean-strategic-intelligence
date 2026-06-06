@@ -1,5 +1,3 @@
-import * as XLSX from 'xlsx';
-
 export interface ParsedFileResult {
   columns: string[]
   data: Record<string, any>[]
@@ -40,6 +38,9 @@ export function useFileParser() {
     }
 
     try {
+      // 使用 Function 构造避免 Vite 静态分析 xlsx 的 import
+      const loadXlsx = new Function('return import("xlsx")');
+      const XLSX = await loadXlsx();
       const arrayBuffer = await file.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: 'array' });
 

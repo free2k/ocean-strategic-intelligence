@@ -560,14 +560,16 @@ onMounted(() => {
               </UButton>
               <UButton icon="i-heroicons-cog-6-tooth" color="gray" variant="ghost" size="xs" @click="openSyncModal(row)" title="同步设置" />
             </template>
-            <UButton
-              :icon="row.isOverseas ? 'i-heroicons-globe-alt' : 'i-heroicons-globe-americas'"
-              :color="row.isOverseas ? 'orange' : 'gray'"
-              variant="ghost"
-              size="xs"
-              :title="row.isOverseas ? '取消外网标记' : '标记为外网来源'"
-              @click="toggleOverseas(row)"
-            />
+            <UTooltip :text="row.isOverseas ? '当前为外网渠道，导出时归入「外网资讯」分类' : '开启后该来源文章将归入「外网资讯」分类'">
+              <UToggle
+                :model-value="row.isOverseas"
+                size="sm"
+                on-icon="i-heroicons-globe-alt"
+                off-icon="i-heroicons-globe-americas"
+                :ui="{ active: 'bg-orange-500 dark:bg-orange-400' }"
+                @update:model-value="toggleOverseas(row)"
+              />
+            </UTooltip>
             <UButton icon="i-heroicons-trash" color="red" variant="ghost" size="xs" @click="confirmDelete(row)" />
           </div>
         </template>

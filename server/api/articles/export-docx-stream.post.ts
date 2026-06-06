@@ -314,7 +314,7 @@ export default defineEventHandler(async (event) => {
         default: new Header({
           children: [new Paragraph({
             alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: '海洋资源战略研究中心信息推送', bold: true, size: 36, color: 'CC0000' })],
+            children: [new TextRun({ text: '海洋资源战略研究中心信息推送', bold: true, size: 40, color: 'CC0000' })],
           })],
         }),
       },

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import * as echarts from 'echarts';
 
+const colorMode = useColorMode();
+const isDark = computed(() => colorMode.value === 'dark');
+
 const { data: stats } = await useFetch('/api/stats');
 const { data: categories } = await useFetch('/api/stats/categories');
 
@@ -19,29 +22,31 @@ function buildPieOption(data: { name: string; count: number }[], title: string) 
     '#06b6d4', '#ec4899', '#14b8a6', '#f97316', '#6366f1',
   ];
 
+  const dark = isDark.value;
+
   return {
     title: {
       text: title,
       left: 'center',
       top: 16,
       textStyle: {
-        color: '#e2e8f0',
+        color: dark ? '#e2e8f0' : '#1e293b',
         fontSize: 16,
         fontWeight: 600,
       },
     },
     tooltip: {
       trigger: 'item',
-      backgroundColor: 'rgba(15, 23, 42, 0.9)',
-      borderColor: 'rgba(51, 65, 85, 0.8)',
-      textStyle: { color: '#e2e8f0' },
+      backgroundColor: dark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.95)',
+      borderColor: dark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(203, 213, 225, 0.8)',
+      textStyle: { color: dark ? '#e2e8f0' : '#334155' },
       formatter: '{b}: {c} 篇 ({d}%)',
     },
     legend: {
       orient: 'vertical',
       right: 20,
       top: 'middle',
-      textStyle: { color: '#94a3b8', fontSize: 12 },
+      textStyle: { color: dark ? '#94a3b8' : '#475569', fontSize: 12 },
       itemWidth: 12,
       itemHeight: 12,
       itemGap: 10,
@@ -55,7 +60,7 @@ function buildPieOption(data: { name: string; count: number }[], title: string) 
         avoidLabelOverlap: true,
         itemStyle: {
           borderRadius: 6,
-          borderColor: 'rgba(15, 23, 42, 0.8)',
+          borderColor: dark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.9)',
           borderWidth: 2,
         },
         label: {
@@ -66,7 +71,7 @@ function buildPieOption(data: { name: string; count: number }[], title: string) 
             show: true,
             fontSize: 14,
             fontWeight: 'bold',
-            color: '#e2e8f0',
+            color: dark ? '#e2e8f0' : '#1e293b',
           },
           itemStyle: {
             shadowBlur: 10,
@@ -113,6 +118,18 @@ watch(categories, () => {
   });
 });
 
+// 主题切换时重新渲染图表
+watch(isDark, () => {
+  nextTick(() => {
+    if (domesticChart && hasDomesticData.value && categories.value) {
+      domesticChart.setOption(buildPieOption(categories.value.domestic, '国内资讯分类占比'));
+    }
+    if (overseasChart && hasOverseasData.value && categories.value) {
+      overseasChart.setOption(buildPieOption(categories.value.overseas, '外网资讯分类占比'));
+    }
+  });
+});
+
 onUnmounted(() => {
   resizeObserver?.disconnect();
   domesticChart?.dispose();
@@ -136,43 +153,43 @@ onUnmounted(() => {
 
     <!-- 数据概览 -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4" v-if="stats">
-      <div class="bg-gray-800/60 backdrop-blur border border-gray-700/50 rounded-xl p-5 text-center">
-        <div class="text-3xl font-bold text-blue-400">{{ stats.totalArticles }}</div>
-        <div class="text-sm text-gray-400 mt-1">文章总数</div>
+      <div class="bg-white/80 dark:bg-gray-800/60 backdrop-blur border border-gray-200 dark:border-gray-700/50 rounded-xl p-5 text-center shadow-sm">
+        <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ stats.totalArticles }}</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">文章总数</div>
       </div>
-      <div class="bg-gray-800/60 backdrop-blur border border-gray-700/50 rounded-xl p-5 text-center">
-        <div class="text-3xl font-bold text-emerald-400">{{ stats.vectorizedArticles }}</div>
-        <div class="text-sm text-gray-400 mt-1">已向量化</div>
+      <div class="bg-white/80 dark:bg-gray-800/60 backdrop-blur border border-gray-200 dark:border-gray-700/50 rounded-xl p-5 text-center shadow-sm">
+        <div class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{{ stats.vectorizedArticles }}</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">已向量化</div>
       </div>
-      <div class="bg-gray-800/60 backdrop-blur border border-gray-700/50 rounded-xl p-5 text-center">
-        <div class="text-3xl font-bold text-cyan-400">{{ stats.totalSources }}</div>
-        <div class="text-sm text-gray-400 mt-1">来源渠道</div>
+      <div class="bg-white/80 dark:bg-gray-800/60 backdrop-blur border border-gray-200 dark:border-gray-700/50 rounded-xl p-5 text-center shadow-sm">
+        <div class="text-3xl font-bold text-cyan-600 dark:text-cyan-400">{{ stats.totalSources }}</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">来源渠道</div>
       </div>
-      <div class="bg-gray-800/60 backdrop-blur border border-gray-700/50 rounded-xl p-5 text-center">
-        <div class="text-3xl font-bold text-violet-400">{{ stats.totalChunks }}</div>
-        <div class="text-sm text-gray-400 mt-1">知识片段</div>
+      <div class="bg-white/80 dark:bg-gray-800/60 backdrop-blur border border-gray-200 dark:border-gray-700/50 rounded-xl p-5 text-center shadow-sm">
+        <div class="text-3xl font-bold text-violet-600 dark:text-violet-400">{{ stats.totalChunks }}</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">知识片段</div>
       </div>
     </div>
 
     <!-- 分类占比图表 -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- 国内资讯 -->
-      <div class="bg-gray-800/50 backdrop-blur border border-gray-700/50 rounded-xl overflow-hidden">
+      <div class="bg-white/80 dark:bg-gray-800/50 backdrop-blur border border-gray-200 dark:border-gray-700/50 rounded-xl overflow-hidden shadow-sm">
         <div v-if="hasDomesticData" ref="domesticChartRef" class="w-full h-[340px]" />
-        <div v-else class="flex flex-col items-center justify-center h-[340px] text-gray-500">
-          <UIcon name="i-heroicons-chart-pie" class="text-4xl mb-3 text-gray-600" />
+        <div v-else class="flex flex-col items-center justify-center h-[340px] text-gray-400 dark:text-gray-500">
+          <UIcon name="i-heroicons-chart-pie" class="text-4xl mb-3 text-gray-300 dark:text-gray-600" />
           <p class="text-sm">国内资讯暂无分类数据</p>
-          <p class="text-xs text-gray-600 mt-1">等待爬取录入中...</p>
+          <p class="text-xs text-gray-400 dark:text-gray-600 mt-1">等待爬取录入中...</p>
         </div>
       </div>
 
       <!-- 外网资讯 -->
-      <div class="bg-gray-800/50 backdrop-blur border border-gray-700/50 rounded-xl overflow-hidden">
+      <div class="bg-white/80 dark:bg-gray-800/50 backdrop-blur border border-gray-200 dark:border-gray-700/50 rounded-xl overflow-hidden shadow-sm">
         <div v-if="hasOverseasData" ref="overseasChartRef" class="w-full h-[340px]" />
-        <div v-else class="flex flex-col items-center justify-center h-[340px] text-gray-500">
-          <UIcon name="i-heroicons-chart-pie" class="text-4xl mb-3 text-gray-600" />
+        <div v-else class="flex flex-col items-center justify-center h-[340px] text-gray-400 dark:text-gray-500">
+          <UIcon name="i-heroicons-chart-pie" class="text-4xl mb-3 text-gray-300 dark:text-gray-600" />
           <p class="text-sm">外网资讯暂无分类数据</p>
-          <p class="text-xs text-gray-600 mt-1">等待爬取录入中...</p>
+          <p class="text-xs text-gray-400 dark:text-gray-600 mt-1">等待爬取录入中...</p>
         </div>
       </div>
     </div>

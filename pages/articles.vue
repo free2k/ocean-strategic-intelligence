@@ -124,6 +124,16 @@ async function vectorizeOne(articleId: number) {
   finally { vectorizingId.value = null; }
 }
 
+const downloadingId = ref<number | null>(null);
+async function downloadContent(articleId: number) {
+  downloadingId.value = articleId;
+  try {
+    await $fetch('/api/articles/download-content', { method: 'POST', body: { articleId } });
+    refresh();
+  } catch (e: any) { alert(e.data?.message || '下载失败'); }
+  finally { downloadingId.value = null; }
+}
+
 // --- 导出 ---
 const exportLoading = ref(false);
 const exportCountLoading = ref(false);
@@ -252,12 +262,20 @@ async function confirmExport() {
         const bytes = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
         const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+        const filename = `信息资讯推送.docx`;
+        // 兼容下载管理器：将 a 标签加入 DOM 并延迟清理
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
+        a.style.display = 'none';
         a.href = url;
-        a.download = `信息资讯推送.docx`;
+        a.download = filename;
+        a.setAttribute('download', filename);
+        document.body.appendChild(a);
         a.click();
-        URL.revokeObjectURL(url);
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 1000);
       }
     } else {
       const response = await fetch('/api/articles/export-summary-stream', {
@@ -382,7 +400,22 @@ function cancelExport() { showExportConfirm.value = false; exportCount.value = n
               <span>{{ new Date(article.publishedAt).toLocaleDateString('zh-CN') }}</span>
               <UBadge v-if="article.vectorized" color="green" size="xs" variant="subtle">已向量化</UBadge>
               <UButton v-if="article.vectorized" @click="removeVector(article.id)" size="xs" color="red" variant="ghost" class="ml-1">移除向量</UButton>
-              <UButton v-if="!article.vectorized" @click="vectorizeOne(article.id)" :loading="vectorizingId === article.id" size="xs" color="green" variant="ghost" class="ml-1">向量化</UButton>
+              <template v-if="!article.vectorized">
+                <template v-if="article.downloadStatus !== 'downloaded'">
+                  <UBadge color="orange" size="xs" variant="subtle">未下载正文</UBadge>
+                  <UButton
+                    @click="downloadContent(article.id)"
+                    :loading="downloadingId === article.id"
+                    size="xs"
+                    color="blue"
+                    variant="ghost"
+                    class="ml-1"
+                  >
+                    下载正文
+                  </UButton>
+                </template>
+                <UButton v-else @click="vectorizeOne(article.id)" :loading="vectorizingId === article.id" size="xs" color="green" variant="ghost" class="ml-1">向量化</UButton>
+              </template>
             </div>
             <div v-if="article.matchedTopic" class="flex items-center gap-2 mt-2">
               <span class="text-sm font-medium text-primary-500 cursor-pointer hover:text-primary-600" @click="matchedTopic = article.matchedTopic">{{ article.matchedTopic }}</span>
