@@ -14,7 +14,8 @@ async function login() {
       method: 'POST',
       body: { password: password.value },
     });
-    await navigateTo('/');
+    // 完整页面跳转，确保 Cookie 生效
+    window.location.href = '/';
   } catch (e: any) {
     error.value = e.data?.message || '登录失败';
   } finally {

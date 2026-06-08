@@ -1,23 +1,33 @@
 import nodemailer from 'nodemailer';
 
 let _transporter: nodemailer.Transporter | null = null;
+let _lastSmtpUser: string | null = null;
 
 function getTransporter() {
-  if (!_transporter) {
-    const config = useRuntimeConfig();
-    if (!config.smtpHost || !config.smtpUser || !config.smtpPass) {
-      throw new Error('SMTP 配置不完整，请检查环境变量 SMTP_HOST / SMTP_USER / SMTP_PASS');
-    }
-    _transporter = nodemailer.createTransport({
-      host: config.smtpHost,
-      port: config.smtpPort,
-      secure: config.smtpPort === 465,
-      auth: {
-        user: config.smtpUser,
-        pass: config.smtpPass,
-      },
-    });
+  const smtpHost = process.env.SMTP_HOST || '';
+  const smtpPort = parseInt(process.env.SMTP_PORT || '465');
+  const smtpUser = process.env.SMTP_USER || '';
+  const smtpPass = process.env.SMTP_PASS || '';
+
+  if (!smtpHost || !smtpUser || !smtpPass) {
+    throw new Error('SMTP 配置不完整，请检查环境变量 SMTP_HOST / SMTP_USER / SMTP_PASS');
   }
+
+  // 如果配置变了（重启后 process.env 更新），重建 transporter
+  if (_transporter && _lastSmtpUser === smtpUser) {
+    return _transporter;
+  }
+
+  _transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpPort === 465,
+    auth: {
+      user: smtpUser,
+      pass: smtpPass,
+    },
+  });
+  _lastSmtpUser = smtpUser;
   return _transporter;
 }
 
@@ -34,11 +44,11 @@ export interface SendMailOptions {
 
 /** 发送邮件 */
 export async function sendMail(options: SendMailOptions) {
-  const config = useRuntimeConfig();
+  const smtpFrom = process.env.SMTP_FROM || process.env.SMTP_USER || '';
   const transporter = getTransporter();
 
   const result = await transporter.sendMail({
-    from: `"海洋能源资讯推送" <${config.smtpFrom || config.smtpUser}>`,
+    from: `"海洋能源资讯推送" <${smtpFrom}>`,
     to: Array.isArray(options.to) ? options.to.join(',') : options.to,
     subject: options.subject,
     html: options.html,

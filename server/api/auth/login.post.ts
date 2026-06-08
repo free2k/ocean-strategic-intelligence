@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
   // 设置 Cookie
   setCookie(event, 'site_auth', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60, // 7 天
     path: '/',

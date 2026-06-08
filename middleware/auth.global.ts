@@ -1,14 +1,18 @@
 /**
- * 全局前端路由守卫
- * 未登录时跳转到 /login 页面
+ * 前端路由守卫（处理客户端导航时的拦截）
+ * 主要保护由 server/middleware/auth.ts 完成
+ * 这里作为客户端 SPA 导航的补充检查
  */
 export default defineNuxtRouteMiddleware(async (to) => {
-  // 登录页本身不拦截
   if (to.path === '/login') return;
 
-  // 检查登录状态
-  const { data } = await useFetch('/api/auth/check');
-  if (data.value?.authenticated) return;
+  // 只在客户端执行（SSR 由 server middleware 处理）
+  if (import.meta.server) return;
+
+  try {
+    const res = await $fetch('/api/auth/check');
+    if (res?.authenticated) return;
+  } catch {}
 
   return navigateTo('/login');
 });
