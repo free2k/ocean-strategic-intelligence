@@ -134,11 +134,12 @@ function clearResult() {
         <div class="flex gap-2">
           <UTextarea
             v-model="question"
-            placeholder="输入你的问题... (Ctrl+Enter 发送)"
+            placeholder="输入你的问题..."
             :rows="2"
             class="flex-1"
             size="sm"
-            @keydown.ctrl.enter="askQuestion"
+            @keydown.enter.exact.prevent="askQuestion"
+            @keydown.shift.enter.stop
           />
           <UButton
             @click="askQuestion"

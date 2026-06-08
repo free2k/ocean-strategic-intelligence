@@ -1,4 +1,4 @@
-import { eq, count, max } from 'drizzle-orm';
+import { eq, count, max, desc } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 
 interface AccountWithStats {
@@ -41,7 +41,8 @@ export default defineEventHandler(async (): Promise<{ list: AccountWithStats[] }
     .from(schema.sources)
     .leftJoin(schema.articles, eq(schema.sources.id, schema.articles.sourceId))
     .where(eq(schema.sources.type, 'wechat'))
-    .groupBy(schema.sources.id);
+    .groupBy(schema.sources.id)
+    .orderBy(desc(schema.sources.createdAt));
 
   const list: AccountWithStats[] = results.map((row) => ({
     id: row.id,

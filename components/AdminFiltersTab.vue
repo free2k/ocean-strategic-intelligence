@@ -111,31 +111,65 @@ async function toggleRule(id: number, enabled: boolean) {
 async function applyFilters() {
   applyLoading.value = true;
   applyResult.value = '';
+  classifyProgress.value = null;
   try {
-    const result = await $fetch('/api/filters/apply', { method: 'POST' });
-    applyResult.value = `筛选完成：通过 ${result.accepted} 篇，排除 ${result.rejected} 篇，未匹配 ${result.pending} 篇`;
+    await runClassifyStream(false);
     emit('changed');
   } catch (e: any) {
-    applyResult.value = `筛选失败：${e.data?.message || e.message}`;
+    applyResult.value = `筛选失败：${e.message}`;
   } finally {
     applyLoading.value = false;
   }
 }
 
 const reapplyLoading = ref(false);
+const classifyProgress = ref<{ current: number; total: number; accepted: number; rejected: number; phase: string; message: string } | null>(null);
 
 async function reapplyAll() {
-  if (!confirm('将重置所有已分类文章并按当前规则重新分类，确定继续？')) return;
+  if (!confirm('将重置所有已分类文章并按当前规则重新分类（包含自动下载缺失正文），确定继续？')) return;
   reapplyLoading.value = true;
   applyResult.value = '';
+  classifyProgress.value = null;
   try {
-    const result = await $fetch('/api/filters/apply', { method: 'POST', body: { reapplyAll: true } });
-    applyResult.value = `重新分类完成：通过 ${result.accepted} 篇，排除 ${result.rejected} 篇，未匹配 ${result.pending} 篇`;
+    await runClassifyStream(true);
     emit('changed');
   } catch (e: any) {
-    applyResult.value = `重新分类失败：${e.data?.message || e.message}`;
+    applyResult.value = `重新分类失败：${e.message}`;
   } finally {
     reapplyLoading.value = false;
+  }
+}
+
+async function runClassifyStream(reapplyAll: boolean) {
+  const response = await fetch('/api/filters/apply-stream', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reapplyAll }),
+  });
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n\n');
+    buffer = lines.pop() || '';
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      try {
+        const data = JSON.parse(line.slice(6));
+        if (data.type === 'phase') {
+          classifyProgress.value = { current: 0, total: data.total || 0, accepted: 0, rejected: 0, phase: data.phase, message: data.message };
+        } else if (data.type === 'progress') {
+          classifyProgress.value = { current: data.current, total: data.total, accepted: data.accepted, rejected: data.rejected, phase: 'classify', message: '' };
+        } else if (data.type === 'done') {
+          classifyProgress.value = null;
+          applyResult.value = `分类完成：通过 ${data.accepted} 篇，排除 ${data.rejected} 篇，未匹配 ${data.pending} 篇`;
+        }
+      } catch {}
+    }
   }
 }
 
@@ -230,6 +264,21 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
         <span v-if="applyResult" class="text-sm" :class="applyResult.includes('失败') ? 'text-red-500' : 'text-green-600'">
           {{ applyResult }}
         </span>
+      </div>
+      <!-- 分类进度条 -->
+      <div v-if="classifyProgress" class="mt-4 space-y-2">
+        <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+          <span>{{ classifyProgress.phase === 'download' ? '下载正文' : '分类中' }}</span>
+          <span v-if="classifyProgress.total > 0">{{ classifyProgress.current }}/{{ classifyProgress.total }}</span>
+        </div>
+        <UProgress
+          :value="classifyProgress.total > 0 ? Math.round(classifyProgress.current / classifyProgress.total * 100) : undefined"
+          size="sm"
+        />
+        <p v-if="classifyProgress.message" class="text-xs text-gray-500">{{ classifyProgress.message }}</p>
+        <p v-if="classifyProgress.phase === 'classify'" class="text-xs text-gray-500">
+          通过 {{ classifyProgress.accepted }} · 排除 {{ classifyProgress.rejected }}
+        </p>
       </div>
     </UCard>
 

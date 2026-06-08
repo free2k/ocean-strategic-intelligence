@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
     LIMIT 5
   `);
 
-  const references = (results.rows || []).map((row: any) => ({
+  const rawReferences = (results.rows || []).map((row: any) => ({
     id: row.article_id,
     title: row.title,
     link: row.link,
@@ -47,6 +47,14 @@ export default defineEventHandler(async (event) => {
     score: parseFloat(row.score),
     snippet: row.content?.slice(0, 200) || '',
   }));
+
+  // 按文章去重，同一篇文章只保留得分最高的
+  const seenArticleIds = new Set<number>();
+  const references = rawReferences.filter((ref: any) => {
+    if (seenArticleIds.has(ref.id)) return false;
+    seenArticleIds.add(ref.id);
+    return true;
+  });
 
   // 3. 构建 RAG 上下文
   const context = references

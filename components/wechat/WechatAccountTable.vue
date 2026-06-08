@@ -127,17 +127,41 @@ function openBatchSyncModal() {
   showSyncModal.value = true;
 }
 
+// Batch sync progress
+const batchSyncProgress = ref<{ current: number; total: number; currentName: string } | null>(null);
+
 // Start sync with options (single or batch)
 async function startSync() {
   showSyncModal.value = false;
   if (syncIsBatch.value) {
-    for (const account of selected.value) {
+    const targets = [...selected.value];
+    batchSyncProgress.value = { current: 0, total: targets.length, currentName: '' };
+    for (let i = 0; i < targets.length; i++) {
+      const account = targets[i];
+      batchSyncProgress.value = { current: i + 1, total: targets.length, currentName: account.name };
       await syncAccount(account);
+      // 等待当前公众号同步完成后再继续下一个
+      await waitForSyncComplete(account.id);
     }
+    batchSyncProgress.value = null;
     selected.value = [];
   } else if (syncTarget.value) {
     await syncAccount(syncTarget.value);
   }
+}
+
+// 等待某个同步任务完成
+function waitForSyncComplete(accountId: number): Promise<void> {
+  return new Promise((resolve) => {
+    const check = () => {
+      if (!syncingIds.value.has(accountId)) {
+        resolve();
+      } else {
+        setTimeout(check, 1000);
+      }
+    };
+    check();
+  });
 }
 
 // Quick sync (no modal, sync latest 50)
@@ -158,9 +182,11 @@ async function syncAccount(account: Account) {
     const body: any = { fakeid: account.fakeid };
     if (syncMaxArticles.value && syncMaxArticles.value > 0) {
       body.maxArticles = syncMaxArticles.value;
-    } else {
+    } else if (!syncSinceDate.value) {
+      // 没设日期也没设数量时，默认 50 篇
       body.maxArticles = 50;
     }
+    // 设了起始日期但没设数量时，不传 maxArticles，让日期条件控制停止
     if (syncSinceDate.value) {
       body.sinceDate = new Date(syncSinceDate.value).toISOString();
     }
@@ -198,7 +224,9 @@ function startProgressPolling(accountId: number, taskId: string) {
         syncingIds.value.delete(accountId);
 
         if (progress.status === 'completed') {
-          toast.add({ title: '同步完成', description: `已同步 ${progress.synced} 篇文章`, color: 'green' });
+          toast.add({ title: '同步完成', description: `已同步 ${progress.synced} 篇文章，开始自动分类...`, color: 'green' });
+          // 自动触发分类→下载→向量化流水线
+          triggerAutoPipeline(accountId);
         } else if (progress.status === 'failed') {
           toast.add({ title: '同步失败', description: progress.message || '同步过程中发生错误', color: 'red' });
         }
@@ -242,6 +270,66 @@ function getSyncStatusText(accountId: number): string {
   if (task.status === 'failed') return `✗ ${task.message}`;
   if (task.status === 'stopped') return `⏸ ${task.synced}篇`;
   return '';
+}
+
+// Auto pipeline state
+const pipelineRunning = ref(false);
+const pipelineMessages = ref<string[]>([]);
+
+async function triggerAutoPipeline(accountId: number) {
+  // 获取该公众号下 pending 状态的文章
+  const account = accounts.value.find(a => a.id === accountId);
+  try {
+    const data = await $fetch<{ list: { id: number }[] }>('/api/wechat/articles/list', {
+      params: { sourceId: String(accountId), pageSize: 200 },
+    });
+    const pendingIds = data.list.map(a => a.id);
+    if (!pendingIds.length) return;
+
+    pipelineRunning.value = true;
+    pipelineMessages.value = [];
+
+    const response = await fetch('/api/articles/auto-pipeline', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ articleIds: pendingIds }),
+    });
+
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const event = JSON.parse(line.slice(6));
+          if (event.type === 'match') {
+            pipelineMessages.value.push(event.message);
+            toast.add({ title: '自动分类', description: event.message, color: 'blue', timeout: 5000 });
+          } else if (event.type === 'done') {
+            if (event.classified > 0) {
+              toast.add({
+                title: '自动流水线完成',
+                description: `分类通过 ${event.classified} 篇，下载 ${event.downloaded} 篇，向量化 ${event.vectorized} 篇`,
+                color: 'green',
+              });
+            }
+          }
+        } catch {}
+      }
+    }
+  } catch (e: any) {
+    console.error('Auto pipeline failed:', e);
+  } finally {
+    pipelineRunning.value = false;
+    await loadAccounts();
+  }
 }
 
 // Delete
@@ -452,6 +540,27 @@ onMounted(() => {
 
 <template>
   <div class="space-y-4 overflow-hidden">
+    <!-- 批量同步全局进度 -->
+    <UAlert v-if="batchSyncProgress" color="blue" class="animate-pulse">
+      <template #title>
+        批量同步中 ({{ batchSyncProgress.current }}/{{ batchSyncProgress.total }})
+      </template>
+      <template #description>
+        正在同步：{{ batchSyncProgress.currentName }}，请勿关闭页面
+      </template>
+    </UAlert>
+
+    <!-- 自动流水线进度 -->
+    <UAlert v-if="pipelineRunning" color="green">
+      <template #title>自动分类 & 向量化进行中...</template>
+      <template #description>
+        <div v-if="pipelineMessages.length" class="mt-1 space-y-0.5 max-h-24 overflow-y-auto">
+          <p v-for="(msg, idx) in pipelineMessages.slice(-5)" :key="idx" class="text-xs">{{ msg }}</p>
+        </div>
+        <p v-else class="text-xs">正在分析文章...</p>
+      </template>
+    </UAlert>
+
     <!-- Top action bar -->
     <div class="flex items-center gap-3 flex-wrap">
       <UButton icon="i-heroicons-plus" color="primary" @click="requireLogin() && (showAddModal = true)">

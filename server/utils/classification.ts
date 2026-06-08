@@ -11,6 +11,8 @@ export interface ClassificationResult {
   status: 'accepted' | 'rejected' | 'pending';
   matchedTopic: string | null;
   method: 'keyword' | 'llm';
+  /** 命中的关键词详情（仅 keyword 方法） */
+  matchedKeywords?: { keyword: string; source: 'title' | 'content' | 'group' }[];
 }
 
 interface TopicRule {
@@ -90,19 +92,18 @@ ${classifyContent}
 // matchByKeywords - synchronous keyword matching
 // ============================================================
 
+export interface KeywordMatchResult {
+  topic: string;
+  keywords: { keyword: string; source: 'title' | 'content' | 'group' }[];
+}
+
 /**
  * 从 target.json 加载关键词规则并执行匹配。
- * 
- * 匹配逻辑：
- * 1. 按 priority 排序（数字越小优先级越高，默认 99）
- * 2. 对于 requireAll 规则：文章必须在每个 group 中至少命中一个词才算匹配
- * 3. 对于普通规则：标题或正文命中任一关键词即匹配
- * 4. includeTitle/includeContent 始终作为"直接命中"词（单个词命中即可）
+ * 返回匹配的主题名和命中的关键词详情。
  */
-export function matchByKeywords(title: string, content: string): string | null {
+export function matchByKeywords(title: string, content: string): KeywordMatchResult | null {
   const rules = loadRules();
 
-  // 按 priority 排序（数字越小越优先）
   const sortedTopics = Object.entries(rules.topics).sort(
     ([, a], [, b]) => (a.priority ?? 99) - (b.priority ?? 99),
   );
@@ -113,24 +114,30 @@ export function matchByKeywords(title: string, content: string): string | null {
     // 先检查 includeTitle 直接命中
     for (const keyword of rule.includeTitle) {
       if (title.includes(keyword)) {
-        return topicName;
+        return { topic: topicName, keywords: [{ keyword, source: 'title' }] };
       }
     }
 
     // 检查 includeContent 直接命中
     for (const keyword of rule.includeContent) {
       if (content.includes(keyword)) {
-        return topicName;
+        return { topic: topicName, keywords: [{ keyword, source: 'content' }] };
       }
     }
 
-    // 检查 requireAll 组合匹配（文章需在每个 group 中至少命中一个词）
+    // 检查 requireAll 组合匹配
     if (rule.requireAll && rule.groups && rule.groups.length > 0) {
       const allGroupsMatched = rule.groups.every(group =>
         group.some(keyword => fullText.includes(keyword)),
       );
       if (allGroupsMatched) {
-        return topicName;
+        // 收集每组命中的关键词
+        const hitKeywords: { keyword: string; source: 'title' | 'content' | 'group' }[] = [];
+        for (const group of rule.groups) {
+          const hit = group.find(kw => fullText.includes(kw));
+          if (hit) hitKeywords.push({ keyword: hit, source: 'group' });
+        }
+        return { topic: topicName, keywords: hitKeywords };
       }
     }
   }
@@ -226,8 +233,9 @@ export async function classifyArticle(article: { id: number; title: string; cont
     return {
       articleId: article.id,
       status: 'accepted',
-      matchedTopic: keywordMatch,
+      matchedTopic: keywordMatch.topic,
       method: 'keyword',
+      matchedKeywords: keywordMatch.keywords,
     };
   }
 

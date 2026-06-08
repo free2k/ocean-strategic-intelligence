@@ -1,6 +1,7 @@
-import { desc, eq, and, gte } from 'drizzle-orm';
+import { desc, eq, and, gte, inArray } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 import { chatCompletion } from '~/server/utils/embedding';
+import { autoDownloadMissingContent } from '~/server/utils/auto-download';
 
 function parseDateRange(range: string): Date | null {
   const now = new Date();
@@ -131,6 +132,40 @@ export default defineEventHandler(async (event) => {
 
   if (!articles.length) {
     throw createError({ statusCode: 400, message: '没有符合条件的文章' });
+  }
+
+  // 自动下载缺失正文的文章（只检查 content，digest 只是摘要不是全文）
+  const missingContentIds = articles.filter(a => !a.content).map(a => a.id);
+  if (missingContentIds.length > 0) {
+    console.log(`[Export] 发现 ${missingContentIds.length} 篇缺正文，尝试自动下载...`);
+    const { failed } = await autoDownloadMissingContent(missingContentIds);
+    // 下载失败的文章从导出列表中移除（已被标记为 pending）
+    if (failed.length > 0) {
+      const failedSet = new Set(failed);
+      articles = articles.filter(a => !failedSet.has(a.id));
+    }
+    // 重新加载已下载的文章内容
+    const downloadedIds = missingContentIds.filter(id => !failed.includes(id));
+    if (downloadedIds.length > 0) {
+      const updatedArticles = await db.select({
+        id: schema.articles.id,
+        content: schema.articles.content,
+        digest: schema.articles.digest,
+      }).from(schema.articles).where(inArray(schema.articles.id, downloadedIds));
+
+      const contentMap = new Map(updatedArticles.map(a => [a.id, a]));
+      for (const article of articles) {
+        const updated = contentMap.get(article.id);
+        if (updated && updated.content) {
+          (article as any).content = updated.content;
+          if (updated.digest) (article as any).digest = updated.digest;
+        }
+      }
+    }
+  }
+
+  if (!articles.length) {
+    throw createError({ statusCode: 400, message: '所有文章正文下载失败，无法导出' });
   }
 
   // 按标题去重：相同标题的文章只保留一篇（优先保留有正文内容的、链接非社交媒体的）

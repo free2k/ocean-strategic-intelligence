@@ -97,6 +97,7 @@ export default defineEventHandler(async (event) => {
       matchedTopic: schema.articles.matchedTopic,
       rejectReason: schema.articles.rejectReason,
       classifyMethod: schema.articles.classifyMethod,
+      matchedKeywordsJson: schema.articles.matchedKeywordsJson,
       downloadStatus: schema.articles.downloadStatus,
       sourceName: schema.sources.name,
     })

@@ -147,6 +147,8 @@ async function runSync(
   let totalSynced = 0;
   let reachedDateLimit = false;
 
+  console.log(`[Sync] 开始同步 fakeid=${opts.fakeid}, maxArticles=${opts.maxArticles || '无限制'}, sinceDate=${opts.sinceDateTs ? new Date(opts.sinceDateTs * 1000).toISOString() : '无'}`);
+
   try {
     // First request to get total count
     while (true) {
@@ -155,6 +157,8 @@ async function runSync(
 
       const searchQuery = opts.keyword ? encodeURIComponent(opts.keyword) : '';
       const apiUrl = `https://mp.weixin.qq.com/cgi-bin/appmsgpublish?sub=list&search_field=null&begin=${begin}&count=${PAGE_SIZE}&query=${searchQuery}&fakeid=${opts.fakeid}&type=101_1&free_publish_type=1&sub_action=list_ex&token=${opts.token}&lang=zh_CN&f=json&ajax=1`;
+
+      console.log(`[Sync] fakeid=${opts.fakeid} 请求第${task.currentPage}页, begin=${begin}`);
 
       const response = await fetch(apiUrl, {
         method: 'GET',
@@ -168,6 +172,7 @@ async function runSync(
       });
 
       if (!response.ok) {
+        console.error(`[Sync] fakeid=${opts.fakeid} HTTP错误: ${response.status}`);
         task.status = 'failed';
         task.message = '无法连接微信公众号平台';
         break;
@@ -292,8 +297,9 @@ async function runSync(
   } catch (error: any) {
     task.status = 'failed';
     task.message = error?.message || '同步过程中发生错误';
-    console.error('[WeChat Article Sync] Error:', error);
+    console.error(`[Sync] fakeid=${opts.fakeid} 同步出错:`, error);
   } finally {
+    console.log(`[Sync] fakeid=${opts.fakeid} 同步结束, 状态=${task.status}, 已同步=${totalSynced}篇, 耗时=${Math.round((Date.now() - task.startedAt) / 1000)}秒`);
     task.updatedAt = Date.now();
     runningFakeids.delete(opts.fakeid);
 

@@ -27,6 +27,10 @@ const batchImporting = ref(false);
 const syncingIds = ref<Set<number>>(new Set());
 const syncResults = ref<Map<number, string>>(new Map());
 
+// 批量同步
+const batchSyncing = ref(false);
+const batchSyncProgress = ref<{ current: number; total: number; currentName: string } | null>(null);
+
 // Sync options modal
 const showSyncModal = ref(false);
 const syncTarget = ref<RssSource | null>(null);
@@ -188,6 +192,46 @@ async function syncSource(source: RssSource) {
   }
 }
 
+// 批量同步所有订阅源
+async function batchSyncAll() {
+  if (sources.value.length === 0) return;
+  batchSyncing.value = true;
+  const targets = sources.value.filter(s => s.alias);
+  batchSyncProgress.value = { current: 0, total: targets.length, currentName: '' };
+
+  let totalImported = 0;
+  let totalFailed = 0;
+
+  for (let i = 0; i < targets.length; i++) {
+    const source = targets[i];
+    batchSyncProgress.value = { current: i + 1, total: targets.length, currentName: source.name };
+    syncingIds.value.add(source.id);
+    syncResults.value.delete(source.id);
+
+    try {
+      const result = await $fetch<{ imported: number; skipped: number; failed: number; total: number }>('/api/rss/sync', {
+        method: 'POST',
+        body: { sourceId: source.id },
+      });
+      syncResults.value.set(source.id, `新增 ${result.imported}，跳过 ${result.skipped}`);
+      totalImported += result.imported;
+    } catch (error: any) {
+      syncResults.value.set(source.id, `失败: ${error?.data?.message || error?.message}`);
+      totalFailed++;
+    } finally {
+      syncingIds.value.delete(source.id);
+    }
+  }
+
+  batchSyncProgress.value = null;
+  batchSyncing.value = false;
+  toast.add({
+    title: '批量同步完成',
+    description: `${targets.length} 个源同步完成，共新增 ${totalImported} 篇${totalFailed > 0 ? `，${totalFailed} 个失败` : ''}`,
+    color: totalFailed > 0 ? 'yellow' : 'green',
+  });
+}
+
 // Delete
 function confirmDelete(source: RssSource) {
   deleteTarget.value = source;
@@ -282,7 +326,28 @@ onMounted(() => {
 
     <!-- RSS sources list -->
     <div class="space-y-3">
-      <h3 class="text-sm font-medium">已添加的订阅源</h3>
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-medium">已添加的订阅源</h3>
+        <UButton
+          icon="i-heroicons-arrow-path"
+          color="blue"
+          variant="soft"
+          size="sm"
+          :loading="batchSyncing"
+          :disabled="batchSyncing || sources.length === 0"
+          @click="batchSyncAll"
+        >
+          批量同步全部 ({{ sources.length }})
+        </UButton>
+      </div>
+
+      <!-- 批量同步进度 -->
+      <div v-if="batchSyncProgress" class="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+        <UProgress :value="Math.round(batchSyncProgress.current / batchSyncProgress.total * 100)" size="sm" class="flex-1" />
+        <span class="text-sm text-blue-600 dark:text-blue-400 whitespace-nowrap">
+          {{ batchSyncProgress.current }}/{{ batchSyncProgress.total }} · {{ batchSyncProgress.currentName }}
+        </span>
+      </div>
 
       <div v-if="loadingSources" class="text-gray-500 text-sm">加载中...</div>
       <div v-else-if="sources.length === 0" class="text-gray-500 text-sm py-4">暂无订阅源，请通过上方表单添加。</div>

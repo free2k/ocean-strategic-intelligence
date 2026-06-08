@@ -1,6 +1,7 @@
 import { desc, eq, and, gte, inArray } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 import { chatCompletion } from '~/server/utils/embedding';
+import { autoDownloadMissingContent } from '~/server/utils/auto-download';
 
 function parseDateRange(range: string): Date | null {
   const now = new Date();
@@ -125,6 +126,35 @@ export default defineEventHandler(async (event) => {
 
   if (!articles.length) {
     throw createError({ statusCode: 400, message: '没有符合条件的文章' });
+  }
+
+  // 自动下载缺失正文的文章
+  const missingContentIds = articles.filter(a => !a.content).map(a => a.id);
+  if (missingContentIds.length > 0) {
+    console.log(`[Export-Summary] 发现 ${missingContentIds.length} 篇缺正文，尝试自动下载...`);
+    const { failed } = await autoDownloadMissingContent(missingContentIds);
+    if (failed.length > 0) {
+      const failedSet = new Set(failed);
+      articles = articles.filter(a => !failedSet.has(a.id));
+    }
+    const downloadedIds = missingContentIds.filter(id => !failed.includes(id));
+    if (downloadedIds.length > 0) {
+      const updated = await db.select({ id: schema.articles.id, content: schema.articles.content, digest: schema.articles.digest })
+        .from(schema.articles).where(inArray(schema.articles.id, downloadedIds));
+      const contentMap = new Map(updated.map(a => [a.id, a]));
+      for (const article of articles) {
+        const u = contentMap.get(article.id);
+        if (u?.content && !article.content) {
+          (article as any).content = u.content;
+          if (u.digest) (article as any).digest = u.digest;
+        }
+      }
+    }
+    console.log(`[Export-Summary] 自动下载完成: 成功=${missingContentIds.length - failed.length}, 失败=${failed.length}`);
+  }
+
+  if (!articles.length) {
+    throw createError({ statusCode: 400, message: '所有文章正文下载失败' });
   }
 
   // 去重

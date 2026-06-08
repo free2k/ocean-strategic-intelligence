@@ -68,7 +68,7 @@ export class ArticleDownloader {
 
     // Load proxy nodes from database before starting
     await proxyManager.loadFromDatabase();
-    console.log('[ArticleDownloader] Loaded proxies:', proxyManager.getProxies().map(p => p.url));
+    console.log(`[Download] 开始下载 ${articleIds.length} 篇文章, 代理节点: ${proxyManager.getProxies().map(p => p.url).join(', ') || '无'}`);
 
     const stats = { completed: 0, failed: 0, deleted: 0, total: articleIds.length };
 
@@ -97,6 +97,7 @@ export class ArticleDownloader {
     this.running = false;
 
     // Emit finish event with final stats
+    console.log(`[Download] 下载完成: 成功=${stats.completed}, 失败=${stats.failed}, 已删除=${stats.deleted}, 总计=${stats.total}`);
     onProgress({
       type: 'finish',
       articleId: 0,

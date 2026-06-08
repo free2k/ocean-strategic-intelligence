@@ -32,7 +32,7 @@ interface Article {
 
 // Accounts data
 const accounts = ref<Account[]>([]);
-const selectedAccountId = ref<number | null>(null);
+const selectedAccountIds = ref<number[]>([]);
 
 // Date range filters
 const startDate = ref('');
@@ -51,14 +51,6 @@ const selected = ref<Article[]>([]);
 // Delete state
 const showDeleteModal = ref(false);
 const deleting = ref(false);
-
-// Batch sync modal
-const showBatchSyncModal = ref(false);
-const batchSyncAccountId = ref<number | null>(null);
-const batchSyncMaxArticles = ref<number | undefined>(50);
-const batchSyncSinceDate = ref('');
-const batchSyncAll = ref(false);
-const batchSyncing = ref(false);
 
 // Account name lookup
 const accountNameMap = computed(() => {
@@ -90,6 +82,27 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
+// Account options for selector
+const accountOptions = computed(() => accounts.value.map(a => ({ id: a.id, name: a.name })));
+
+// Popover 搜索
+const accountSearch = ref('');
+const filteredAccounts = computed(() => {
+  const keyword = accountSearch.value.trim().toLowerCase();
+  if (!keyword) return accounts.value;
+  return accounts.value.filter(a => a.name.toLowerCase().includes(keyword));
+});
+
+// 切换公众号选中状态
+function toggleAccount(id: number) {
+  const idx = selectedAccountIds.value.indexOf(id);
+  if (idx === -1) {
+    selectedAccountIds.value = [...selectedAccountIds.value, id];
+  } else {
+    selectedAccountIds.value = selectedAccountIds.value.filter(x => x !== id);
+  }
+}
+
 // Load accounts
 async function loadAccounts() {
   try {
@@ -108,8 +121,8 @@ async function loadArticles() {
       page: currentPage.value,
       pageSize,
     };
-    if (selectedAccountId.value) {
-      params.sourceId = String(selectedAccountId.value);
+    if (selectedAccountIds.value.length > 0) {
+      params.sourceId = selectedAccountIds.value.join(',');
     }
     if (startDate.value) params.startDate = startDate.value;
     if (endDate.value) params.endDate = endDate.value;
@@ -122,8 +135,13 @@ async function loadArticles() {
     totalArticles.value = data.total;
     currentPage.value = data.page;
 
-    // Auto-select articles that are already downloaded
-    selected.value = data.list.filter(a => a.downloadStatus === 'downloaded');
+    // 选中公众号后自动全选文章列表
+    if (selectedAccountIds.value.length > 0) {
+      selected.value = [...data.list];
+    } else {
+      // 不选公众号时默认勾选已下载的
+      selected.value = data.list.filter(a => a.downloadStatus === 'downloaded');
+    }
   } catch (error: any) {
     toast.add({ title: '加载失败', description: error?.message || '无法加载文章列表', color: 'red' });
   } finally {
@@ -132,7 +150,7 @@ async function loadArticles() {
 }
 
 // Watch filters
-watch([selectedAccountId, startDate, endDate], () => {
+watch([selectedAccountIds, startDate, endDate], () => {
   currentPage.value = 1;
   loadArticles();
 });
@@ -142,6 +160,12 @@ function changePage(page: number) {
   currentPage.value = page;
   loadArticles();
 }
+
+// Download progress
+const completedCount = computed(() => progress.value.completed + progress.value.failed + progress.value.deleted);
+
+// Pending count in selection
+const pendingCount = computed(() => selected.value.filter(a => a.downloadStatus !== 'downloaded').length);
 
 // Batch download selected pending articles
 async function batchDownload() {
@@ -153,6 +177,37 @@ async function batchDownload() {
   }
   toast.add({ title: '开始下载原文', description: `共 ${pendingArticles.length} 篇待下载`, color: 'blue' });
   try {
+    await start(pendingArticles.map(a => a.id));
+    toast.add({
+      title: '下载完成',
+      description: `成功 ${progress.value.completed} 篇，失败 ${progress.value.failed} 篇，已删除 ${progress.value.deleted} 篇`,
+      color: progress.value.failed > 0 ? 'yellow' : 'green',
+    });
+  } catch (error: any) {
+    toast.add({ title: '下载失败', description: error?.message || '下载过程中发生错误', color: 'red' });
+  }
+  await loadArticles();
+}
+
+// Download all articles (all accounts, filtered by date)
+async function downloadAll() {
+  if (!requireLogin()) return;
+
+  // 查询所有符合日期条件的未下载文章
+  try {
+    const params: Record<string, any> = { page: 1, pageSize: 500 };
+    if (startDate.value) params.startDate = startDate.value;
+    if (endDate.value) params.endDate = endDate.value;
+
+    const data = await $fetch<{ list: Article[]; total: number }>('/api/wechat/articles/list', { params });
+    const pendingArticles = data.list.filter(a => a.downloadStatus !== 'downloaded');
+
+    if (pendingArticles.length === 0) {
+      toast.add({ title: '无需下载', description: '所有文章都已下载', color: 'yellow' });
+      return;
+    }
+
+    toast.add({ title: '开始下载全部', description: `共 ${pendingArticles.length} 篇待下载`, color: 'blue' });
     await start(pendingArticles.map(a => a.id));
     toast.add({
       title: '下载完成',
@@ -190,70 +245,6 @@ async function executeDelete() {
   }
 }
 
-// Open batch sync modal
-function openBatchSyncModal() {
-  if (!requireLogin()) return;
-  batchSyncAccountId.value = null;
-  batchSyncMaxArticles.value = 50;
-  batchSyncSinceDate.value = '';
-  batchSyncAll.value = false;
-  showBatchSyncModal.value = true;
-}
-
-// Execute batch sync
-async function executeBatchSync() {
-  batchSyncing.value = true;
-  try {
-    let targetAccounts: Account[] = [];
-    if (batchSyncAccountId.value) {
-      const found = accounts.value.find(a => a.id === batchSyncAccountId.value);
-      if (found) targetAccounts = [found];
-    } else {
-      targetAccounts = accounts.value;
-    }
-
-    for (const account of targetAccounts) {
-      if (!account.fakeid) continue;
-      const body: any = { fakeid: account.fakeid };
-      if (!batchSyncAll.value && batchSyncMaxArticles.value && batchSyncMaxArticles.value > 0) {
-        body.maxArticles = batchSyncMaxArticles.value;
-      }
-      if (batchSyncSinceDate.value) {
-        body.sinceDate = new Date(batchSyncSinceDate.value).toISOString();
-      }
-
-      try {
-        await $fetch('/api/wechat/articles/sync', {
-          method: 'POST',
-          body,
-          headers: authKey.value ? { 'X-Auth-Key': authKey.value } : undefined,
-        });
-      } catch (err: any) {
-        toast.add({ title: `${account.name} 同步失败`, description: err?.data?.message || err?.message, color: 'red' });
-      }
-    }
-
-    toast.add({ title: '批量抓取已启动', description: `${targetAccounts.length} 个公众号开始同步`, color: 'blue' });
-    showBatchSyncModal.value = false;
-  } catch (error: any) {
-    toast.add({ title: '批量抓取失败', description: error?.message, color: 'red' });
-  } finally {
-    batchSyncing.value = false;
-  }
-}
-
-// Download progress
-const completedCount = computed(() => progress.value.completed + progress.value.failed + progress.value.deleted);
-
-// Pending count in selection
-const pendingCount = computed(() => selected.value.filter(a => a.downloadStatus !== 'downloaded').length);
-
-// Account options for selector
-const accountOptions = computed(() => [
-  { id: null, name: '全部公众号' },
-  ...accounts.value,
-]);
-
 onMounted(() => {
   loadAccounts();
   loadArticles();
@@ -264,25 +255,67 @@ onMounted(() => {
   <div class="space-y-4 overflow-hidden">
     <!-- Top filter bar -->
     <div class="flex items-center gap-3 flex-wrap">
-      <USelectMenu
-        v-model="selectedAccountId"
-        :options="accountOptions"
-        option-attribute="name"
-        value-attribute="id"
-        placeholder="全部公众号"
-        class="w-48"
-      />
+      <!-- 公众号选择器 Popover -->
+      <UPopover :popper="{ placement: 'bottom-start' }">
+        <UButton color="gray" variant="solid" trailing-icon="i-heroicons-chevron-down-20-solid">
+          <span v-if="selectedAccountIds.length === 0">全部公众号</span>
+          <span v-else>已选 {{ selectedAccountIds.length }} 个公众号</span>
+        </UButton>
+
+        <template #panel>
+          <div class="w-64 p-3">
+            <!-- 搜索框 -->
+            <UInput
+              v-model="accountSearch"
+              icon="i-heroicons-magnifying-glass"
+              placeholder="搜索公众号..."
+              size="sm"
+              class="mb-2"
+            />
+
+            <!-- 全选/清空 -->
+            <div class="flex items-center justify-between mb-2 px-1">
+              <button class="text-xs text-primary-500 hover:text-primary-600" @click="selectedAccountIds = filteredAccounts.map(a => a.id)">全选</button>
+              <button class="text-xs text-gray-400 hover:text-gray-600" @click="selectedAccountIds = []">清空</button>
+            </div>
+
+            <!-- 公众号列表 -->
+            <div class="max-h-60 overflow-y-auto space-y-1">
+              <label
+                v-for="account in filteredAccounts"
+                :key="account.id"
+                class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  :checked="selectedAccountIds.includes(account.id)"
+                  class="rounded border-gray-300 dark:border-gray-600 text-primary-500"
+                  @change="toggleAccount(account.id)"
+                />
+                <span class="text-sm text-gray-700 dark:text-gray-200 truncate">{{ account.name }}</span>
+              </label>
+              <p v-if="filteredAccounts.length === 0" class="text-xs text-gray-400 text-center py-3">无匹配结果</p>
+            </div>
+          </div>
+        </template>
+      </UPopover>
 
       <UInput v-model="startDate" type="date" class="w-36" />
       <span class="text-gray-400 text-sm">至</span>
       <UInput v-model="endDate" type="date" class="w-36" />
 
-      <!-- Batch sync button -->
-      <UButton icon="i-heroicons-arrow-path" color="blue" variant="soft" @click="openBatchSyncModal">
-        批量抓取
+      <!-- 下载全部公众号：仅在未选中公众号时显示 -->
+      <UButton
+        v-if="selectedAccountIds.length === 0 && !downloading"
+        icon="i-heroicons-arrow-down-tray"
+        color="blue"
+        variant="soft"
+        @click="downloadAll"
+      >
+        下载全部公众号
       </UButton>
 
-      <!-- Download selected pending articles -->
+      <!-- 下载原文：选中公众号后显示 -->
       <UButton
         v-if="pendingCount > 0 && !downloading"
         icon="i-heroicons-arrow-down-tray"
@@ -302,13 +335,13 @@ onMounted(() => {
       >
         删除 ({{ selected.length }})
       </UButton>
+    </div>
 
-      <!-- Download progress -->
-      <div v-if="downloading" class="flex items-center gap-3 flex-1 min-w-[200px]">
-        <UProgress :value="total > 0 ? Math.round(completedCount / total * 100) : 0" size="sm" class="flex-1" />
-        <span class="text-sm text-gray-500 whitespace-nowrap">{{ completedCount }}/{{ total }}</span>
-        <UButton icon="i-heroicons-stop" color="red" variant="soft" size="xs" @click="stop">停止</UButton>
-      </div>
+    <!-- Download progress bar -->
+    <div v-if="downloading" class="flex items-center gap-3">
+      <UProgress :value="total > 0 ? Math.round(completedCount / total * 100) : 0" size="sm" class="flex-1" />
+      <span class="text-sm text-gray-500 whitespace-nowrap">{{ completedCount }}/{{ total }}</span>
+      <UButton icon="i-heroicons-stop" color="red" variant="soft" size="xs" @click="stop">停止</UButton>
     </div>
 
     <!-- Article table -->
@@ -382,57 +415,6 @@ onMounted(() => {
           <div class="flex justify-end gap-3">
             <UButton color="gray" variant="ghost" @click="showDeleteModal = false">取消</UButton>
             <UButton color="red" :loading="deleting" @click="executeDelete">确认删除</UButton>
-          </div>
-        </template>
-      </UCard>
-    </UModal>
-
-    <!-- Batch sync modal -->
-    <UModal v-model="showBatchSyncModal">
-      <UCard>
-        <template #header>
-          <h3 class="text-lg font-semibold">批量抓取文章</h3>
-        </template>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">选择公众号（留空抓取全部）</label>
-            <USelectMenu
-              v-model="batchSyncAccountId"
-              :options="accountOptions"
-              option-attribute="name"
-              value-attribute="id"
-              placeholder="全部公众号"
-              searchable
-              searchable-placeholder="搜索..."
-              class="w-full"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">抓取数量</label>
-            <div class="flex items-center gap-3">
-              <UInput
-                v-model.number="batchSyncMaxArticles"
-                type="number"
-                placeholder="默认: 50"
-                :min="1"
-                :disabled="batchSyncAll"
-                class="flex-1"
-              />
-              <UCheckbox v-model="batchSyncAll" label="全部" />
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">起始日期（只抓取该日期之后的文章）</label>
-            <UInput v-model="batchSyncSinceDate" type="date" />
-          </div>
-          <p class="text-xs text-gray-500">
-            每次请求间隔 3 秒，防止触发微信反爬机制。
-          </p>
-        </div>
-        <template #footer>
-          <div class="flex justify-end gap-3">
-            <UButton color="gray" variant="ghost" @click="showBatchSyncModal = false">取消</UButton>
-            <UButton color="primary" :loading="batchSyncing" @click="executeBatchSync">开始抓取</UButton>
           </div>
         </template>
       </UCard>

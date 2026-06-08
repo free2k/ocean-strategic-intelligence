@@ -37,6 +37,8 @@ export const articles = pgTable('articles', {
   rejectReason: varchar('reject_reason', { length: 255 }),
   /** 分类方法: keyword=关键词匹配, llm=LLM语义分类 */
   classifyMethod: varchar('classify_method', { length: 16 }),
+  /** 命中的关键词详情 JSON（keyword 方法时记录） */
+  matchedKeywordsJson: text('matched_keywords_json'),
   /** LLM 生成的摘要文本 */
   summary: text('summary'),
   /** 摘要生成状态: pending | generated | failed */

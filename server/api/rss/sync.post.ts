@@ -51,6 +51,8 @@ export default defineEventHandler(async (event) => {
   const maxArticles = body.maxArticles || 50;
   const sinceDateTs = body.sinceDate ? new Date(body.sinceDate).getTime() : 0;
 
+  console.log(`[RSS Sync] 开始同步 sourceId=${source.id}, name=${source.name}, maxArticles=${maxArticles}, url=${feedUrl}`);
+
   // Fetch RSS feed
   let xmlContent: string;
   try {
@@ -69,6 +71,7 @@ export default defineEventHandler(async (event) => {
     }
     xmlContent = await response.text();
   } catch (err: any) {
+    console.error(`[RSS Sync] sourceId=${source.id} 获取失败: ${err.message}`);
     throw createError({ statusCode: 502, statusMessage: `无法获取 RSS 源: ${err.message}` });
   }
 
@@ -125,5 +128,6 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  console.log(`[RSS Sync] sourceId=${source.id} 完成: 新增=${imported}, 跳过=${skipped}, 失败=${failed}, 总计=${items.length}`);
   return { imported, skipped, failed, total: items.length };
 });

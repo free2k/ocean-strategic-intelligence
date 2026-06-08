@@ -173,11 +173,12 @@ export default defineEventHandler(async (event) => {
   // 目录标题
   docChildren.push(new Paragraph({
     alignment: AlignmentType.CENTER,
-    spacing: { before: 400, after: 200 },
+    spacing: { before: 400, after: 300 },
     children: [new TextRun({ text: '目  录', bold: true, size: 32 })],
   }));
 
-  // 自动目录
+  // 自动目录（带页码）
+  const topicNumbers = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
   docChildren.push(new Paragraph({
     children: [new TableOfContents('目录', {
       hyperlink: true,
@@ -193,7 +194,6 @@ export default defineEventHandler(async (event) => {
   docChildren.push(new Paragraph({ children: [new PageBreak()] }));
 
   // 行业分类编号
-  const topicNumbers = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
   let topicIndex = 0;
 
   for (const [topic, topicArticles] of Object.entries(grouped)) {

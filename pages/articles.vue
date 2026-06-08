@@ -15,8 +15,13 @@ const dateRange = ref('');
 
 const { data: sourcesData } = await useFetch('/api/sources');
 const { data: topicsData, refresh: refreshTopics } = await useFetch('/api/topics', {
-  query: computed(() => ({ overseas: isOverseas.value ? 'true' : 'false' })),
-  watch: [activeTab],
+  query: computed(() => ({
+    overseas: isOverseas.value ? 'true' : 'false',
+    sourceType: sourceType.value || undefined,
+    sourceId: sourceId.value || undefined,
+    dateRange: dateRange.value || undefined,
+  })),
+  watch: [activeTab, sourceType, sourceId, dateRange],
 });
 
 const { data, refresh } = await useFetch('/api/articles', {
@@ -64,6 +69,7 @@ function resetFilters() {
 
 watch(sourceType, () => {
   sourceId.value = '';
+  matchedTopic.value = '';
   page.value = 1;
 });
 
@@ -167,7 +173,7 @@ async function previewExportCount() {
         sourceType: sourceType.value || undefined,
         sourceId: sourceId.value ? Number(sourceId.value) : undefined,
         filterStatus: filterStatus.value || 'accepted',
-        overseas: isOverseas.value ? 'true' : undefined,
+        overseas: isOverseas.value ? 'true' : 'false',
       },
     });
     exportCount.value = res.count;
@@ -319,6 +325,85 @@ async function confirmExport() {
 }
 
 function cancelExport() { showExportConfirm.value = false; exportCount.value = null; }
+
+// --- 按日期向量化 ---
+const showVectorizeModal = ref(false);
+const vectorizeStartDate = ref('');
+const vectorizeEndDate = ref('');
+const vectorizing = ref(false);
+const vectorizeProgress = ref(0);
+const vectorizeTotal = ref(0);
+const vectorizeCurrentTitle = ref('');
+const vectorizeResult = ref<{ vectorized: number; total: number } | null>(null);
+let vectorizeAbortController: AbortController | null = null;
+
+function stopVectorize() {
+  vectorizeAbortController?.abort();
+  vectorizing.value = false;
+}
+
+async function startVectorizeRange() {
+  if (!vectorizeStartDate.value || !vectorizeEndDate.value) return;
+  vectorizing.value = true;
+  vectorizeProgress.value = 0;
+  vectorizeTotal.value = 0;
+  vectorizeCurrentTitle.value = '';
+  vectorizeResult.value = null;
+  showVectorizeModal.value = false;
+  vectorizeAbortController = new AbortController();
+
+  try {
+    const response = await fetch('/api/articles/vectorize-range', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ startDate: vectorizeStartDate.value, endDate: vectorizeEndDate.value }),
+      signal: vectorizeAbortController.signal,
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${response.status}`);
+    }
+
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const data = JSON.parse(line.slice(6));
+          if (data.type === 'start') vectorizeTotal.value = data.total;
+          else if (data.type === 'progress') {
+            vectorizeProgress.value = data.current;
+            vectorizeTotal.value = data.total;
+            vectorizeCurrentTitle.value = data.title;
+          } else if (data.type === 'done') {
+            vectorizeResult.value = { vectorized: data.vectorized, total: data.total };
+          }
+        } catch {}
+      }
+    }
+
+    if (!vectorizeResult.value && vectorizeTotal.value === 0) {
+      vectorizeResult.value = { vectorized: 0, total: 0 };
+    }
+  } catch (e: any) {
+    if (e.name !== 'AbortError') {
+      alert(e.message || '向量化失败');
+    }
+  } finally {
+    vectorizing.value = false;
+    vectorizeAbortController = null;
+    refresh();
+  }
+}
 </script>
 
 <template>
@@ -333,8 +418,8 @@ function cancelExport() { showExportConfirm.value = false; exportCount.value = n
         <h1 class="text-2xl font-bold text-white">文章列表</h1>
         <div class="flex items-center gap-3">
           <UButton @click="openRulesModal" color="orange" variant="soft" size="sm" icon="i-heroicons-funnel">分类规则</UButton>
-          <UButton @click="previewExportCount" :loading="exportCountLoading || exportLoading" color="green" size="sm">导出总结</UButton>
-          <span class="text-sm text-blue-100" v-if="data">共 {{ data.total }} 篇</span>
+          <UButton @click="showVectorizeModal = true" color="yellow" variant="soft" size="sm" icon="i-heroicons-cube">批量加入知识库</UButton>
+          <UButton @click="previewExportCount" :loading="exportCountLoading || exportLoading" color="green" size="sm">导出行业总结</UButton>
         </div>
       </div>
     </div>
@@ -372,10 +457,35 @@ function cancelExport() { showExportConfirm.value = false; exportCount.value = n
         <USelect v-model="sourceType" :options="sourceTypeOptions" value-attribute="value" option-attribute="label" class="w-36" />
         <USelect v-if="sourceType === 'wechat'" v-model="sourceId" :options="wechatSources" value-attribute="value" option-attribute="label" class="w-40" />
         <USelect v-model="filterStatus" :options="filterStatusOptions" value-attribute="value" option-attribute="label" class="w-32" />
-        <USelect v-model="matchedTopic" :options="topicOptions" value-attribute="value" option-attribute="label" class="w-48" />
         <UButton @click="resetFilters" color="gray" size="sm" variant="ghost">重置</UButton>
+        <span class="text-sm text-gray-500 dark:text-gray-400 ml-auto" v-if="data">共 {{ data.total }} 篇</span>
       </div>
     </UCard>
+
+    <!-- 分类标签筛选（仅"已通过"状态时展示） -->
+    <div v-if="filterStatus === 'accepted'" class="flex items-center gap-2 flex-wrap">
+      <span class="text-xs text-gray-500 shrink-0">分类：</span>
+      <button
+        class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
+        :class="!matchedTopic
+          ? 'bg-primary-500 text-white'
+          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'"
+        @click="matchedTopic = ''"
+      >
+        全部
+      </button>
+      <button
+        v-for="topic in topicOptions.slice(1)"
+        :key="topic.value"
+        class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
+        :class="matchedTopic === topic.value
+          ? 'bg-primary-500 text-white'
+          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'"
+        @click="matchedTopic = matchedTopic === topic.value ? '' : topic.value"
+      >
+        {{ topic.label }}
+      </button>
+    </div>
 
     <!-- 文章列表 -->
     <div v-if="data?.articles?.length" class="space-y-3">
@@ -396,7 +506,6 @@ function cancelExport() { showExportConfirm.value = false; exportCount.value = n
             <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
               <UBadge color="blue" size="xs" variant="subtle">{{ article.sourceType }}</UBadge>
               <span v-if="article.sourceName">{{ article.sourceName }}</span>
-              <span v-if="article.authorName">· {{ article.authorName }}</span>
               <span>{{ new Date(article.publishedAt).toLocaleDateString('zh-CN') }}</span>
               <UBadge v-if="article.vectorized" color="green" size="xs" variant="subtle">已向量化</UBadge>
               <UButton v-if="article.vectorized" @click="removeVector(article.id)" size="xs" color="red" variant="ghost" class="ml-1">移除向量</UButton>
@@ -417,9 +526,18 @@ function cancelExport() { showExportConfirm.value = false; exportCount.value = n
                 <UButton v-else @click="vectorizeOne(article.id)" :loading="vectorizingId === article.id" size="xs" color="green" variant="ghost" class="ml-1">向量化</UButton>
               </template>
             </div>
-            <div v-if="article.matchedTopic" class="flex items-center gap-2 mt-2">
+            <div v-if="article.matchedTopic" class="flex items-center gap-2 mt-2 flex-wrap">
               <span class="text-sm font-medium text-primary-500 cursor-pointer hover:text-primary-600" @click="matchedTopic = article.matchedTopic">{{ article.matchedTopic }}</span>
               <span v-if="article.classifyMethod" class="text-[11px] text-gray-400">({{ methodLabel[article.classifyMethod] || article.classifyMethod }})</span>
+              <template v-if="article.matchedKeywordsJson && article.classifyMethod === 'keyword'">
+                <span
+                  v-for="(kw, idx) in JSON.parse(article.matchedKeywordsJson)"
+                  :key="idx"
+                  class="text-[11px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                >
+                  {{ kw.source === 'title' ? '标题' : kw.source === 'content' ? '正文' : kw.source === 'digest' ? '摘要' : '组合' }}:「{{ kw.keyword }}」
+                </span>
+              </template>
             </div>
           </div>
         </div>
@@ -505,6 +623,98 @@ function cancelExport() { showExportConfirm.value = false; exportCount.value = n
         <div class="max-h-[70vh] overflow-y-auto">
           <AdminFiltersTab @changed="onRulesChanged" />
         </div>
+      </UCard>
+    </UModal>
+
+    <!-- 批量向量化弹窗 -->
+    <UModal v-model="showVectorizeModal">
+      <UCard>
+        <template #header>
+          <h3 class="font-semibold text-lg">按日期区间向量化</h3>
+        </template>
+        <div class="space-y-4">
+          <p class="text-sm text-gray-500">
+            将选定日期范围内的文章向量化到知识库中（排除被过滤词排除的文章）。向量化后支持语义搜索和智能问答。
+          </p>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">开始日期</label>
+              <UInput v-model="vectorizeStartDate" type="date" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">结束日期</label>
+              <UInput v-model="vectorizeEndDate" type="date" />
+            </div>
+          </div>
+          <UAlert color="blue" variant="subtle">
+            <template #title>说明</template>
+            <template #description>
+              <ul class="text-xs space-y-1 list-disc list-inside">
+                <li>无论分类状态如何，只要有正文内容都会被向量化</li>
+                <li>已被「排除词」过滤的文章不会向量化</li>
+                <li>已向量化的文章会被跳过</li>
+              </ul>
+            </template>
+          </UAlert>
+        </div>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton color="gray" variant="ghost" @click="showVectorizeModal = false">取消</UButton>
+            <UButton color="primary" :disabled="!vectorizeStartDate || !vectorizeEndDate" @click="startVectorizeRange">
+              开始向量化
+            </UButton>
+          </div>
+        </template>
+      </UCard>
+    </UModal>
+
+    <!-- 向量化进度弹窗 -->
+    <UModal v-model="vectorizing" :prevent-close="true">
+      <UCard>
+        <template #header>
+          <h3 class="font-semibold text-lg">向量化进行中...</h3>
+        </template>
+        <div class="space-y-4">
+          <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+            <span>进度</span>
+            <span>{{ vectorizeProgress }} / {{ vectorizeTotal }}</span>
+          </div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+            <div
+              class="bg-blue-500 h-2.5 rounded-full transition-all duration-300"
+              :style="{ width: vectorizeTotal > 0 ? `${(vectorizeProgress / vectorizeTotal) * 100}%` : '0%' }"
+            />
+          </div>
+          <div v-if="vectorizeCurrentTitle" class="text-sm text-gray-500 truncate">
+            <span class="text-gray-400">正在处理：</span>{{ vectorizeCurrentTitle }}
+          </div>
+          <div class="flex justify-end">
+            <UButton color="red" variant="soft" size="sm" @click="stopVectorize">停止</UButton>
+          </div>
+        </div>
+      </UCard>
+    </UModal>
+
+    <!-- 向量化结果提示 -->
+    <UModal :model-value="!!vectorizeResult" @close="vectorizeResult = null">
+      <UCard v-if="vectorizeResult">
+        <template #header>
+          <h3 class="font-semibold text-lg">向量化完成</h3>
+        </template>
+        <div class="space-y-2">
+          <p class="text-gray-700 dark:text-gray-300">
+            成功向量化 <span class="font-bold text-primary-600">{{ vectorizeResult.vectorized }}</span> 篇文章
+            <span v-if="vectorizeResult.total > vectorizeResult.vectorized" class="text-gray-500">
+              （{{ vectorizeResult.total - vectorizeResult.vectorized }} 篇跳过或失败）
+            </span>
+          </p>
+          <p v-if="vectorizeResult.total === 0" class="text-gray-500 text-sm">该日期范围内没有需要向量化的文章</p>
+        </div>
+        <template #footer>
+          <div class="flex justify-end">
+            <UButton color="primary" @click="vectorizeResult = null">确定</UButton>
+          </div>
+        </template>
       </UCard>
     </UModal>
   </div>

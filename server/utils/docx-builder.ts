@@ -106,30 +106,17 @@ export async function buildDocxBuffer(articles: ArticleForDocx[]): Promise<{
     children: [new TextRun({ text: '目  录', bold: true, size: 32 })],
   }));
 
-  // 手动生成目录内容（兼容 WPS）
-  const topicNumbersForToc = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
-  let tocIndex = 0;
-  for (const [topic] of Object.entries(grouped)) {
-    const prefix = topicNumbersForToc[tocIndex] || String(tocIndex + 1);
-    tocIndex++;
-    let topicDisplay = topic;
-    if (topic !== '未分类' && topic !== '外网资讯' && !topic.endsWith('要闻') && !topic.endsWith('资讯')) {
-      topicDisplay = `${topic}要闻`;
-    }
-    docChildren.push(new Paragraph({
-      spacing: { before: 100, after: 100 },
-      children: [new TextRun({ text: `${prefix}、${topicDisplay}`, size: 24 })],
-    }));
-
-    const topicArticles = grouped[topic];
-    for (const article of topicArticles) {
-      docChildren.push(new Paragraph({
-        spacing: { before: 50, after: 50 },
-        indent: { left: 480 },
-        children: [new TextRun({ text: `《${article.title}》`, size: 21, color: '333333' })],
-      }));
-    }
-  }
+  // 自动目录（带页码）
+  docChildren.push(new Paragraph({
+    children: [new TableOfContents('目录', {
+      hyperlink: true,
+      headingStyleRange: '1-2',
+      stylesWithLevels: [
+        new StyleLevel('Heading1', 1),
+        new StyleLevel('Heading2', 2),
+      ],
+    })],
+  }));
 
   // 分页
   docChildren.push(new Paragraph({ children: [new PageBreak()] }));

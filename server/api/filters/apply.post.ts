@@ -1,6 +1,7 @@
 import { eq, or, inArray } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 import { chatCompletion } from '~/server/utils/embedding';
+import { autoDownloadMissingContent } from '~/server/utils/auto-download';
 
 interface ApplyBody {
   reapplyAll?: boolean;
@@ -92,6 +93,27 @@ export default defineEventHandler(async (event) => {
     return { success: true, accepted: 0, rejected: 0, pending: 0, message: '没有待筛选的文章' };
   }
 
+  // 自动下载缺失正文的文章（分类前确保有内容可匹配）
+  const missingContentIds = pendingArticles.filter(a => !a.content).map(a => a.id);
+  if (missingContentIds.length > 0) {
+    console.log(`[Classify] 发现 ${missingContentIds.length} 篇缺正文，自动下载中...`);
+    const { downloaded, failed } = await autoDownloadMissingContent(missingContentIds);
+    console.log(`[Classify] 自动下载完成: 成功=${downloaded.length}, 失败=${failed.length}`);
+
+    // 重新加载已下载的文章内容
+    if (downloaded.length > 0) {
+      const updatedRows = await db.select({ id: schema.articles.id, content: schema.articles.content })
+        .from(schema.articles).where(inArray(schema.articles.id, downloaded));
+      const contentMap = new Map(updatedRows.map(r => [r.id, r.content]));
+      for (const article of pendingArticles) {
+        const newContent = contentMap.get(article.id);
+        if (newContent && !article.content) {
+          (article as any).content = newContent;
+        }
+      }
+    }
+  }
+
   // 获取外网来源 ID 列表
   const overseasSources = await db.select({ id: schema.sources.id })
     .from(schema.sources)
@@ -108,6 +130,7 @@ export default defineEventHandler(async (event) => {
 
   for (const article of pendingArticles) {
     const titleText = article.title || '';
+    const hasContent = !!article.content;
     const contentText = article.content || article.digest || '';
     const isOverseasArticle = article.sourceId ? overseasSourceIds.has(article.sourceId) : false;
 
@@ -120,7 +143,7 @@ export default defineEventHandler(async (event) => {
       if (hitTitleKw || hitContentKw) {
         isRejected = true;
         const hitKw = hitTitleKw || hitContentKw;
-        const hitSource = hitTitleKw ? '标题' : '正文';
+        const hitSource = hitTitleKw ? '标题' : (hasContent ? '正文' : '摘要');
         rejectReason = `${hitSource}命中排除词「${hitKw}」`;
         break;
       }
@@ -136,18 +159,21 @@ export default defineEventHandler(async (event) => {
 
     // 2. 检查正向规则（关键词匹配，按优先级排序）
     let matchedTopic: string | null = null;
+    let matchedKeywordsJson: string | null = null;
     for (const rule of includeRules) {
       // 先检查 includeTitle 直接命中
-      const titleHit = (rule.titleKeywords as string[]).some(kw => titleText.includes(kw));
-      if (titleHit) {
+      const titleKw = (rule.titleKeywords as string[]).find(kw => titleText.includes(kw));
+      if (titleKw) {
         matchedTopic = rule.topic;
+        matchedKeywordsJson = JSON.stringify([{ keyword: titleKw, source: 'title' }]);
         break;
       }
 
       // 检查 includeContent 直接命中
-      const contentHit = (rule.contentKeywords as string[]).some(kw => contentText.includes(kw));
-      if (contentHit) {
+      const contentKw = (rule.contentKeywords as string[]).find(kw => contentText.includes(kw));
+      if (contentKw) {
         matchedTopic = rule.topic;
+        matchedKeywordsJson = JSON.stringify([{ keyword: contentKw, source: hasContent ? 'content' : 'digest' }]);
         break;
       }
 
@@ -159,6 +185,11 @@ export default defineEventHandler(async (event) => {
         );
         if (allGroupsMatched) {
           matchedTopic = rule.topic;
+          const hits = (rule.groups as string[][]).map(group => {
+            const kw = group.find(k => fullText.includes(k))!;
+            return { keyword: kw, source: 'group' };
+          });
+          matchedKeywordsJson = JSON.stringify(hits);
           break;
         }
       }
@@ -166,7 +197,7 @@ export default defineEventHandler(async (event) => {
 
     if (matchedTopic) {
       await db.update(schema.articles)
-        .set({ filterStatus: 'accepted', matchedTopic, classifyMethod: 'keyword', updatedAt: new Date() })
+        .set({ filterStatus: 'accepted', matchedTopic, classifyMethod: 'keyword', matchedKeywordsJson, updatedAt: new Date() })
         .where(eq(schema.articles.id, article.id));
       accepted++;
       continue;
@@ -183,6 +214,21 @@ export default defineEventHandler(async (event) => {
       }
       // LLM 返回 null 的外网文章保持 pending，不标记 rejected
     }
+  }
+
+  // 级联清理：删除被 rejected 文章的向量数据
+  const rejectedArticles = await db.select({ id: schema.articles.id })
+    .from(schema.articles)
+    .where(eq(schema.articles.filterStatus, 'rejected'));
+
+  if (rejectedArticles.length > 0) {
+    const rejectedIds = rejectedArticles.map(a => a.id);
+    const deletedChunks = await db.delete(schema.articleChunks)
+      .where(inArray(schema.articleChunks.articleId, rejectedIds));
+    await db.update(schema.articles)
+      .set({ vectorized: false, updatedAt: new Date() })
+      .where(inArray(schema.articles.id, rejectedIds));
+    console.log(`[Classify] 已清除 ${rejectedArticles.length} 篇 rejected 文章的向量数据`);
   }
 
   return {
