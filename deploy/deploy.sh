@@ -531,7 +531,7 @@ fi
 # 用 PM2 启动应用
 cd "$APP_DIR"
 pm2 delete knowledge-base 2>/dev/null || true
-pm2 start .output/server/index.mjs --name knowledge-base --env production
+pm2 start .output/server/index.mjs --name knowledge-base --node-args="--env-file=.env --max-old-space-size=4096"
 pm2 save
 pm2 startup systemd -u root --hp /root 2>/dev/null || true
 

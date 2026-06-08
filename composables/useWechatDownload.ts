@@ -16,6 +16,7 @@ export interface DownloadStats {
 interface SSEEvent {
   type: 'progress' | 'completed' | 'deleted' | 'failed' | 'finish';
   articleId: number;
+  title?: string;
   url?: string;
   stats?: DownloadStats;
 }
@@ -25,6 +26,7 @@ const loading = ref(false);
 const progress = ref<DownloadProgress>({ completed: 0, failed: 0, deleted: 0 });
 const total = ref(0);
 const stats = ref<DownloadStats | null>(null);
+const currentTitle = ref('');
 
 let abortController: AbortController | null = null;
 
@@ -127,6 +129,9 @@ export function useWechatDownload() {
    * Handle a parsed SSE event and update reactive state.
    */
   function handleEvent(event: SSEEvent) {
+    // Track current article title
+    if (event.title) currentTitle.value = event.title;
+
     switch (event.type) {
       case 'completed':
         progress.value = {
@@ -204,6 +209,7 @@ export function useWechatDownload() {
     progress,
     total,
     stats,
+    currentTitle,
     start,
     stop,
   };

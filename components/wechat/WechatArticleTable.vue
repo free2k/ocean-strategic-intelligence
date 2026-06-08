@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const toast = useToast();
 const { authKey, isLoggedIn } = useWechatAuth();
-const { loading: downloading, progress, total, start, stop } = useWechatDownload();
+const { loading: downloading, progress, total, currentTitle, start, stop } = useWechatDownload();
 
 // Login prompt
 const showLoginPrompt = ref(false);
@@ -338,10 +338,13 @@ onMounted(() => {
     </div>
 
     <!-- Download progress bar -->
-    <div v-if="downloading" class="flex items-center gap-3">
-      <UProgress :value="total > 0 ? Math.round(completedCount / total * 100) : 0" size="sm" class="flex-1" />
-      <span class="text-sm text-gray-500 whitespace-nowrap">{{ completedCount }}/{{ total }}</span>
-      <UButton icon="i-heroicons-stop" color="red" variant="soft" size="xs" @click="stop">停止</UButton>
+    <div v-if="downloading" class="space-y-2">
+      <div class="flex items-center gap-3">
+        <UProgress :value="total > 0 ? Math.round(completedCount / total * 100) : 0" size="sm" class="flex-1" />
+        <span class="text-sm text-gray-500 whitespace-nowrap">{{ completedCount }}/{{ total }}</span>
+        <UButton icon="i-heroicons-stop" color="red" variant="soft" size="xs" @click="stop">停止</UButton>
+      </div>
+      <p v-if="currentTitle" class="text-xs text-gray-500 truncate">正在下载：{{ currentTitle }}</p>
     </div>
 
     <!-- Article table -->

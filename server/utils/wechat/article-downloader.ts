@@ -34,6 +34,7 @@ const DELETION_MARKERS = [
 export interface DownloadProgressEvent {
   type: 'progress' | 'completed' | 'deleted' | 'failed' | 'finish';
   articleId: number;
+  title?: string;
   url?: string;
   stats?: {
     completed: number;
@@ -46,6 +47,8 @@ export interface DownloadProgressEvent {
 interface ArticleRecord {
   id: number;
   link: string;
+  title: string;
+  sourceName?: string;
 }
 
 export class ArticleDownloader {
@@ -139,7 +142,7 @@ export class ArticleDownloader {
       const proxyNode = proxyManager.getProxies().find((p) => p.url === proxyUrl);
 
       try {
-        console.log(`[ArticleDownloader] Attempt ${attempt + 1}/${MAX_RETRIES} for article ${article.id} via proxy: ${proxyUrl}`);
+        console.log(`[Download] (${stats.completed + stats.failed + stats.deleted + 1}/${stats.total}) 下载: 「${article.title}」${article.sourceName ? ` [${article.sourceName}]` : ''}`);
         const html = await this.fetchArticleContent(article.link, proxyUrl, proxyNode?.authorization);
         proxyManager.recordSuccess(proxyUrl);
 
@@ -147,9 +150,11 @@ export class ArticleDownloader {
         if (this.isArticleDeleted(html)) {
           await this.updateArticleStatus(article.id, 'deleted', null);
           stats.deleted++;
+          console.log(`[Download] 已删除: 「${article.title}」`);
           onProgress({
             type: 'deleted',
             articleId: article.id,
+            title: article.title,
             url: article.link,
             stats: { ...stats },
           });
@@ -162,13 +167,14 @@ export class ArticleDownloader {
         onProgress({
           type: 'completed',
           articleId: article.id,
+          title: article.title,
           url: article.link,
           stats: { ...stats },
         });
         return;
       } catch (err) {
         lastError = err instanceof Error ? err : new Error(String(err));
-        console.error(`[ArticleDownloader] Attempt ${attempt + 1} failed for article ${article.id}:`, lastError.message);
+        console.error(`[Download] 重试 ${attempt + 1}/${MAX_RETRIES} 失败: 「${article.title}」- ${lastError.message}`);
         proxyManager.recordFailure(proxyUrl);
 
         // If not the last attempt, continue to retry with a different proxy
@@ -181,9 +187,11 @@ export class ArticleDownloader {
     // All retries exhausted - mark as failed
     await this.updateArticleStatus(article.id, 'failed', null);
     stats.failed++;
+    console.error(`[Download] 最终失败: 「${article.title}」`);
     onProgress({
       type: 'failed',
       articleId: article.id,
+      title: article.title,
       url: article.link,
       stats: { ...stats },
     });
@@ -242,16 +250,17 @@ export class ArticleDownloader {
    */
   private async getArticleRecords(articleIds: number[]): Promise<ArticleRecord[]> {
     const { useDB } = await import('../../db');
-    const { articles } = await import('../../db/schema');
-    const { inArray } = await import('drizzle-orm');
+    const { articles, sources } = await import('../../db/schema');
+    const { inArray, eq } = await import('drizzle-orm');
 
     const db = useDB();
     const records = await db
-      .select({ id: articles.id, link: articles.link })
+      .select({ id: articles.id, link: articles.link, title: articles.title, sourceName: sources.name })
       .from(articles)
+      .leftJoin(sources, eq(articles.sourceId, sources.id))
       .where(inArray(articles.id, articleIds));
 
-    return records;
+    return records.map(r => ({ id: r.id, link: r.link, title: r.title, sourceName: r.sourceName || undefined }));
   }
 
   /**
