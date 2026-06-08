@@ -78,6 +78,7 @@ const filterStatusOptions = [
   { label: '待筛选', value: 'pending' },
   { label: '已通过', value: 'accepted' },
   { label: '已排除', value: 'rejected' },
+  { label: '已人工标注', value: 'manual' },
 ];
 
 const sourceTypeOptions = [
@@ -110,7 +111,63 @@ const topicOptions = computed(() => {
 
 const statusColor: Record<string, string> = { pending: 'yellow', accepted: 'green', rejected: 'red' };
 const statusLabel: Record<string, string> = { pending: '待筛选', accepted: '已通过', rejected: '已排除' };
-const methodLabel: Record<string, string> = { keyword: '关键词匹配', llm: 'LLM语义分类' };
+const methodLabel: Record<string, string> = { keyword: '关键词匹配', llm: 'LLM语义分类', manual: '人工标注' };
+
+// --- 人工标注分类 ---
+const manualClassifyId = ref<number | null>(null);
+const manualClassifyTopic = ref('');
+const manualClassifyLoading = ref(false);
+
+// 从 filter_rules 获取所有正向规则的 topic 作为可选分类
+const { data: filterRulesData } = await useFetch('/api/filters');
+const classifyTopicOptions = computed(() => {
+  const rules = (filterRulesData.value as any)?.rules || [];
+  const includeRules = Array.isArray(rules) ? rules.filter((r: any) => r.type === 'include' && r.topic) : [];
+  const options = includeRules.map((r: any) => ({ label: r.topic, value: r.topic }));
+  // 添加"排除（不匹配任何分类）"选项
+  options.push({ label: '── 排除（不属于任何行业）', value: '__reject__' });
+  return options;
+});
+
+function openManualClassify(articleId: number, currentTopic?: string | null) {
+  manualClassifyId.value = articleId;
+  manualClassifyTopic.value = currentTopic || '';
+}
+
+async function submitManualClassify() {
+  if (!manualClassifyId.value || !manualClassifyTopic.value) return;
+  manualClassifyLoading.value = true;
+  try {
+    if (manualClassifyTopic.value === '__reject__') {
+      await $fetch('/api/articles/manual-classify', {
+        method: 'POST',
+        body: { articleIds: [manualClassifyId.value], topic: '__reject__' },
+      });
+    } else {
+      await $fetch('/api/articles/manual-classify', {
+        method: 'POST',
+        body: { articleIds: [manualClassifyId.value], topic: manualClassifyTopic.value },
+      });
+    }
+    manualClassifyId.value = null;
+    manualClassifyTopic.value = '';
+    await refreshTopics();
+    refresh();
+  } catch (e: any) { alert(e.data?.message || '标注失败'); }
+  finally { manualClassifyLoading.value = false; }
+}
+
+async function clearManualClassify(articleId: number) {
+  if (!confirm('确定清除人工标注？文章将恢复为待筛选状态。')) return;
+  try {
+    await $fetch('/api/articles/manual-classify', {
+      method: 'POST',
+      body: { articleIds: [articleId], clear: true },
+    });
+    await refreshTopics();
+    refresh();
+  } catch (e: any) { alert(e.data?.message || '清除失败'); }
+}
 
 async function removeVector(articleId: number) {
   if (!confirm('确定从知识库中移除此文章的向量数据？')) return;
@@ -419,7 +476,7 @@ async function startVectorizeRange() {
         <div class="flex items-center gap-3">
           <UButton @click="openRulesModal" color="orange" variant="soft" size="sm" icon="i-heroicons-funnel">分类规则</UButton>
           <UButton @click="showVectorizeModal = true" color="yellow" variant="soft" size="sm" icon="i-heroicons-cube">批量加入知识库</UButton>
-          <UButton @click="previewExportCount" :loading="exportCountLoading || exportLoading" color="green" size="sm">导出行业总结</UButton>
+          <UButton @click="previewExportCount" :loading="exportCountLoading || exportLoading" color="green" size="sm">导出当前行业总结</UButton>
         </div>
       </div>
     </div>
@@ -529,6 +586,8 @@ async function startVectorizeRange() {
             <div v-if="article.matchedTopic" class="flex items-center gap-2 mt-2 flex-wrap">
               <span class="text-sm font-medium text-primary-500 cursor-pointer hover:text-primary-600" @click="matchedTopic = article.matchedTopic">{{ article.matchedTopic }}</span>
               <span v-if="article.classifyMethod" class="text-[11px] text-gray-400">({{ methodLabel[article.classifyMethod] || article.classifyMethod }})</span>
+              <UBadge v-if="article.manualClassify" color="purple" size="xs" variant="subtle">人工分类校准</UBadge>
+              <UButton v-if="article.manualClassify" @click="clearManualClassify(article.id)" size="xs" color="gray" variant="ghost" class="text-[11px]">清除标注</UButton>
               <template v-if="article.matchedKeywordsJson && article.classifyMethod === 'keyword'">
                 <span
                   v-for="(kw, idx) in JSON.parse(article.matchedKeywordsJson)"
@@ -538,6 +597,12 @@ async function startVectorizeRange() {
                   {{ kw.source === 'title' ? '标题' : kw.source === 'content' ? '正文' : kw.source === 'digest' ? '摘要' : '组合' }}:「{{ kw.keyword }}」
                 </span>
               </template>
+              <UButton v-if="!article.manualClassify" @click="openManualClassify(article.id, article.matchedTopic)" size="xs" color="purple" variant="ghost" class="text-[11px]">人工校准</UButton>
+            </div>
+            <div v-else class="flex items-center gap-2 mt-2">
+              <UBadge v-if="article.manualClassify" color="purple" size="xs" variant="subtle">人工分类校准</UBadge>
+              <UButton v-if="article.manualClassify" @click="clearManualClassify(article.id)" size="xs" color="gray" variant="ghost" class="text-[11px]">清除标注</UButton>
+              <UButton v-else @click="openManualClassify(article.id)" size="xs" color="purple" variant="ghost" class="text-[11px]">人工分类</UButton>
             </div>
           </div>
         </div>
@@ -713,6 +778,40 @@ async function startVectorizeRange() {
         <template #footer>
           <div class="flex justify-end">
             <UButton color="primary" @click="vectorizeResult = null">确定</UButton>
+          </div>
+        </template>
+      </UCard>
+    </UModal>
+
+    <!-- 人工分类弹窗 -->
+    <UModal :model-value="!!manualClassifyId" @close="manualClassifyId = null">
+      <UCard>
+        <template #header>
+          <h3 class="font-semibold text-lg">人工标注分类</h3>
+        </template>
+        <div class="space-y-4">
+          <p class="text-sm text-gray-500">
+            选择目标行业分类。人工标注优先级最高，后续重新分类不会覆盖此设置。
+          </p>
+          <USelect
+            v-model="manualClassifyTopic"
+            :options="classifyTopicOptions"
+            value-attribute="value"
+            option-attribute="label"
+            placeholder="选择行业分类..."
+          />
+        </div>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton color="gray" variant="ghost" @click="manualClassifyId = null">取消</UButton>
+            <UButton
+              color="purple"
+              :loading="manualClassifyLoading"
+              :disabled="!manualClassifyTopic"
+              @click="submitManualClassify"
+            >
+              确认标注
+            </UButton>
           </div>
         </template>
       </UCard>

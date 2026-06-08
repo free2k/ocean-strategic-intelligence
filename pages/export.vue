@@ -126,6 +126,21 @@ async function togglePushTask(id: number, currentEnabled: boolean) {
 }
 
 async function sendPushNow(taskId: number) {
+  // 先获取可推送文章数量
+  const task = pushTasks.value.find((t: any) => t.id === taskId);
+  if (!task) return;
+
+  try {
+    const countRes = await $fetch('/api/push/preview-count', {
+      params: {
+        dateRange: task.dateRange || '2w',
+        topics: (task.topics || []).join(','),
+      },
+    });
+    const count = (countRes as any).count;
+    if (!confirm(`当前筛选条件下共有 ${count} 篇文章可推送。\n每篇文章将生成约 400 字的摘要总结，确定发送？`)) return;
+  } catch {}
+
   sendingTaskId.value = taskId;
   testResult.value = null;
   try {

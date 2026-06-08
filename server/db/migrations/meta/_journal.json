@@ -57,6 +57,13 @@
       "when": 1780776769772,
       "tag": "0007_brave_blade",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1781100000000,
+      "tag": "0008_add_manual_classify",
+      "breakpoints": true
     }
   ]
 }

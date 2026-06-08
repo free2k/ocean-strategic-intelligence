@@ -1,4 +1,4 @@
-import { eq, or, inArray } from 'drizzle-orm';
+import { eq, or, and, inArray } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 import { chatCompletion } from '~/server/utils/embedding';
 import { autoDownloadMissingContent } from '~/server/utils/auto-download';
@@ -32,10 +32,13 @@ export default defineEventHandler(async (event) => {
 
   // 重置
   if (body?.reapplyAll) {
-    sendEvent({ type: 'phase', phase: 'reset', message: '重置文章分类状态...' });
+    sendEvent({ type: 'phase', phase: 'reset', message: '重置文章分类状态（跳过人工标注）...' });
     await db.update(schema.articles)
       .set({ filterStatus: 'pending', matchedTopic: null, rejectReason: null, classifyMethod: null, matchedKeywordsJson: null, updatedAt: new Date() })
-      .where(or(eq(schema.articles.filterStatus, 'accepted'), eq(schema.articles.filterStatus, 'rejected')));
+      .where(and(
+        or(eq(schema.articles.filterStatus, 'accepted'), eq(schema.articles.filterStatus, 'rejected')),
+        eq(schema.articles.manualClassify, false),
+      ));
   }
 
   // 加载规则

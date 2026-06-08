@@ -6,6 +6,8 @@ import {
   HeadingLevel,
   AlignmentType,
   Header,
+  TableOfContents,
+  StyleLevel,
   ExternalHyperlink,
   PageBreak,
 } from 'docx';
@@ -68,7 +70,7 @@ export async function generateArticleSummary(article: {
 
 /**
  * 根据文章列表生成 DOCX Buffer
- * 返回 { buffer, filename, startDate, endDate }
+ * 格式：国内资讯 → 各行业分类 → 外网资讯 → 各行业分类
  */
 export async function buildDocxBuffer(articles: ArticleForDocx[]): Promise<{
   buffer: Buffer;
@@ -76,13 +78,25 @@ export async function buildDocxBuffer(articles: ArticleForDocx[]): Promise<{
   startDate: string;
   endDate: string;
 }> {
-  // 按行业分组
-  const grouped: Record<string, ArticleForDocx[]> = {};
+  // 按国内/外网分组，再按行业分组
+  const domesticGrouped: Record<string, ArticleForDocx[]> = {};
+  const overseasGrouped: Record<string, ArticleForDocx[]> = {};
+
   for (const article of articles) {
-    const topic = article.isOverseas ? '外网资讯' : (article.matchedTopic || '未分类');
-    if (!grouped[topic]) grouped[topic] = [];
-    grouped[topic].push(article);
+    const topic = article.matchedTopic || '未分类';
+    if (article.isOverseas) {
+      if (!overseasGrouped[topic]) overseasGrouped[topic] = [];
+      overseasGrouped[topic].push(article);
+    } else {
+      if (!domesticGrouped[topic]) domesticGrouped[topic] = [];
+      domesticGrouped[topic].push(article);
+    }
   }
+
+  // 构建分区列表
+  const sections: { name: string; groups: Record<string, ArticleForDocx[]> }[] = [];
+  if (Object.keys(domesticGrouped).length > 0) sections.push({ name: '国内资讯', groups: domesticGrouped });
+  if (Object.keys(overseasGrouped).length > 0) sections.push({ name: '外网资讯', groups: overseasGrouped });
 
   // 日期范围
   const dates = articles.map(a => new Date(a.publishedAt).getTime());
@@ -106,14 +120,15 @@ export async function buildDocxBuffer(articles: ArticleForDocx[]): Promise<{
     children: [new TextRun({ text: '目  录', bold: true, size: 32 })],
   }));
 
-  // 自动目录（带页码）
+  // TOC 域（带页码）
   docChildren.push(new Paragraph({
     children: [new TableOfContents('目录', {
       hyperlink: true,
-      headingStyleRange: '1-2',
+      headingStyleRange: '1-3',
       stylesWithLevels: [
         new StyleLevel('Heading1', 1),
         new StyleLevel('Heading2', 2),
+        new StyleLevel('Heading3', 3),
       ],
     })],
   }));
@@ -122,58 +137,70 @@ export async function buildDocxBuffer(articles: ArticleForDocx[]): Promise<{
   docChildren.push(new Paragraph({ children: [new PageBreak()] }));
 
   const topicNumbers = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
-  let topicIndex = 0;
+  let sectionIndex = 0;
 
-  for (const [topic, topicArticles] of Object.entries(grouped)) {
-    const prefix = topicNumbers[topicIndex] || String(topicIndex + 1);
-    topicIndex++;
+  for (const section of sections) {
+    const sectionPrefix = topicNumbers[sectionIndex] || String(sectionIndex + 1);
+    sectionIndex++;
 
-    let topicDisplay = topic;
-    if (topic !== '未分类' && topic !== '外网资讯' && !topic.endsWith('要闻') && !topic.endsWith('资讯')) {
-      topicDisplay = `${topic}要闻`;
-    }
-
+    // 大分类标题（国内资讯/外网资讯）- Heading 1
     docChildren.push(new Paragraph({
       heading: HeadingLevel.HEADING_1,
       spacing: { before: 400, after: 200 },
-      children: [new TextRun({ text: `${prefix}、${topicDisplay}`, bold: true, size: 28 })],
+      children: [new TextRun({ text: `${sectionPrefix}、${section.name}`, bold: true, size: 32 })],
     }));
 
-    for (let i = 0; i < topicArticles.length; i += 5) {
-      const batch = topicArticles.slice(i, i + 5);
-      const summaries = await Promise.all(batch.map(a => generateArticleSummary(a)));
+    for (const [topic, topicArticles] of Object.entries(section.groups)) {
+      let topicDisplay = topic;
+      if (topic !== '未分类' && !topic.endsWith('要闻') && !topic.endsWith('资讯')) {
+        topicDisplay = `${topic}要闻`;
+      }
 
-      for (let j = 0; j < batch.length; j++) {
-        const article = batch[j];
-        const summaryText = summaries[j];
-        const articleDate = new Date(article.publishedAt).toLocaleDateString('zh-CN');
+      // 行业标题 - Heading 2
+      docChildren.push(new Paragraph({
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 300, after: 150 },
+        children: [new TextRun({ text: topicDisplay, bold: true, size: 28 })],
+      }));
 
-        docChildren.push(new Paragraph({
-          heading: HeadingLevel.HEADING_2,
-          spacing: { before: 300, after: 100 },
-          children: [new TextRun({ text: `《${article.title}》`, bold: true, size: 24 })],
-        }));
+      // 生成文章摘要
+      for (let i = 0; i < topicArticles.length; i += 5) {
+        const batch = topicArticles.slice(i, i + 5);
+        const summaries = await Promise.all(batch.map(a => generateArticleSummary(a)));
 
-        docChildren.push(new Paragraph({
-          spacing: { after: 100 },
-          children: [new TextRun({ text: summaryText, size: 21 })],
-        }));
+        for (let j = 0; j < batch.length; j++) {
+          const article = batch[j];
+          const summaryText = summaries[j];
+          const articleDate = new Date(article.publishedAt).toLocaleDateString('zh-CN');
 
-        docChildren.push(new Paragraph({
-          spacing: { after: 50 },
-          children: [new TextRun({ text: `来源：${article.sourceName || '未知'}，${articleDate}`, size: 18, color: '666666' })],
-        }));
-
-        if (article.link) {
+          // 文章标题 - Heading 3
           docChildren.push(new Paragraph({
-            spacing: { after: 200 },
-            children: [
-              new ExternalHyperlink({
-                children: [new TextRun({ text: article.link, size: 18, color: '0563C1', underline: {} })],
-                link: article.link,
-              }),
-            ],
+            heading: HeadingLevel.HEADING_3,
+            spacing: { before: 250, after: 100 },
+            children: [new TextRun({ text: `《${article.title}》`, bold: true, size: 24 })],
           }));
+
+          docChildren.push(new Paragraph({
+            spacing: { after: 100 },
+            children: [new TextRun({ text: summaryText, size: 21 })],
+          }));
+
+          docChildren.push(new Paragraph({
+            spacing: { after: 50 },
+            children: [new TextRun({ text: `来源：${article.sourceName || '未知'}，${articleDate}`, size: 18, color: '666666' })],
+          }));
+
+          if (article.link) {
+            docChildren.push(new Paragraph({
+              spacing: { after: 200 },
+              children: [
+                new ExternalHyperlink({
+                  children: [new TextRun({ text: article.link, size: 18, color: '0563C1', underline: {} })],
+                  link: article.link,
+                }),
+              ],
+            }));
+          }
         }
       }
     }

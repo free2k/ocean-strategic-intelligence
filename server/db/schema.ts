@@ -35,8 +35,10 @@ export const articles = pgTable('articles', {
   matchedTopic: varchar('matched_topic', { length: 128 }),
   /** 排除原因（反向过滤命中时记录命中的关键词） */
   rejectReason: varchar('reject_reason', { length: 255 }),
-  /** 分类方法: keyword=关键词匹配, llm=LLM语义分类 */
+  /** 分类方法: keyword=关键词匹配, llm=LLM语义分类, manual=人工标注 */
   classifyMethod: varchar('classify_method', { length: 16 }),
+  /** 是否为人工标注分类（优先级最高，重新分类不会覆盖） */
+  manualClassify: boolean('manual_classify').default(false).notNull(),
   /** 命中的关键词详情 JSON（keyword 方法时记录） */
   matchedKeywordsJson: text('matched_keywords_json'),
   /** LLM 生成的摘要文本 */

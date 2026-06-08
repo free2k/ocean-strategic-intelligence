@@ -1,4 +1,4 @@
-import { eq, or, inArray } from 'drizzle-orm';
+import { eq, or, and, inArray } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 import { chatCompletion } from '~/server/utils/embedding';
 import { autoDownloadMissingContent } from '~/server/utils/auto-download';
@@ -60,13 +60,16 @@ export default defineEventHandler(async (event) => {
   const body = await readBody<ApplyBody>(event).catch(() => ({}));
   const db = useDB();
 
-  // 如果 reapplyAll，先重置所有已分类文章为 pending
+  // 如果 reapplyAll，先重置所有已分类文章为 pending（跳过人工标注）
   if (body?.reapplyAll) {
     await db.update(schema.articles)
       .set({ filterStatus: 'pending', matchedTopic: null, rejectReason: null, classifyMethod: null, updatedAt: new Date() })
-      .where(or(
-        eq(schema.articles.filterStatus, 'accepted'),
-        eq(schema.articles.filterStatus, 'rejected'),
+      .where(and(
+        or(
+          eq(schema.articles.filterStatus, 'accepted'),
+          eq(schema.articles.filterStatus, 'rejected'),
+        ),
+        eq(schema.articles.manualClassify, false),
       ));
   }
 

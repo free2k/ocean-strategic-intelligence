@@ -40,7 +40,11 @@ export default defineEventHandler(async (event) => {
     conditions.push(eq(schema.articles.sourceType, sourceType));
   }
   if (filterStatus) {
-    conditions.push(eq(schema.articles.filterStatus, filterStatus));
+    if (filterStatus === 'manual') {
+      conditions.push(eq(schema.articles.manualClassify, true));
+    } else {
+      conditions.push(eq(schema.articles.filterStatus, filterStatus));
+    }
   }
   if (matchedTopic) {
     if (matchedTopic === '外网资讯') {
@@ -97,6 +101,7 @@ export default defineEventHandler(async (event) => {
       matchedTopic: schema.articles.matchedTopic,
       rejectReason: schema.articles.rejectReason,
       classifyMethod: schema.articles.classifyMethod,
+      manualClassify: schema.articles.manualClassify,
       matchedKeywordsJson: schema.articles.matchedKeywordsJson,
       downloadStatus: schema.articles.downloadStatus,
       sourceName: schema.sources.name,
