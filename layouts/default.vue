@@ -83,5 +83,8 @@ async function logout() {
 
     <!-- 全局浮动问答组件 -->
     <QAWidget />
+
+    <!-- 全局向量化后台状态（右下角） -->
+    <VectorizeStatusWidget />
   </div>
 </template>

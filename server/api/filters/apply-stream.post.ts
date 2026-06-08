@@ -22,7 +22,7 @@ async function classifyByLLMWithRules(title: string, content: string, topics: st
  * SSE 版本的分类应用，支持实时进度展示
  */
 export default defineEventHandler(async (event) => {
-  const body = await readBody<{ reapplyAll?: boolean }>(event).catch(() => ({}));
+  const body = await readBody<{ reapplyAll?: boolean; sourceId?: number }>(event).catch(() => ({} as { reapplyAll?: boolean; sourceId?: number }));
   const db = useDB();
 
   const res = event.node.res;
@@ -32,13 +32,18 @@ export default defineEventHandler(async (event) => {
 
   // 重置
   if (body?.reapplyAll) {
-    sendEvent({ type: 'phase', phase: 'reset', message: '重置文章分类状态（跳过人工标注）...' });
+    const resetMsg = body?.sourceId ? '重置指定公众号文章分类状态（跳过人工标注）...' : '重置文章分类状态（跳过人工标注）...';
+    sendEvent({ type: 'phase', phase: 'reset', message: resetMsg });
+    const resetConditions = [
+      or(eq(schema.articles.filterStatus, 'accepted'), eq(schema.articles.filterStatus, 'rejected')),
+      eq(schema.articles.manualClassify, false),
+    ];
+    if (body?.sourceId) {
+      resetConditions.push(eq(schema.articles.sourceId, body.sourceId));
+    }
     await db.update(schema.articles)
       .set({ filterStatus: 'pending', matchedTopic: null, rejectReason: null, classifyMethod: null, matchedKeywordsJson: null, updatedAt: new Date() })
-      .where(and(
-        or(eq(schema.articles.filterStatus, 'accepted'), eq(schema.articles.filterStatus, 'rejected')),
-        eq(schema.articles.manualClassify, false),
-      ));
+      .where(and(...resetConditions));
   }
 
   // 加载规则
@@ -52,9 +57,13 @@ export default defineEventHandler(async (event) => {
   }
 
   // 待筛选文章（不加载 content 避免内存溢出）
+  const pendingConditions = [eq(schema.articles.filterStatus, 'pending')];
+  if (body?.sourceId) {
+    pendingConditions.push(eq(schema.articles.sourceId, body.sourceId));
+  }
   const pendingArticles = await db.select({
     id: schema.articles.id, title: schema.articles.title, digest: schema.articles.digest, sourceId: schema.articles.sourceId,
-  }).from(schema.articles).where(eq(schema.articles.filterStatus, 'pending'));
+  }).from(schema.articles).where(and(...pendingConditions));
 
   if (!pendingArticles.length) {
     sendEvent({ type: 'done', accepted: 0, rejected: 0, pending: 0, total: 0, message: '没有待筛选的文章' });
@@ -123,6 +132,7 @@ export default defineEventHandler(async (event) => {
       if (isRejected) {
         await db.update(schema.articles).set({ filterStatus: 'rejected', rejectReason, updatedAt: new Date() }).where(eq(schema.articles.id, article.id));
         rejected++;
+        console.log(`[Classify] ❌ #${article.id} "${titleText.slice(0, 30)}" → 排除: ${rejectReason}`);
         sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected });
         continue;
       }
@@ -147,6 +157,7 @@ export default defineEventHandler(async (event) => {
       if (matchedTopic) {
         await db.update(schema.articles).set({ filterStatus: 'accepted', matchedTopic, classifyMethod: 'keyword', matchedKeywordsJson, updatedAt: new Date() }).where(eq(schema.articles.id, article.id));
         accepted++;
+        console.log(`[Classify] ✅ #${article.id} "${titleText.slice(0, 30)}" → ${matchedTopic}`);
         sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected });
         continue;
       }
@@ -157,7 +168,12 @@ export default defineEventHandler(async (event) => {
         if (llmTopic) {
           await db.update(schema.articles).set({ filterStatus: 'accepted', matchedTopic: llmTopic, classifyMethod: 'llm', updatedAt: new Date() }).where(eq(schema.articles.id, article.id));
           accepted++;
+          console.log(`[Classify] 🤖 #${article.id} "${titleText.slice(0, 30)}" → ${llmTopic} (LLM)`);
+        } else {
+          console.log(`[Classify] ⏸️ #${article.id} "${titleText.slice(0, 30)}" → 未匹配`);
         }
+      } else if (!matchedTopic) {
+        console.log(`[Classify] ⏸️ #${article.id} "${titleText.slice(0, 30)}" → 未匹配`);
       }
       sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected });
     }

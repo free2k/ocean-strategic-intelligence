@@ -10,6 +10,14 @@ const applyResult = ref('');
 const importLoading = ref(false);
 const importResult = ref('');
 
+/** 后台异步向量化（使用全局 composable） */
+const { status: vectorizeStatus, start: startVectorize, cancel: cancelVectorize } = useVectorizeTask();
+
+function autoVectorizeInBackground() {
+  const sourceId = targetSourceId.value ? Number(targetSourceId.value) : undefined;
+  startVectorize(sourceId);
+}
+
 const showAddForm = ref(false);
 const newRule = ref({
   type: 'include' as 'include' | 'exclude',
@@ -108,6 +116,15 @@ async function toggleRule(id: number, enabled: boolean) {
   refresh();
 }
 
+// 目标公众号筛选（仅开发模式，用于调试）
+const isDev = process.dev;
+const targetSourceId = ref<string>('');
+const { data: sourcesData } = await useFetch('/api/sources');
+const sourceOptions = computed(() => {
+  const sources = (sourcesData.value as any)?.sources || [];
+  return [{ label: '全部公众号', value: '' }, ...sources.map((s: any) => ({ label: s.name, value: String(s.id) }))];
+});
+
 async function applyFilters() {
   applyLoading.value = true;
   applyResult.value = '';
@@ -126,7 +143,10 @@ const reapplyLoading = ref(false);
 const classifyProgress = ref<{ current: number; total: number; accepted: number; rejected: number; phase: string; message: string } | null>(null);
 
 async function reapplyAll() {
-  if (!confirm('将重置所有已分类文章并按当前规则重新分类（包含自动下载缺失正文），确定继续？')) return;
+  const msg = targetSourceId.value
+    ? '将重置指定公众号的已分类文章并重新分类，确定继续？'
+    : '将重置所有已分类文章并按当前规则重新分类（包含自动下载缺失正文），确定继续？';
+  if (!confirm(msg)) return;
   reapplyLoading.value = true;
   applyResult.value = '';
   classifyProgress.value = null;
@@ -141,10 +161,13 @@ async function reapplyAll() {
 }
 
 async function runClassifyStream(reapplyAll: boolean) {
+  const bodyParams: any = { reapplyAll };
+  if (targetSourceId.value) bodyParams.sourceId = Number(targetSourceId.value);
+
   const response = await fetch('/api/filters/apply-stream', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reapplyAll }),
+    body: JSON.stringify(bodyParams),
   });
   const reader = response.body!.getReader();
   const decoder = new TextDecoder();
@@ -167,6 +190,9 @@ async function runClassifyStream(reapplyAll: boolean) {
         } else if (data.type === 'done') {
           classifyProgress.value = null;
           applyResult.value = `分类完成：通过 ${data.accepted} 篇，排除 ${data.rejected} 篇，未匹配 ${data.pending} 篇`;
+          // 分类完成后异步向量化（无论是否有新通过的文章，检查是否有待向量化的）
+          console.log('[AdminFiltersTab] 分类完成，启动自动向量化');
+          autoVectorizeInBackground();
         }
       } catch {}
     }
@@ -254,13 +280,14 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
         <!-- 对所有"待筛选"状态的文章应用过滤规则。先检查反向规则排除，再检查正向规则匹配目标行业。<br><br> -->
         "执行筛选"会保留现有已归类的文章，"重新分类"则所有文章按照最新规则重新覆盖分类。
       </p>
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-4 flex-wrap">
         <UButton @click="applyFilters" :loading="applyLoading" color="green">
           执行筛选
         </UButton>
         <UButton @click="reapplyAll" :loading="reapplyLoading" color="orange" variant="soft">
           重新分类全部
         </UButton>
+        <USelect v-if="isDev" v-model="targetSourceId" :options="sourceOptions" value-attribute="value" option-attribute="label" class="w-44" size="sm" />
         <span v-if="applyResult" class="text-sm" :class="applyResult.includes('失败') ? 'text-red-500' : 'text-green-600'">
           {{ applyResult }}
         </span>
