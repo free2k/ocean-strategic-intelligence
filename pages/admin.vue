@@ -124,7 +124,7 @@ async function vectorizeAll() {
           </UCard>
 
           <!-- 导入文章 -->
-          <UCard>
+          <!-- <UCard>
             <template #header>
               <h3 class="font-semibold">批量导入</h3>
             </template>
@@ -142,10 +142,10 @@ async function vectorizeAll() {
                 {{ importResult }}
               </span>
             </div>
-          </UCard>
+          </UCard> -->
 
           <!-- 抓取正文 -->
-          <UCard>
+          <!-- <UCard>
             <template #header>
               <h3 class="font-semibold">抓取正文</h3>
             </template>
@@ -177,7 +177,7 @@ async function vectorizeAll() {
                 {{ fetchContentResult }}
               </span>
             </div>
-          </UCard>
+          </UCard> -->
 
           <!-- 向量化 -->
           <UCard>

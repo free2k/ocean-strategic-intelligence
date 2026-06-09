@@ -109,11 +109,15 @@ export default defineEventHandler(async (event) => {
       const articleContent = contentMap.get(article.id) || null;
       const titleText = article.title || '';
       const hasContent = !!articleContent;
-      // 去除 HTML 标签和 base64 图片数据，只匹配可见文字内容
+      // 去除非正文区域（script/style/注释）和 HTML 标签，只匹配可见文字内容
       const rawContent = articleContent || article.digest || '';
       const contentText = rawContent
-        .replace(/data:[^"'\s]+/g, '') // 去除 data URI (base64 图片等)
-        .replace(/<[^>]+>/g, ' ')      // 去除 HTML 标签
+        .replace(/<script[\s\S]*?<\/script>/gi, '') // 去除 script 标签及内容
+        .replace(/<style[\s\S]*?<\/style>/gi, '')   // 去除 style 标签及内容
+        .replace(/<!--[\s\S]*?-->/g, '')            // 去除 HTML 注释
+        .replace(/<head[\s\S]*?<\/head>/gi, '')     // 去除 head 区域（meta 等）
+        .replace(/data:[^"'\s]+/g, '')              // 去除 data URI (base64 图片等)
+        .replace(/<[^>]+>/g, ' ')                   // 去除 HTML 标签
         .replace(/\s+/g, ' ');
       const isOverseasArticle = article.sourceId ? overseasSourceIds.has(article.sourceId) : false;
 
