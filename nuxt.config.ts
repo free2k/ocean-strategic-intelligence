@@ -7,6 +7,10 @@ export default defineNuxtConfig({
     preference: 'dark', // 默认暗色，不跟随系统
     fallback: 'dark',
   },
+  icon: {
+    // 使用本地打包的图标，避免 SSR 时远程拉取超时
+    serverBundle: 'local',
+  },
   nitro: {
     noExternals: false,
   },

@@ -132,7 +132,7 @@ elif ! grep -q "DOWNLOAD_PROXY=http://127.0.0.1:10808" /opt/knowledge-base/.env;
 fi
 
 # 重启应用
-pm2 restart knowledge-base 2>/dev/null || true
+pm2 restart knowledge-base --log-date-format "YYYY-MM-DD HH:mm:ss" 2>/dev/null || true
 
 echo ""
 echo "=========================================="

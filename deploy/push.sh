@@ -57,7 +57,7 @@ rm /tmp/knowledge-base-deploy.tar.gz
 echo ">>> npm install..."
 npm install 2>&1 | tail -3
 echo ">>> 构建..."
-npm run build 2>&1 | tail -3
+npm run build 2>&1 | tail -30
 
 # 迁移数据库
 echo ">>> 数据库迁移..."
@@ -66,7 +66,7 @@ npx drizzle-kit migrate
 
 # 重启
 echo ">>> 重启服务..."
-pm2 restart knowledge-base
+pm2 restart knowledge-base --log-date-format "YYYY-MM-DD HH:mm:ss"
 pm2 status
 REMOTE_UPDATE
 

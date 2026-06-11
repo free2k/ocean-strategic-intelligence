@@ -462,7 +462,7 @@ npm run db:migrate
 npm run build
 
 # 重启 PM2 进程
-pm2 restart knowledge-base
+pm2 restart knowledge-base --log-date-format "YYYY-MM-DD HH:mm:ss"
 ```
 
 ### 查看日志

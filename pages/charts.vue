@@ -2,7 +2,7 @@
 import type { ParsedFileResult } from '~/composables/useFileParser';
 import type { ChatMessage } from '~/composables/useChartChat';
 
-const { messages, isLoading, currentOption, sendMessage, reset } = useChartChat();
+const { messages, isLoading, currentOption, chartList, selectedChartId, sendMessage, selectChart, removeChart, reset } = useChartChat();
 const { getSampleData } = useFileParser();
 
 // Page state
@@ -37,7 +37,13 @@ function handleSend(message: string) {
 
     <!-- Right: Chart Panel (60%) -->
     <main class="flex-1 min-w-0 bg-gray-50 dark:bg-gray-900">
-      <ChartsChartPanel :option="currentOption" />
+      <ChartsChartPanel
+        :option="currentOption"
+        :chart-list="chartList"
+        :selected-chart-id="selectedChartId"
+        @select="selectChart"
+        @remove="removeChart"
+      />
     </main>
   </div>
 </template>

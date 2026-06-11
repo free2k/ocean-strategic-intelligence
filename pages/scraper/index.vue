@@ -96,7 +96,7 @@ function removeChannel(channel: string) {
     <!-- 页头 -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">数据抓取</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">数据抓取 & 上传</h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">选择渠道进入，管理该渠道下的数据采集任务</p>
       </div>
       <UButton icon="i-heroicons-plus" @click="showAddModal = true">添加渠道</UButton>

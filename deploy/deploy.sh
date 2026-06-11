@@ -452,10 +452,10 @@ export npm_config_registry=https://registry.npmmirror.com
 export PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright
 
 echo "  >> npm install..."
-npm install 2>&1 | tail -5
+npm install 2>&1 | tail -15
 
 echo "  >> npm run build..."
-npm run build 2>&1 | tail -5
+npm run build 2>&1 | tail -15
 
 echo "  >> 安装 Playwright Chromium..."
 npx playwright install chromium 2>&1 | tail -3

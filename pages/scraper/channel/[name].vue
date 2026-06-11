@@ -199,11 +199,13 @@ async function executeScrape(source: ScraperSource) {
       selectedSource.value = source;
       showDataModal.value = true;
     } else {
-      toast.add({ title: '抓取失败', description: result.error, color: 'red' });
+      console.error(`[Scraper] 抓取失败 "${source.name}":`, result.error);
+      toast.add({ title: '暂无更新', color: 'gray' });
     }
     await refresh();
   } catch (err: any) {
-    toast.add({ title: '执行出错', description: err.message, color: 'red' });
+    console.error(`[Scraper] 执行出错 "${source.name}":`, err.message);
+    toast.add({ title: '暂无更新', color: 'gray' });
   } finally { executing.value = null; }
 }
 
@@ -314,8 +316,8 @@ function formatTime(t: string | null) {
             <div class="flex items-center gap-2 flex-wrap">
               <h3 class="text-base font-semibold text-gray-900 dark:text-white truncate">{{ source.name }}</h3>
               <UBadge :color="source.enabled ? 'green' : 'gray'" size="xs">{{ source.enabled ? '启用' : '禁用' }}</UBadge>
-              <UBadge v-if="source.lastStatus !== 'pending'" :color="source.lastStatus === 'success' ? 'blue' : 'red'" size="xs">
-                {{ source.lastStatus === 'success' ? '抓取成功' : '抓取失败' }}
+              <UBadge v-if="source.lastStatus !== 'pending'" :color="source.lastStatus === 'success' ? 'blue' : 'gray'" size="xs">
+                {{ source.lastStatus === 'success' ? '抓取成功' : '暂无更新' }}
               </UBadge>
             </div>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 truncate">{{ source.url }}</p>
@@ -323,9 +325,6 @@ function formatTime(t: string | null) {
               <span>{{ cronToText(source.schedule) }}</span>
               <span>上次抓取: {{ formatTime(source.lastScrapedAt) }}</span>
             </div>
-            <p v-if="source.lastError" class="text-xs text-red-500 mt-1 line-clamp-1" :title="source.lastError">
-              {{ source.lastError }}
-            </p>
           </div>
 
           <div class="flex items-center gap-1 shrink-0">
@@ -459,7 +458,7 @@ function formatTime(t: string | null) {
     </UModal>
 
     <!-- 数据查看弹窗 -->
-    <UModal v-model="showDataModal" :ui="{ width: 'sm:max-w-5xl' }">
+    <UModal v-model="showDataModal" :ui="{ width: 'sm:max-w-7xl' }">
       <ScraperDataViewer v-if="selectedSource" :source="selectedSource" @close="showDataModal = false" />
     </UModal>
 
