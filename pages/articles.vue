@@ -99,6 +99,7 @@ const sourceTypeOptions = [
 
 const dateRangeOptions = [
   { label: '全部时间', value: '' },
+  { label: '最近3天', value: '3d' },
   { label: '最近1周', value: '1w' },
   { label: '最近2周', value: '2w' },
   { label: '最近1个月', value: '1m' },

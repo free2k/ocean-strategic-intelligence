@@ -1,7 +1,86 @@
 <script setup lang="ts">
+import * as echarts from 'echarts';
+
 const { data: stats, refresh: refreshStats } = await useFetch('/api/stats');
 const { data: sourcesData } = await useFetch('/api/sources');
 const { data: topicsData } = await useFetch('/api/topics');
+
+// --- 来源渠道图表 ---
+const sourceChartEl = ref<HTMLElement | null>(null);
+let sourceChartInstance: echarts.ECharts | null = null;
+
+function renderSourceChart() {
+  if (!sourceChartEl.value || !sourcesData.value?.sources?.length) return;
+
+  if (!sourceChartInstance) {
+    sourceChartInstance = echarts.init(sourceChartEl.value);
+  }
+
+  const sources = [...sourcesData.value.sources].sort((a, b) => (a.articleCount || 0) - (b.articleCount || 0));
+
+  const option: echarts.EChartsOption = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+    },
+    grid: {
+      left: 120,
+      right: 40,
+      top: 20,
+      bottom: 30,
+    },
+    xAxis: {
+      type: 'value',
+      axisLabel: { color: '#9ca3af' },
+      splitLine: { lineStyle: { color: '#374151', type: 'dashed' } },
+    },
+    yAxis: {
+      type: 'category',
+      data: sources.map(s => s.name),
+      axisLabel: { color: '#e5e7eb', fontSize: 12 },
+      axisLine: { show: false },
+      axisTick: { show: false },
+    },
+    series: [{
+      type: 'bar',
+      data: sources.map(s => ({
+        value: s.articleCount || 0,
+        itemStyle: {
+          color: s.type === 'wechat' ? '#3b82f6' : '#f97316',
+          borderRadius: [0, 4, 4, 0],
+        },
+      })),
+      barMaxWidth: 24,
+      label: {
+        show: true,
+        position: 'right',
+        color: '#9ca3af',
+        fontSize: 11,
+      },
+    }],
+  };
+
+  sourceChartInstance.setOption(option);
+  sourceChartInstance.resize();
+}
+
+onMounted(() => {
+  nextTick(() => renderSourceChart());
+  window.addEventListener('resize', handleResize);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize);
+  sourceChartInstance?.dispose();
+});
+
+function handleResize() {
+  sourceChartInstance?.resize();
+}
+
+watch(sourcesData, () => {
+  nextTick(() => renderSourceChart());
+});
 
 // --- 管理功能 ---
 const vectorizeLoading = ref(false);
@@ -84,6 +163,7 @@ const sourceTypeOptions = [
 
 const dateRangeOptions = [
   { label: '全部时间', value: '' },
+  { label: '最近3天', value: '3d' },
   { label: '最近1周', value: '1w' },
   { label: '最近2周', value: '2w' },
   { label: '最近1个月', value: '1m' },
@@ -224,12 +304,12 @@ async function startVectorizeRange() {
               <h3 class="font-semibold">向量化管理</h3>
             </template>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              对未向量化的文章生成 Embedding，用于后续的语义检索和问答
+              对特定时间的文章生成向量，用于指定周期资讯的语义检索和问答，若在数据量庞大情况，该操作可能会较为耗时。
             </p>
             <div class="flex items-center gap-4">
-              <UButton @click="vectorizeAll" :loading="vectorizeLoading" color="green">
+              <!-- <UButton @click="vectorizeAll" :loading="vectorizeLoading" color="green">
                 向量化全部未处理文章
-              </UButton>
+              </UButton> -->
               <UButton @click="showVectorizeModal = true" color="yellow" variant="soft">
                 按日期区间加入知识库
               </UButton>
@@ -239,20 +319,12 @@ async function startVectorizeRange() {
             </div>
           </UCard>
 
-          <!-- 来源列表 -->
+          <!-- 来源渠道图表 -->
           <UCard v-if="sourcesData?.sources?.length">
             <template #header>
               <h3 class="font-semibold">来源渠道</h3>
             </template>
-            <UTable
-              :rows="sourcesData.sources"
-              :columns="[
-                { key: 'name', label: '名称' },
-                { key: 'type', label: '类型' },
-                { key: 'alias', label: '别名' },
-                { key: 'articleCount', label: '文章数' },
-              ]"
-            />
+            <div ref="sourceChartEl" style="width: 100%; height: 400px;" />
           </UCard>
         </div>
       </template>

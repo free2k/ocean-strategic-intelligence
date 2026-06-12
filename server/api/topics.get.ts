@@ -39,6 +39,7 @@ export default defineEventHandler(async (event) => {
     const now = new Date();
     let since: Date | null = null;
     switch (dateRange) {
+      case '3d': since = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000); break;
       case '1w': since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); break;
       case '2w': since = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000); break;
       case '1m': since = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()); break;
