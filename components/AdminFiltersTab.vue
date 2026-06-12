@@ -116,9 +116,10 @@ async function toggleRule(id: number, enabled: boolean) {
   refresh();
 }
 
-// 目标公众号筛选（仅开发模式，用于调试）
+// 目标公众号筛选
 const isDev = process.dev;
 const targetSourceId = ref<string>('');
+const targetSinceDate = ref<string>('');
 const { data: sourcesData } = await useFetch('/api/sources');
 const sourceOptions = computed(() => {
   const sources = (sourcesData.value as any)?.sources || [];
@@ -143,6 +144,27 @@ async function applyFilters() {
 const reapplyLoading = ref(false);
 const classifyProgress = ref<{ current: number; total: number; accepted: number; rejected: number; phase: string; message: string } | null>(null);
 const classifyLogs = ref<string[]>([]);
+const logContainer = ref<HTMLElement | null>(null);
+
+// 日志自动滚动到底部
+watch(() => classifyLogs.value.length, () => {
+  nextTick(() => {
+    if (logContainer.value) {
+      logContainer.value.scrollTop = logContainer.value.scrollHeight;
+    }
+  });
+});
+
+function exportLogs() {
+  const content = classifyLogs.value.join('\n');
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `classify-log-${new Date().toISOString().slice(0, 10)}.txt`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
 
 async function reapplyAll() {
   const msg = targetSourceId.value
@@ -166,6 +188,7 @@ async function reapplyAll() {
 async function runClassifyStream(reapplyAll: boolean) {
   const bodyParams: any = { reapplyAll };
   if (targetSourceId.value) bodyParams.sourceId = Number(targetSourceId.value);
+  if (targetSinceDate.value) bodyParams.sinceDate = new Date(targetSinceDate.value).toISOString();
 
   const response = await fetch('/api/filters/apply-stream', {
     method: 'POST',
@@ -297,18 +320,25 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
           重新分类全部
         </UButton>
         <USelect v-model="targetSourceId" :options="sourceOptions" value-attribute="value" option-attribute="label" class="w-44" size="sm" />
+        <UInput v-model="targetSinceDate" type="date" size="sm" class="w-40" placeholder="起始日期" />
         <span v-if="applyResult" class="text-sm" :class="applyResult.includes('失败') ? 'text-red-500' : 'text-green-600'">
           {{ applyResult }}
         </span>
       </div>
       <!-- 分类日志 -->
-      <div v-if="classifyLogs.length > 0" class="mt-4 max-h-48 overflow-y-auto rounded bg-gray-900 dark:bg-gray-950 p-3 font-mono text-xs text-gray-300 space-y-0.5">
-        <div v-for="(log, idx) in classifyLogs.slice(-50)" :key="idx" :class="{
-          'text-green-400': log.startsWith('✅'),
-          'text-red-400': log.startsWith('❌'),
-          'text-blue-400': log.startsWith('🤖'),
-          'text-gray-500': log.startsWith('⏸️'),
-        }">{{ log }}</div>
+      <div v-if="classifyLogs.length > 0" class="mt-4">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs text-gray-500">分类日志 ({{ classifyLogs.length }} 条)</span>
+          <button @click="exportLogs" class="text-xs text-blue-500 hover:text-blue-400">导出日志</button>
+        </div>
+        <div ref="logContainer" class="max-h-56 overflow-y-auto rounded bg-gray-900 dark:bg-gray-950 p-3 font-mono text-xs text-gray-300 space-y-0.5">
+          <div v-for="(log, idx) in classifyLogs" :key="idx" :class="{
+            'text-green-400': log.startsWith('✅'),
+            'text-red-400': log.startsWith('❌'),
+            'text-blue-400': log.startsWith('🤖'),
+            'text-gray-500': log.startsWith('⏸️'),
+          }">{{ log }}</div>
+        </div>
       </div>
       <!-- 分类进度条 -->
       <div v-if="classifyProgress" class="mt-4 space-y-2">

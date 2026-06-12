@@ -1,4 +1,4 @@
-import { eq, or, and, inArray } from 'drizzle-orm';
+import { eq, or, and, inArray, gte } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 import { chatCompletion } from '~/server/utils/embedding';
 import { autoDownloadMissingContent } from '~/server/utils/auto-download';
@@ -22,7 +22,7 @@ async function classifyByLLMWithRules(title: string, content: string, topics: st
  * SSE 版本的分类应用，支持实时进度展示
  */
 export default defineEventHandler(async (event) => {
-  const body = await readBody<{ reapplyAll?: boolean; sourceId?: number }>(event).catch(() => ({} as { reapplyAll?: boolean; sourceId?: number }));
+  const body = await readBody<{ reapplyAll?: boolean; sourceId?: number; sinceDate?: string }>(event).catch(() => ({} as { reapplyAll?: boolean; sourceId?: number; sinceDate?: string }));
   const db = useDB();
 
   const res = event.node.res;
@@ -34,12 +34,15 @@ export default defineEventHandler(async (event) => {
   if (body?.reapplyAll) {
     const resetMsg = body?.sourceId ? '重置指定公众号文章分类状态（跳过人工标注）...' : '重置文章分类状态（跳过人工标注）...';
     sendEvent({ type: 'phase', phase: 'reset', message: resetMsg });
-    const resetConditions = [
+    const resetConditions: any[] = [
       or(eq(schema.articles.filterStatus, 'accepted'), eq(schema.articles.filterStatus, 'rejected')),
       eq(schema.articles.manualClassify, false),
     ];
     if (body?.sourceId) {
       resetConditions.push(eq(schema.articles.sourceId, body.sourceId));
+    }
+    if (body?.sinceDate) {
+      resetConditions.push(gte(schema.articles.publishedAt, new Date(body.sinceDate)));
     }
     await db.update(schema.articles)
       .set({ filterStatus: 'pending', matchedTopic: null, rejectReason: null, classifyMethod: null, matchedKeywordsJson: null, updatedAt: new Date() })
@@ -57,9 +60,12 @@ export default defineEventHandler(async (event) => {
   }
 
   // 待筛选文章（不加载 content 避免内存溢出）
-  const pendingConditions = [eq(schema.articles.filterStatus, 'pending')];
+  const pendingConditions: any[] = [eq(schema.articles.filterStatus, 'pending')];
   if (body?.sourceId) {
     pendingConditions.push(eq(schema.articles.sourceId, body.sourceId));
+  }
+  if (body?.sinceDate) {
+    pendingConditions.push(gte(schema.articles.publishedAt, new Date(body.sinceDate)));
   }
   const pendingArticles = await db.select({
     id: schema.articles.id, title: schema.articles.title, sourceId: schema.articles.sourceId,
@@ -99,6 +105,10 @@ export default defineEventHandler(async (event) => {
   // 分类（分批加载 content 避免内存溢出）
   sendEvent({ type: 'phase', phase: 'classify', message: '开始分类...', total: pendingArticles.length });
 
+  // 加载公众号名称映射
+  const allSources = await db.select({ id: schema.sources.id, name: schema.sources.name }).from(schema.sources);
+  const sourceNameMap = new Map(allSources.map(s => [s.id, s.name]));
+
   const overseasSources = await db.select({ id: schema.sources.id }).from(schema.sources).where(eq(schema.sources.isOverseas, true));
   const overseasSourceIds = new Set(overseasSources.map(s => s.id));
   const validTopics = includeRules.map(r => r.topic).filter((t): t is string => !!t);
@@ -121,6 +131,8 @@ export default defineEventHandler(async (event) => {
       const articleContent = contentMap.get(article.id) || null;
       const titleText = article.title || '';
       const hasContent = !!articleContent;
+      const sourceName = article.sourceId ? (sourceNameMap.get(article.sourceId) || '') : '';
+      const logPrefix = sourceName ? `[${sourceName}] ` : '';
       // 去除非正文区域（script/style/注释）和 HTML 标签，只匹配可见文字内容
       const rawContent = articleContent || '';
       const contentText = rawContent
@@ -148,8 +160,8 @@ export default defineEventHandler(async (event) => {
       if (isRejected) {
         await db.update(schema.articles).set({ filterStatus: 'rejected', rejectReason, updatedAt: new Date() }).where(eq(schema.articles.id, article.id));
         rejected++;
-        console.log(`[Classify] ❌ #${article.id} "${titleText.slice(0, 30)}" → 排除: ${rejectReason}`);
-        sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `❌ #${article.id} "${titleText.slice(0, 30)}" → 排除: ${rejectReason}` });
+        console.log(`[Classify] ❌ ${logPrefix}#${article.id} "${titleText.slice(0, 30)}" → 排除: ${rejectReason}`);
+        sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `❌ ${logPrefix}#${article.id} "${titleText.slice(0, 30)}" → 排除: ${rejectReason}` });
         continue;
       }
 
@@ -175,8 +187,8 @@ export default defineEventHandler(async (event) => {
         accepted++;
         const kwInfo = matchedKeywordsJson ? JSON.parse(matchedKeywordsJson) : [];
         const kwDesc = kwInfo.map((k: any) => `${k.source === 'title' ? '标题' : k.source === 'content' ? '正文' : '组合'}:「${k.keyword}」`).join(', ');
-        console.log(`[Classify] ✅ #${article.id} "${titleText.slice(0, 30)}" → ${matchedTopic} (${kwDesc})`);
-        sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `✅ #${article.id} "${titleText.slice(0, 30)}" → ${matchedTopic} (${kwDesc})` });
+        console.log(`[Classify] ✅ ${logPrefix}#${article.id} "${titleText.slice(0, 30)}" → ${matchedTopic} (${kwDesc})`);
+        sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `✅ ${logPrefix}#${article.id} "${titleText.slice(0, 30)}" → ${matchedTopic} (${kwDesc})` });
         continue;
       }
 
@@ -186,15 +198,15 @@ export default defineEventHandler(async (event) => {
         if (llmTopic) {
           await db.update(schema.articles).set({ filterStatus: 'accepted', matchedTopic: llmTopic, classifyMethod: 'llm', updatedAt: new Date() }).where(eq(schema.articles.id, article.id));
           accepted++;
-          console.log(`[Classify] 🤖 #${article.id} "${titleText.slice(0, 30)}" → ${llmTopic} (LLM)`);
-          sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `🤖 #${article.id} "${titleText.slice(0, 30)}" → ${llmTopic} (AI语义判断)` });
+          console.log(`[Classify] 🤖 ${logPrefix}#${article.id} "${titleText.slice(0, 30)}" → ${llmTopic} (LLM)`);
+          sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `🤖 ${logPrefix}#${article.id} "${titleText.slice(0, 30)}" → ${llmTopic} (AI语义判断)` });
         } else {
-          console.log(`[Classify] ⏸️ #${article.id} "${titleText.slice(0, 30)}" → 未匹配`);
-          sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `⏸️ #${article.id} "${titleText.slice(0, 30)}" → 未匹配` });
+          console.log(`[Classify] ⏸️ ${logPrefix}#${article.id} "${titleText.slice(0, 30)}" → 未匹配`);
+          sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `⏸️ ${logPrefix}#${article.id} "${titleText.slice(0, 30)}" → 未匹配` });
         }
       } else if (!matchedTopic) {
-        console.log(`[Classify] ⏸️ #${article.id} "${titleText.slice(0, 30)}" → 未匹配`);
-        sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `⏸️ #${article.id} "${titleText.slice(0, 30)}" → 未匹配` });
+        console.log(`[Classify] ⏸️ ${logPrefix}#${article.id} "${titleText.slice(0, 30)}" → 未匹配`);
+        sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `⏸️ ${logPrefix}#${article.id} "${titleText.slice(0, 30)}" → 未匹配` });
       }
     }
   }
