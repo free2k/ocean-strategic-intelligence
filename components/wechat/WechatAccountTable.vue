@@ -225,7 +225,7 @@ function startProgressPolling(accountId: number, taskId: string) {
 
         if (progress.status === 'completed') {
           toast.add({ title: '同步完成', description: `已同步 ${progress.synced} 篇文章，开始自动分类...`, color: 'green' });
-          // 自动触发分类→下载→向量化流水线
+          // 自动触发分类（仅标题匹配，不下载正文和向量化）
           triggerAutoPipeline(accountId);
         } else if (progress.status === 'failed') {
           toast.add({ title: '同步失败', description: progress.message || '同步过程中发生错误', color: 'red' });
@@ -552,7 +552,7 @@ onMounted(() => {
 
     <!-- 自动流水线进度 -->
     <UAlert v-if="pipelineRunning" color="green">
-      <template #title>自动分类 & 向量化进行中...</template>
+      <template #title>自动分类进行中...</template>
       <template #description>
         <div v-if="pipelineMessages.length" class="mt-1 space-y-0.5 max-h-24 overflow-y-auto">
           <p v-for="(msg, idx) in pipelineMessages.slice(-5)" :key="idx" class="text-xs">{{ msg }}</p>

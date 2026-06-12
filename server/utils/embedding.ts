@@ -35,11 +35,34 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
     const batch = texts.slice(i, i + BATCH_SIZE);
     // 截断过长的文本（避免请求体超限）
     const truncatedBatch = batch.map(t => t.length > 2000 ? t.slice(0, 2000) : t);
-    const response = await client.embeddings.create({
-      model: config.embeddingModel,
-      input: truncatedBatch,
-    });
-    results.push(...response.data.map(d => d.embedding));
+
+    // 带重试的请求（处理 429 限流）
+    let retries = 0;
+    const MAX_RETRIES = 3;
+    while (true) {
+      try {
+        const response = await client.embeddings.create({
+          model: config.embeddingModel,
+          input: truncatedBatch,
+        });
+        results.push(...response.data.map(d => d.embedding));
+        break;
+      } catch (e: any) {
+        if (e?.status === 429 && retries < MAX_RETRIES) {
+          retries++;
+          const waitMs = Math.min(2000 * Math.pow(2, retries), 30000); // 4s, 8s, 16s
+          console.warn(`[Embedding] 429 限流，等待 ${waitMs}ms 后重试 (${retries}/${MAX_RETRIES})`);
+          await new Promise(resolve => setTimeout(resolve, waitMs));
+          continue;
+        }
+        throw e;
+      }
+    }
+
+    // 批次间添加延迟，避免触发限流
+    if (i + BATCH_SIZE < texts.length) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
   }
 
   return results;

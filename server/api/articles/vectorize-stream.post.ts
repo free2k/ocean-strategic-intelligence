@@ -48,8 +48,20 @@ export default defineEventHandler(async (event) => {
   console.log(`[Vectorize] 开始向量化 ${articleIds.length} 篇文章`);
 
   let vectorized = 0;
+  let clientDisconnected = false;
+
+  // 监听客户端断开连接
+  res.on('close', () => {
+    clientDisconnected = true;
+    console.log(`[Vectorize] ⚠️ 客户端取消，停止向量化 (已完成 ${vectorized}/${articleIds.length})`);
+  });
 
   for (let i = 0; i < articleIds.length; i++) {
+    // 客户端断开时停止处理
+    if (clientDisconnected) {
+      console.log(`[Vectorize] 中断: 在第 ${i + 1}/${articleIds.length} 篇时停止`);
+      break;
+    }
     const [article] = await db.select({
       id: schema.articles.id,
       title: schema.articles.title,
@@ -64,6 +76,12 @@ export default defineEventHandler(async (event) => {
 
       await db.delete(schema.articleChunks).where(eq(schema.articleChunks.articleId, article.id));
       const embeddings = await generateEmbeddings(chunks);
+
+      // 再次检查取消（embedding 调用耗时较长）
+      if (clientDisconnected) {
+        console.log(`[Vectorize] 中断: embedding完成后检测到取消，丢弃 #${article.id}`);
+        break;
+      }
 
       for (let j = 0; j < chunks.length; j++) {
         await db.insert(schema.articleChunks).values({
@@ -87,7 +105,9 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  sendEvent({ type: 'done', vectorized, total: articleIds.length });
-  console.log(`[Vectorize] 完成: 成功 ${vectorized}/${articleIds.length}`);
-  res.end();
+  if (!clientDisconnected) {
+    sendEvent({ type: 'done', vectorized, total: articleIds.length });
+  }
+  console.log(`[Vectorize] ${clientDisconnected ? '已取消' : '完成'}: 成功 ${vectorized}/${articleIds.length}`);
+  if (!res.writableEnded) res.end();
 });

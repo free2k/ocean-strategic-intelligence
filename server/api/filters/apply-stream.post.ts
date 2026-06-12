@@ -62,7 +62,7 @@ export default defineEventHandler(async (event) => {
     pendingConditions.push(eq(schema.articles.sourceId, body.sourceId));
   }
   const pendingArticles = await db.select({
-    id: schema.articles.id, title: schema.articles.title, digest: schema.articles.digest, sourceId: schema.articles.sourceId,
+    id: schema.articles.id, title: schema.articles.title, sourceId: schema.articles.sourceId,
   }).from(schema.articles).where(and(...pendingConditions));
 
   if (!pendingArticles.length) {
@@ -73,15 +73,27 @@ export default defineEventHandler(async (event) => {
   sendEvent({ type: 'phase', phase: 'download', message: `检查正文...`, total: pendingArticles.length });
 
   // 检查哪些文章需要下载正文（通过 download_status 判断，不加载 content 字段）
-  const needDownloadArticles = await db.select({ id: schema.articles.id })
+  const needDownloadArticles = await db.select({ id: schema.articles.id, title: schema.articles.title })
     .from(schema.articles)
     .where(and(eq(schema.articles.filterStatus, 'pending'), eq(schema.articles.downloadStatus, 'pending')));
 
+  console.log(`[Classify] 待筛选文章 ${pendingArticles.length} 篇，其中 ${needDownloadArticles.length} 篇缺失正文（downloadStatus=pending）`);
+
   if (needDownloadArticles.length > 0) {
     const missingContentIds = needDownloadArticles.map(a => a.id);
+    // 打印前10篇缺失正文的文章标题，帮助定位
+    const sampleTitles = needDownloadArticles.slice(0, 10).map(a => `#${a.id} "${a.title?.slice(0, 30)}"`);
+    console.log(`[Classify] 缺失正文文章示例: ${sampleTitles.join(', ')}${needDownloadArticles.length > 10 ? ` ...等${needDownloadArticles.length}篇` : ''}`);
+
     sendEvent({ type: 'phase', phase: 'download', message: `正在下载 ${missingContentIds.length} 篇缺失正文...`, total: missingContentIds.length });
-    const { downloaded } = await autoDownloadMissingContent(missingContentIds);
-    sendEvent({ type: 'phase', phase: 'download', message: `下载完成: 成功 ${downloaded.length} 篇`, total: missingContentIds.length });
+
+    // 带进度回调的下载
+    const { downloaded, failed } = await autoDownloadMissingContent(missingContentIds, (progress) => {
+      sendEvent({ type: 'progress', current: progress.completed, total: missingContentIds.length, accepted: 0, rejected: 0 });
+    });
+
+    console.log(`[Classify] 正文下载结果: 成功=${downloaded.length}, 失败=${failed.length}`);
+    sendEvent({ type: 'phase', phase: 'download', message: `下载完成: 成功 ${downloaded.length} 篇, 失败 ${failed.length} 篇`, total: missingContentIds.length });
   }
 
   // 分类（分批加载 content 避免内存溢出）
@@ -110,7 +122,7 @@ export default defineEventHandler(async (event) => {
       const titleText = article.title || '';
       const hasContent = !!articleContent;
       // 去除非正文区域（script/style/注释）和 HTML 标签，只匹配可见文字内容
-      const rawContent = articleContent || article.digest || '';
+      const rawContent = articleContent || '';
       const contentText = rawContent
         .replace(/<script[\s\S]*?<\/script>/gi, '') // 去除 script 标签及内容
         .replace(/<style[\s\S]*?<\/style>/gi, '')   // 去除 style 标签及内容
@@ -137,7 +149,7 @@ export default defineEventHandler(async (event) => {
         await db.update(schema.articles).set({ filterStatus: 'rejected', rejectReason, updatedAt: new Date() }).where(eq(schema.articles.id, article.id));
         rejected++;
         console.log(`[Classify] ❌ #${article.id} "${titleText.slice(0, 30)}" → 排除: ${rejectReason}`);
-        sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected });
+        sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `❌ #${article.id} "${titleText.slice(0, 30)}" → 排除: ${rejectReason}` });
         continue;
       }
 
@@ -147,7 +159,7 @@ export default defineEventHandler(async (event) => {
         const titleKw = (rule.titleKeywords as string[]).find(kw => titleText.includes(kw));
         if (titleKw) { matchedTopic = rule.topic; matchedKeywordsJson = JSON.stringify([{ keyword: titleKw, source: 'title' }]); break; }
         const contentKw = (rule.contentKeywords as string[]).find(kw => contentText.includes(kw));
-        if (contentKw) { matchedTopic = rule.topic; matchedKeywordsJson = JSON.stringify([{ keyword: contentKw, source: hasContent ? 'content' : 'digest' }]); break; }
+        if (contentKw) { matchedTopic = rule.topic; matchedKeywordsJson = JSON.stringify([{ keyword: contentKw, source: 'content' }]); break; }
         if (rule.requireAll && rule.groups && (rule.groups as string[][]).length > 0) {
           const fullText = titleText + ' ' + contentText;
           const allGroupsMatched = (rule.groups as string[][]).every(g => g.some(kw => fullText.includes(kw)));
@@ -161,8 +173,10 @@ export default defineEventHandler(async (event) => {
       if (matchedTopic) {
         await db.update(schema.articles).set({ filterStatus: 'accepted', matchedTopic, classifyMethod: 'keyword', matchedKeywordsJson, updatedAt: new Date() }).where(eq(schema.articles.id, article.id));
         accepted++;
-        console.log(`[Classify] ✅ #${article.id} "${titleText.slice(0, 30)}" → ${matchedTopic}`);
-        sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected });
+        const kwInfo = matchedKeywordsJson ? JSON.parse(matchedKeywordsJson) : [];
+        const kwDesc = kwInfo.map((k: any) => `${k.source === 'title' ? '标题' : k.source === 'content' ? '正文' : '组合'}:「${k.keyword}」`).join(', ');
+        console.log(`[Classify] ✅ #${article.id} "${titleText.slice(0, 30)}" → ${matchedTopic} (${kwDesc})`);
+        sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `✅ #${article.id} "${titleText.slice(0, 30)}" → ${matchedTopic} (${kwDesc})` });
         continue;
       }
 
@@ -173,13 +187,15 @@ export default defineEventHandler(async (event) => {
           await db.update(schema.articles).set({ filterStatus: 'accepted', matchedTopic: llmTopic, classifyMethod: 'llm', updatedAt: new Date() }).where(eq(schema.articles.id, article.id));
           accepted++;
           console.log(`[Classify] 🤖 #${article.id} "${titleText.slice(0, 30)}" → ${llmTopic} (LLM)`);
+          sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `🤖 #${article.id} "${titleText.slice(0, 30)}" → ${llmTopic} (AI语义判断)` });
         } else {
           console.log(`[Classify] ⏸️ #${article.id} "${titleText.slice(0, 30)}" → 未匹配`);
+          sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `⏸️ #${article.id} "${titleText.slice(0, 30)}" → 未匹配` });
         }
       } else if (!matchedTopic) {
         console.log(`[Classify] ⏸️ #${article.id} "${titleText.slice(0, 30)}" → 未匹配`);
+        sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected, log: `⏸️ #${article.id} "${titleText.slice(0, 30)}" → 未匹配` });
       }
-      sendEvent({ type: 'progress', current: i + 1, total: pendingArticles.length, accepted, rejected });
     }
   }
 

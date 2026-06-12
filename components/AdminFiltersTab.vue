@@ -129,6 +129,7 @@ async function applyFilters() {
   applyLoading.value = true;
   applyResult.value = '';
   classifyProgress.value = null;
+  classifyLogs.value = [];
   try {
     await runClassifyStream(false);
     emit('changed');
@@ -141,6 +142,7 @@ async function applyFilters() {
 
 const reapplyLoading = ref(false);
 const classifyProgress = ref<{ current: number; total: number; accepted: number; rejected: number; phase: string; message: string } | null>(null);
+const classifyLogs = ref<string[]>([]);
 
 async function reapplyAll() {
   const msg = targetSourceId.value
@@ -150,6 +152,7 @@ async function reapplyAll() {
   reapplyLoading.value = true;
   applyResult.value = '';
   classifyProgress.value = null;
+  classifyLogs.value = [];
   try {
     await runClassifyStream(true);
     emit('changed');
@@ -186,7 +189,13 @@ async function runClassifyStream(reapplyAll: boolean) {
         if (data.type === 'phase') {
           classifyProgress.value = { current: 0, total: data.total || 0, accepted: 0, rejected: 0, phase: data.phase, message: data.message };
         } else if (data.type === 'progress') {
-          classifyProgress.value = { current: data.current, total: data.total, accepted: data.accepted, rejected: data.rejected, phase: 'classify', message: '' };
+          const currentPhase = classifyProgress.value?.phase || 'classify';
+          classifyProgress.value = { current: data.current, total: data.total, accepted: data.accepted || 0, rejected: data.rejected || 0, phase: currentPhase, message: '' };
+          if (data.log) {
+            classifyLogs.value.push(data.log);
+            // 保留最近 200 条，避免内存溢出
+            if (classifyLogs.value.length > 200) classifyLogs.value = classifyLogs.value.slice(-200);
+          }
         } else if (data.type === 'done') {
           classifyProgress.value = null;
           applyResult.value = `分类完成：通过 ${data.accepted} 篇，排除 ${data.rejected} 篇，未匹配 ${data.pending} 篇`;
@@ -287,10 +296,19 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
         <UButton @click="reapplyAll" :loading="reapplyLoading" color="orange" variant="soft">
           重新分类全部
         </UButton>
-        <USelect v-if="isDev" v-model="targetSourceId" :options="sourceOptions" value-attribute="value" option-attribute="label" class="w-44" size="sm" />
+        <USelect v-model="targetSourceId" :options="sourceOptions" value-attribute="value" option-attribute="label" class="w-44" size="sm" />
         <span v-if="applyResult" class="text-sm" :class="applyResult.includes('失败') ? 'text-red-500' : 'text-green-600'">
           {{ applyResult }}
         </span>
+      </div>
+      <!-- 分类日志 -->
+      <div v-if="classifyLogs.length > 0" class="mt-4 max-h-48 overflow-y-auto rounded bg-gray-900 dark:bg-gray-950 p-3 font-mono text-xs text-gray-300 space-y-0.5">
+        <div v-for="(log, idx) in classifyLogs.slice(-50)" :key="idx" :class="{
+          'text-green-400': log.startsWith('✅'),
+          'text-red-400': log.startsWith('❌'),
+          'text-blue-400': log.startsWith('🤖'),
+          'text-gray-500': log.startsWith('⏸️'),
+        }">{{ log }}</div>
       </div>
       <!-- 分类进度条 -->
       <div v-if="classifyProgress" class="mt-4 space-y-2">

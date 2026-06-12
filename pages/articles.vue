@@ -73,6 +73,14 @@ watch(sourceType, () => {
   page.value = 1;
 });
 
+watch(matchedTopic, () => {
+  page.value = 1;
+});
+
+watch(filterStatus, () => {
+  page.value = 1;
+});
+
 const filterStatusOptions = [
   { label: '全部状态', value: '' },
   { label: '待筛选', value: 'pending' },
@@ -597,6 +605,9 @@ async function startVectorizeRange() {
                   {{ kw.source === 'title' ? '标题' : kw.source === 'content' ? '正文' : kw.source === 'digest' ? '摘要' : '组合' }}:「{{ kw.keyword }}」
                 </span>
               </template>
+              <span v-else-if="article.classifyMethod === 'llm'" class="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                AI语义判断
+              </span>
               <UButton v-if="!article.manualClassify" @click="openManualClassify(article.id, article.matchedTopic)" size="xs" color="purple" variant="ghost" class="text-[11px]">人工校准</UButton>
             </div>
             <div v-else class="flex items-center gap-2 mt-2">

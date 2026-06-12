@@ -1,8 +1,5 @@
-import { eq, and, inArray, isNotNull } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
-import { matchByKeywords } from '~/server/utils/classification';
-import { articleDownloader } from '~/server/utils/wechat/article-downloader';
-import { generateEmbeddings, splitIntoChunks } from '~/server/utils/embedding';
 
 /**
  * POST /api/articles/auto-pipeline
@@ -30,7 +27,6 @@ export default defineEventHandler(async (event) => {
   const articles = await db.select({
     id: schema.articles.id,
     title: schema.articles.title,
-    digest: schema.articles.digest,
     content: schema.articles.content,
     sourceId: schema.articles.sourceId,
     filterStatus: schema.articles.filterStatus,
@@ -52,7 +48,16 @@ export default defineEventHandler(async (event) => {
 
   for (const article of pending) {
     const titleText = article.title || '';
-    const contentText = article.content || article.digest || '';
+    // 去除非正文区域（script/style/注释/head）和 HTML 标签，只匹配可见文字
+    const rawContent = article.content || '';
+    const contentText = rawContent
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<head[\s\S]*?<\/head>/gi, '')
+      .replace(/data:[^"'\s]+/g, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ');
 
     // 排除规则
     let isRejected = false;
@@ -71,7 +76,6 @@ export default defineEventHandler(async (event) => {
     // 正向规则
     let matchedTopic: string | null = null;
     let matchedKeywordsJson: string | null = null;
-    const hasContent = !!article.content;
 
     for (const rule of includeRules) {
       const titleKw = (rule.titleKeywords as string[]).find(kw => titleText.includes(kw));
@@ -83,7 +87,7 @@ export default defineEventHandler(async (event) => {
       const contentKw = (rule.contentKeywords as string[]).find(kw => contentText.includes(kw));
       if (contentKw) {
         matchedTopic = rule.topic;
-        matchedKeywordsJson = JSON.stringify([{ keyword: contentKw, source: hasContent ? 'content' : 'digest' }]);
+        matchedKeywordsJson = JSON.stringify([{ keyword: contentKw, source: 'content' }]);
         break;
       }
       if (rule.requireAll && rule.groups && (rule.groups as string[][]).length > 0) {
@@ -109,81 +113,15 @@ export default defineEventHandler(async (event) => {
         articleId: article.id,
         title: article.title,
         topic: matchedTopic,
-        message: `「${article.title}」符合「${matchedTopic}」分类规则，正在自动下载正文和向量化`,
+        message: `「${article.title}」符合「${matchedTopic}」分类规则`,
       });
     }
   }
 
   sendEvent({ type: 'phase', phase: 'classify-done', classified: acceptedArticles.length, total: pending.length });
 
-  if (!acceptedArticles.length) {
-    sendEvent({ type: 'done', classified: 0, downloaded: 0, vectorized: 0, total: pending.length });
-    res.end(); return;
-  }
-
-  // ===== Phase 2: 下载正文 =====
-  // 找出通过分类但缺正文的文章
-  const needDownloadIds = acceptedArticles
-    .filter(a => {
-      const orig = articles.find(x => x.id === a.id);
-      return orig && !orig.content;
-    })
-    .map(a => a.id);
-
-  let downloadedCount = 0;
-  if (needDownloadIds.length > 0) {
-    sendEvent({ type: 'phase', phase: 'download', message: `正在下载 ${needDownloadIds.length} 篇正文...` });
-
-    await articleDownloader.start(needDownloadIds, 3, (progressEvent) => {
-      if (progressEvent.type === 'completed') {
-        downloadedCount++;
-        sendEvent({ type: 'download-progress', completed: downloadedCount, total: needDownloadIds.length });
-      } else if (progressEvent.type === 'failed' || progressEvent.type === 'deleted') {
-        sendEvent({ type: 'download-progress', completed: downloadedCount, total: needDownloadIds.length, failed: progressEvent.articleId });
-      }
-    });
-
-    sendEvent({ type: 'phase', phase: 'download-done', downloaded: downloadedCount, total: needDownloadIds.length });
-  }
-
-  // ===== Phase 3: 向量化 =====
-  // 获取有正文且未向量化的已通过文章
-  const toVectorize = await db.query.articles.findMany({
-    where: and(
-      inArray(schema.articles.id, acceptedArticles.map(a => a.id)),
-      eq(schema.articles.vectorized, false),
-      isNotNull(schema.articles.content),
-    ),
-  });
-
-  let vectorizedCount = 0;
-  if (toVectorize.length > 0) {
-    sendEvent({ type: 'phase', phase: 'vectorize', message: `正在向量化 ${toVectorize.length} 篇文章...` });
-
-    for (let i = 0; i < toVectorize.length; i++) {
-      const article = toVectorize[i];
-      const text = article.content || `${article.title}\n${article.digest || ''}`;
-      const chunks = splitIntoChunks(text);
-      if (!chunks.length) continue;
-
-      try {
-        await db.delete(schema.articleChunks).where(eq(schema.articleChunks.articleId, article.id));
-        const embeddings = await generateEmbeddings(chunks);
-        for (let j = 0; j < chunks.length; j++) {
-          await db.insert(schema.articleChunks).values({ articleId: article.id, chunkIndex: j, content: chunks[j], embedding: embeddings[j] });
-        }
-        await db.update(schema.articles).set({ vectorized: true, updatedAt: new Date() }).where(eq(schema.articles.id, article.id));
-        vectorizedCount++;
-        sendEvent({ type: 'vectorize-progress', current: i + 1, total: toVectorize.length, title: article.title });
-      } catch (e: any) {
-        console.error(`[AutoPipeline] 向量化失败 ${article.id}:`, e.message);
-      }
-    }
-
-    sendEvent({ type: 'phase', phase: 'vectorize-done', vectorized: vectorizedCount, total: toVectorize.length });
-  }
-
-  sendEvent({ type: 'done', classified: acceptedArticles.length, downloaded: downloadedCount, vectorized: vectorizedCount, total: pending.length });
-  console.log(`[AutoPipeline] 完成: 分类通过=${acceptedArticles.length}, 下载=${downloadedCount}, 向量化=${vectorizedCount}`);
+  // 同步后只做分类标记，不自动下载正文和向量化（留给手动"执行筛选"时处理）
+  sendEvent({ type: 'done', classified: acceptedArticles.length, downloaded: 0, vectorized: 0, total: pending.length });
+  console.log(`[AutoPipeline] 完成: 分类通过=${acceptedArticles.length}/${pending.length}（仅标记，未下载/向量化）`);
   res.end();
 });

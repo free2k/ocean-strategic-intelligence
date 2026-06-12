@@ -87,7 +87,6 @@ export default defineEventHandler(async (event) => {
   const pendingArticles = await db.select({
     id: schema.articles.id,
     title: schema.articles.title,
-    digest: schema.articles.digest,
     content: schema.articles.content,
     sourceId: schema.articles.sourceId,
   }).from(schema.articles).where(eq(schema.articles.filterStatus, 'pending'));
@@ -135,7 +134,7 @@ export default defineEventHandler(async (event) => {
     const titleText = article.title || '';
     const hasContent = !!article.content;
     // 去除非正文区域（script/style/注释）和 HTML 标签，只匹配可见文字内容
-    const rawContentText = article.content || article.digest || '';
+    const rawContentText = article.content || '';
     const contentText = rawContentText
       .replace(/<script[\s\S]*?<\/script>/gi, '') // 去除 script 标签及内容
       .replace(/<style[\s\S]*?<\/style>/gi, '')   // 去除 style 标签及内容
@@ -185,7 +184,7 @@ export default defineEventHandler(async (event) => {
       const contentKw = (rule.contentKeywords as string[]).find(kw => contentText.includes(kw));
       if (contentKw) {
         matchedTopic = rule.topic;
-        matchedKeywordsJson = JSON.stringify([{ keyword: contentKw, source: hasContent ? 'content' : 'digest' }]);
+        matchedKeywordsJson = JSON.stringify([{ keyword: contentKw, source: 'content' }]);
         break;
       }
 

@@ -7,7 +7,10 @@ import { articleDownloader } from '~/server/utils/wechat/article-downloader';
  * 下载失败的文章会被标记为 pending（待筛选），从已分类列表中移出。
  * 返回成功下载的文章 ID 列表和失败的 ID 列表。
  */
-export async function autoDownloadMissingContent(articleIds: number[]): Promise<{
+export async function autoDownloadMissingContent(
+  articleIds: number[],
+  onProgress?: (progress: { completed: number; failed: number; total: number }) => void,
+): Promise<{
   downloaded: number[];
   failed: number[];
 }> {
@@ -23,10 +26,17 @@ export async function autoDownloadMissingContent(articleIds: number[]): Promise<
   const toDownload = articles.filter(a => a.downloadStatus !== 'downloaded');
 
   if (toDownload.length === 0) {
+    console.log(`[AutoDownload] 所有 ${articles.length} 篇文章已下载，无需重复下载`);
     return { downloaded: [], failed: [] };
   }
 
-  console.log(`[AutoDownload] 开始自动下载 ${toDownload.length} 篇缺失正文的文章`);
+  // 统计各状态分布
+  const statusCount = articles.reduce((acc, a) => {
+    acc[a.downloadStatus || 'null'] = (acc[a.downloadStatus || 'null'] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  console.log(`[AutoDownload] 文章下载状态分布: ${JSON.stringify(statusCount)}`);
+  console.log(`[AutoDownload] 开始自动下载 ${toDownload.length} 篇缺失正文的文章（共传入 ${articleIds.length} 篇）`);
 
   const downloaded: number[] = [];
   const failed: number[] = [];
@@ -35,8 +45,10 @@ export async function autoDownloadMissingContent(articleIds: number[]): Promise<
   await articleDownloader.start(toDownload.map(a => a.id), 3, (event) => {
     if (event.type === 'completed') {
       downloaded.push(event.articleId);
+      onProgress?.({ completed: downloaded.length + failed.length, failed: failed.length, total: toDownload.length });
     } else if (event.type === 'failed' || event.type === 'deleted') {
       failed.push(event.articleId);
+      onProgress?.({ completed: downloaded.length + failed.length, failed: failed.length, total: toDownload.length });
     }
   });
 
