@@ -6,6 +6,7 @@ import { autoDownloadMissingContent } from '~/server/utils/auto-download';
 function parseDateRange(range: string): Date | null {
   const now = new Date();
   switch (range) {
+    case '3d': return new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
     case '1w': return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     case '2w': return new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
     case '1m': return new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());

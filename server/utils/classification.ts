@@ -1,6 +1,6 @@
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
 import { chatCompletion } from './embedding';
+import { useDB, schema } from '~/server/db';
+import { eq } from 'drizzle-orm';
 
 // ============================================================
 // Interfaces
@@ -15,81 +15,50 @@ export interface ClassificationResult {
   matchedKeywords?: { keyword: string; source: 'title' | 'content' | 'group' }[];
 }
 
-interface TopicRule {
-  description: string;
-  priority?: number;
-  requireAll?: boolean;
-  groups?: string[][];
-  includeTitle: string[];
-  includeContent: string[];
-}
-
-interface TargetConfig {
-  topics: Record<string, TopicRule>;
-}
-
 // ============================================================
-// Valid categories
+// Valid categories (dynamically loaded from database)
 // ============================================================
 
-const VALID_CATEGORIES = [
-  '海洋能源资源宏观政策要闻',
-  '海洋油气要闻',
-  '海洋新能源要闻',
-  '海洋多能融合要闻',
-  '海洋低碳领域要闻',
-] as const;
-
-// ============================================================
-// Keyword rules cache (load once, reuse)
-// ============================================================
-
-let _cachedRules: TargetConfig | null = null;
-
-function loadRules(): TargetConfig {
-  if (_cachedRules) {
-    return _cachedRules;
-  }
-
-  const targetPath = resolve(process.cwd(), 'filter/target.json');
-  const raw = readFileSync(targetPath, 'utf-8');
-  _cachedRules = JSON.parse(raw) as TargetConfig;
-  return _cachedRules;
+async function getValidCategories(): Promise<string[]> {
+  const db = useDB();
+  const rules = await db.select({ topic: schema.filterRules.topic })
+    .from(schema.filterRules)
+    .where(eq(schema.filterRules.type, 'include'));
+  return rules.map(r => r.topic).filter((t): t is string => !!t);
 }
 
 // ============================================================
-// Classify prompt cache (load once, reuse)
+// Classify prompt (dynamically built from database rules)
 // ============================================================
 
-let _cachedClassifyPrompt: string | null = null;
+async function buildClassifyPrompt(): Promise<string> {
+  const db = useDB();
+  const rules = await db.select()
+    .from(schema.filterRules)
+    .where(eq(schema.filterRules.type, 'include'));
 
-function loadClassifyPrompt(): string {
-  if (_cachedClassifyPrompt) {
-    return _cachedClassifyPrompt;
-  }
+  const enabledRules = rules.filter(r => r.enabled && r.topic);
 
-  const classifyPath = resolve(process.cwd(), 'source/template/classify.txt');
-  const classifyContent = readFileSync(classifyPath, 'utf-8');
+  const categoryDescriptions = enabledRules.map((rule, idx) => {
+    return `${idx + 1}. ${rule.topic}：${rule.description || ''}`;
+  }).join('\n');
 
-  _cachedClassifyPrompt = `你是一个行业分类助手。根据以下行业类别定义，判断给定文章属于哪个行业类别。
+  const categoryNames = enabledRules.map(r => `- ${r.topic}`).join('\n');
 
-${classifyContent}
+  return `你是一个行业分类助手。根据以下行业类别定义，判断给定文章属于哪个行业类别。
+
+行业类别：
+${categoryDescriptions}
 
 请以 JSON 格式返回分类结果：{"category": "行业类别名", "reason": "分类理由"}
 如果文章不属于以上任何行业类别，返回：{"category": null, "reason": "不属于任何行业类别"}
 
 有效的行业类别为：
-- 海洋能源资源宏观政策要闻
-- 海洋油气要闻
-- 海洋新能源要闻
-- 海洋多能融合要闻
-- 海洋低碳领域要闻`;
-
-  return _cachedClassifyPrompt;
+${categoryNames}`;
 }
 
 // ============================================================
-// matchByKeywords - synchronous keyword matching
+// matchByKeywords - keyword matching from database rules
 // ============================================================
 
 export interface KeywordMatchResult {
@@ -98,30 +67,33 @@ export interface KeywordMatchResult {
 }
 
 /**
- * 从 target.json 加载关键词规则并执行匹配。
+ * 从数据库加载关键词规则并执行匹配。
  * 返回匹配的主题名和命中的关键词详情。
  */
-export function matchByKeywords(title: string, content: string): KeywordMatchResult | null {
-  const rules = loadRules();
+export async function matchByKeywords(title: string, content: string): Promise<KeywordMatchResult | null> {
+  const db = useDB();
+  const rules = await db.select()
+    .from(schema.filterRules)
+    .where(eq(schema.filterRules.type, 'include'));
 
-  const sortedTopics = Object.entries(rules.topics).sort(
-    ([, a], [, b]) => (a.priority ?? 99) - (b.priority ?? 99),
-  );
+  const enabledRules = rules
+    .filter(r => r.enabled && r.topic)
+    .sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99));
 
   const fullText = title + ' ' + content;
 
-  for (const [topicName, rule] of sortedTopics) {
-    // 先检查 includeTitle 直接命中
-    for (const keyword of rule.includeTitle) {
+  for (const rule of enabledRules) {
+    // 先检查 titleKeywords 直接命中
+    for (const keyword of (rule.titleKeywords || [])) {
       if (title.includes(keyword)) {
-        return { topic: topicName, keywords: [{ keyword, source: 'title' }] };
+        return { topic: rule.topic!, keywords: [{ keyword, source: 'title' }] };
       }
     }
 
-    // 检查 includeContent 直接命中
-    for (const keyword of rule.includeContent) {
+    // 检查 contentKeywords 直接命中
+    for (const keyword of (rule.contentKeywords || [])) {
       if (content.includes(keyword)) {
-        return { topic: topicName, keywords: [{ keyword, source: 'content' }] };
+        return { topic: rule.topic!, keywords: [{ keyword, source: 'content' }] };
       }
     }
 
@@ -131,32 +103,17 @@ export function matchByKeywords(title: string, content: string): KeywordMatchRes
         group.some(keyword => fullText.includes(keyword)),
       );
       if (allGroupsMatched) {
-        // 收集每组命中的关键词
         const hitKeywords: { keyword: string; source: 'title' | 'content' | 'group' }[] = [];
         for (const group of rule.groups) {
           const hit = group.find(kw => fullText.includes(kw));
           if (hit) hitKeywords.push({ keyword: hit, source: 'group' });
         }
-        return { topic: topicName, keywords: hitKeywords };
+        return { topic: rule.topic!, keywords: hitKeywords };
       }
     }
   }
 
   return null;
-}
-
-/**
- * 清除缓存的规则（用于测试）
- */
-export function _clearRulesCache(): void {
-  _cachedRules = null;
-}
-
-/**
- * 直接设置规则缓存（用于测试）
- */
-export function _setRulesCache(rules: TargetConfig): void {
-  _cachedRules = rules;
 }
 
 // ============================================================
@@ -172,7 +129,8 @@ export function _setRulesCache(rules: TargetConfig): void {
  * 如果 API 调用失败，抛出错误由调用方处理。
  */
 export async function classifyByLLM(title: string, content: string): Promise<string | null> {
-  const systemPrompt = loadClassifyPrompt();
+  const systemPrompt = await buildClassifyPrompt();
+  const validCategories = await getValidCategories();
 
   const truncatedContent = content.slice(0, 2000);
   const userMessage = `文章标题：${title}\n\n文章内容：\n${truncatedContent}`;
@@ -195,7 +153,7 @@ export async function classifyByLLM(title: string, content: string): Promise<str
     }
 
     // Validate that the category is in the valid list
-    if (VALID_CATEGORIES.includes(parsed.category as typeof VALID_CATEGORIES[number])) {
+    if (validCategories.includes(parsed.category)) {
       return parsed.category;
     }
 
@@ -207,12 +165,7 @@ export async function classifyByLLM(title: string, content: string): Promise<str
   }
 }
 
-/**
- * 清除分类 prompt 缓存（用于测试）
- */
-export function _clearClassifyPromptCache(): void {
-  _cachedClassifyPrompt = null;
-}
+
 
 // ============================================================
 // classifyArticle - orchestrating two-tier classification
@@ -227,7 +180,7 @@ export function _clearClassifyPromptCache(): void {
  */
 export async function classifyArticle(article: { id: number; title: string; content: string }): Promise<ClassificationResult> {
   // Step 1: Try keyword matching first (fast, no API call)
-  const keywordMatch = matchByKeywords(article.title, article.content);
+  const keywordMatch = await matchByKeywords(article.title, article.content);
 
   if (keywordMatch) {
     return {
