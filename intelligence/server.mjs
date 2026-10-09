@@ -1,3 +1,4 @@
+import {processingSummary} from './auto-extract.mjs';
 import {extractWithModel} from './model-extract.mjs';
 import {selectSeries,seriesEvidence} from './series-evidence.mjs';
 import {createScheduler} from './scheduler.mjs';
@@ -28,9 +29,10 @@ const server=http.createServer(async(req,res)=>{res.setHeader('X-Content-Type-Op
  if(route==='/api/logout'&&req.method==='POST'){res.setHeader('Set-Cookie',`ocean_auth=; Path=${base}; Max-Age=0; HttpOnly; SameSite=Lax`);return json(res,200,{ok:true});}
  if(route.startsWith('/api/')&&!auth(req))return json(res,401,{error:'请先使用原站访问密码登录'});
  if(route==='/api/collection'&&req.method==='GET')return json(res,200,scheduler.status());
+ if(route==='/api/process'&&req.method==='POST'){if(scheduler.status().running)return json(res,409,{error:'处理任务正在运行'});void scheduler.run({processOnly:true});return json(res,202,{accepted:true});}
  if(route==='/api/collection'&&req.method==='POST'){if(scheduler.status().running)return json(res,409,{error:'采集任务正在运行'});void scheduler.run();return json(res,202,{accepted:true});}
  const filters=Object.fromEntries(url.searchParams),data=filterData(translatedData(store.data),filters);
- if(route==='/api/data'&&req.method==='GET')return json(res,200,{...overview(data),collection:scheduler.status(),reportCatalog:store.data.reportCatalog||[],generatedAt:store.data.generatedAt,window:store.data.window,documents:data.documents.map(publicDoc),events:data.events,entities:store.data.entities,relations:data.relations,observations:data.observations,evidence:store.data.evidence.filter(e=>data.documents.some(d=>d.id===e.documentId)),sources:store.data.sources,countryOptions:countries,topics,backend:store.backend,errors:store.data.errors,series:selectSeries(store.data,filters)});
+ if(route==='/api/data'&&req.method==='GET')return json(res,200,{...overview(data),processing:processingSummary(store.data),collection:scheduler.status(),reportCatalog:store.data.reportCatalog||[],generatedAt:store.data.generatedAt,window:store.data.window,documents:data.documents.map(publicDoc),events:data.events,entities:store.data.entities,relations:data.relations,observations:data.observations,evidence:store.data.evidence.filter(e=>data.documents.some(d=>d.id===e.documentId)),sources:store.data.sources,countryOptions:countries,topics,backend:store.backend,errors:store.data.errors,series:selectSeries(store.data,filters)});
  if(route.startsWith('/api/document/')&&req.method==='GET'){const d=store.data.documents.find(d=>d.id===route.split('/').pop());if(!d)return json(res,404,{error:'资料不存在'});return json(res,200,{...publicDoc(d),content:d.content,contentZh:d.contentZh,evidence:store.data.evidence.filter(e=>e.documentId===d.id),events:store.data.events.filter(e=>e.documentId===d.id),relations:store.data.relations.filter(e=>e.documentId===d.id),observations:store.data.observations.filter(e=>e.documentId===d.id)});}
  if(route==='/api/review'&&req.method==='POST'){const b=await body(req);if(!['verified','rejected','extracted'].includes(b.status)||!String(b.note||'').trim())return json(res,400,{error:'请填写审核依据并选择状态'});return json(res,200,await serial(()=>store.review(b.kind,b.id,b.status,String(b.note).slice(0,1000))));}
  if(route==='/api/extract'&&req.method==='POST'){
