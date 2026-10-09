@@ -13,3 +13,5 @@
 .brand-symbol{flex-shrink:0}.brand-icon{display:block;width:38px;height:38px;object-fit:contain}
 
 .advanced-chart{min-width:0}.advanced-chart h2{margin:10px 0 16px}.chart-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px}.statistical-grid{align-items:start}.advanced-chart svg{max-height:none}.advanced-chart .table-wrap{max-height:360px;overflow:auto}.stat-source-link{font-weight:600}.business-points .business-point{overflow-wrap:anywhere}@media(max-width:1000px){.statistical-grid{grid-template-columns:1fr}}
+
+.maintenance{margin-top:32px;padding-top:16px;border-top:1px solid var(--line)}.maintenance>summary{color:var(--muted);font-size:12px;cursor:pointer}.maintenance .row button{font-size:12px}
