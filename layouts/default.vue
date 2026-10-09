@@ -7,6 +7,7 @@ function toggleTheme() {
 }
 
 const navItems = [
+  { label: '战略智能智库', to: '/ocean-intelligence/', icon: '/icon/outside.png' },
   { label: '首页', to: '/', exact: true, icon: '/icon/home.png' },
   { label: '资讯抓取', to: '/wechat', icon: '/icon/claw.png' },
   { label: '资讯过滤/清洗', to: '/articles', icon: '/icon/articles.png' },
@@ -56,6 +57,7 @@ async function logout() {
               v-for="item in navItems"
               :key="item.to"
               :to="item.to"
+              :external="item.to === '/ocean-intelligence/'"
               class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150"
               :class="isNavActive(item)
                 ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 shadow-sm'

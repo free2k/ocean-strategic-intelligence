@@ -1,0 +1,48 @@
+# 海洋能源战略智能智库 · 第一阶段
+
+本模块在原仓库内独立运行，避免更改原站采集、数据库表和服务端口。界面参考既有智库布局，使用真实网页与RSS，所有原始内容保存在受访问密码保护的资料库。
+
+## 运行
+
+Node.js 20.6+。复用项目已有的 pg、undici、linkedom、Readability、fast-xml-parser、openai 依赖。
+
+```powershell
+node --env-file=.env intelligence/collect.mjs
+node intelligence/refine-snapshot.mjs
+node --env-file=.env intelligence/import-series.mjs
+node --env-file=.env intelligence/server.mjs
+node --test intelligence/tests/*.test.mjs
+```
+
+本地读取 `.data/intelligence/snapshot.json`。生产通过 `run.mjs` 使用已有 PostgreSQL 连接，但只创建/写入独立 `ocean_intel` schema。密码使用既有 `SITE_PASSWORD`。没有密码时默认不放行；仅本地开发可设置 `INTEL_ALLOW_NO_AUTH=true`。
+
+## 配置
+
+- `INTEL_DATA_DIR`：私有原件、快照与研究记录目录。
+- `INTEL_DATABASE_URL`：可选；配置则数据库必须连接成功，不能静默降级。
+- `INTEL_PORT`：默认3101，只监听127.0.0.1。
+- `INTEL_BASE_PATH`：生产路径 `/ocean-intelligence/`，用于会话Cookie。
+- `INTEL_SINCE` / `INTEL_UNTIL`：采集日期边界；第一批2026-01-01至采集当日。不是全量覆盖。
+- `INTEL_MAX_PER_SOURCE`：每源本轮目标数量，默认12。
+- `INTEL_ENABLE_AI`：默认关闭；只有明确配置为true，才会调用付费模型及embedding。
+- 模型启用后复用 `OPENAI_BASE_URL`、`OPENAI_API_KEY`、`CHAT_MODEL`、`EMBEDDING_MODEL`。向量模型必须支持所配置的1024维，旧向量须重建。
+
+## 已实现
+
+四个资讯来源实例和EIA官方月度序列、低频RSS/网页发现、正文清洗、内容版本与片段、规则候选/模型提取、逐字证据校验、实体/关系/指标对象、关系人工核验、世界地图与地域共现、资料时间线、关键词检索、可选向量RRF、研究记录与TXT预览导出、CSV指标导出、密码访问、限流、移动端及日夜模式。
+
+模型关闭时不会自动翻译外文或产生语义研判。首轮四篇在关闭前已完成模型提取，保留其记录和原文；后续规则输出统一标为候选。国家由报道提及产生，不等于项目坐标；地图虚线仅为地域共现。所有未审核数值不组成产业增长曲线。
+
+## 更新与回滚
+
+采集结果先写新快照；生产导入用 `node --env-file=.env intelligence/run.mjs --import`，再重启本模块。导入保留同ID的人工审核，原件版本独立存档。执行采集与导入时应由单一运维进程串行运行。当前未开启无人值守调度，后续增加数据库任务队列、来源健康报警和历史回补。
+
+需要继续补齐：实体跨语别名消歧、跨文章事件归并、项目精确坐标、多语言全文翻译、更多连续指标端点、独立用户角色、持久化任务队列以及更大评测集。当前实现是可运行的第一阶段，不宣称V3文档所有阶段已完成。
+
+## 验证记录（2026-10-09）
+
+7项单元/持久化测试通过。本地与线上浏览器均通过7个页面、国家筛选、证据抽屉、无模型检索、TXT预览、日夜切换、390px布局检查；浏览器无未捕获错误。生产30篇资讯、4个资讯源及1个指标源，EIA31个月度值（2024-01至2026-07）。线上使用服务器访问密码，不保证与开发机.env密码相同。生产验收可通过SSH在内存生成短期测试会话，不在截图或日志记录密码与令牌。
+
+生产部署采用独立进程与Nginx location，不覆盖原站。保留部署前Nginx配置与新模块目录备份，可还原配置后重载；数据库独立schema不删除。原站导航新增入口仅在未来部署原Nuxt版本时生效。
+
+地图边界：Natural Earth公开数据，使用此前示例站公开静态资源中的同投影路径。仅作研究资料分布展示，国家点为代表位置，非精确项目点或航迹。
