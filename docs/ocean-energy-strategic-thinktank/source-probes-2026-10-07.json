@@ -1,0 +1,175 @@
+[
+  {
+    "id": "eia-today",
+    "url": "https://www.eia.gov/rss/todayinenergy.xml",
+    "checked_at": "2026-10-07T10:55:05.726Z",
+    "probe_environment": "local Windows Playwright HTTP client",
+    "status": 200,
+    "final_url": "https://www.eia.gov/rss/todayinenergy.xml",
+    "content_type": "text/xml",
+    "bytes": 8434,
+    "feed_items": 13,
+    "feed_fields": [
+      "title",
+      "link",
+      "pubDate",
+      "description"
+    ],
+    "is_valid_feed": true
+  },
+  {
+    "id": "offshore-energy",
+    "url": "https://www.offshore-energy.biz/feed/",
+    "checked_at": "2026-10-07T10:55:05.726Z",
+    "probe_environment": "local Windows Playwright HTTP client",
+    "status": 200,
+    "final_url": "https://www.offshore-energy.biz/feed",
+    "content_type": "application/rss+xml; charset=utf-8",
+    "bytes": 63127,
+    "feed_items": 50,
+    "feed_fields": [
+      "title",
+      "link",
+      "guid",
+      "pubDate",
+      "description",
+      "dc:creator",
+      "category",
+      "media:content",
+      "enclosure"
+    ],
+    "is_valid_feed": true
+  },
+  {
+    "id": "offshorewind",
+    "url": "https://www.offshorewind.biz/feed/",
+    "checked_at": "2026-10-07T10:55:05.726Z",
+    "probe_environment": "local Windows Playwright HTTP client",
+    "status": 200,
+    "final_url": "https://www.offshorewind.biz/feed",
+    "content_type": "application/rss+xml; charset=utf-8",
+    "bytes": 55557,
+    "feed_items": 50,
+    "feed_fields": [
+      "title",
+      "link",
+      "guid",
+      "pubDate",
+      "description",
+      "dc:creator",
+      "category",
+      "media:content",
+      "enclosure"
+    ],
+    "is_valid_feed": true
+  },
+  {
+    "id": "oilprice",
+    "url": "https://oilprice.com/rss/main",
+    "checked_at": "2026-10-07T10:55:05.724Z",
+    "probe_environment": "local Windows Playwright HTTP client",
+    "status": 200,
+    "final_url": "https://oilprice.com/rss/main",
+    "content_type": "rss+xml; charset=utf-8",
+    "bytes": 16022,
+    "feed_items": 15,
+    "feed_fields": [
+      "title",
+      "link",
+      "guid",
+      "description",
+      "pubDate",
+      "lastmod",
+      "dc:creator"
+    ],
+    "is_valid_feed": true
+  },
+  {
+    "id": "oe-home",
+    "url": "https://www.oedigital.com/",
+    "checked_at": "2026-10-07T10:55:07.471Z",
+    "probe_environment": "local Windows Playwright HTTP client",
+    "status": 403,
+    "final_url": "https://www.oedigital.com/",
+    "content_type": "text/html; charset=UTF-8",
+    "bytes": 5394,
+    "is_valid_feed": false,
+    "discovered_feed_links": []
+  },
+  {
+    "id": "shell-news",
+    "url": "https://www.shell.com/news-and-insights/newsroom.html",
+    "checked_at": "2026-10-07T10:55:07.472Z",
+    "probe_environment": "local Windows Playwright HTTP client",
+    "status": 200,
+    "final_url": "https://www.shell.com/news-and-insights/newsroom.html",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 9406,
+    "is_valid_feed": false,
+    "discovered_feed_links": []
+  },
+  {
+    "id": "exxon-news",
+    "url": "https://corporate.exxonmobil.com/news",
+    "checked_at": "2026-10-07T10:55:07.472Z",
+    "probe_environment": "local Windows Playwright HTTP client",
+    "status": 200,
+    "final_url": "https://corporate.exxonmobil.com/news",
+    "content_type": "text/html; charset=utf-8",
+    "bytes": 123542,
+    "is_valid_feed": false,
+    "discovered_feed_links": []
+  },
+  {
+    "id": "petrobras-news",
+    "url": "https://agencia.petrobras.com.br/en/",
+    "checked_at": "2026-10-07T10:55:07.472Z",
+    "probe_environment": "local Windows Playwright HTTP client",
+    "status": 200,
+    "final_url": "https://agencia.petrobras.com.br/en",
+    "content_type": "text/html;charset=UTF-8",
+    "bytes": 809549,
+    "is_valid_feed": false,
+    "discovered_feed_links": []
+  },
+  {
+    "id": "nea",
+    "url": "https://www.nea.gov.cn/",
+    "checked_at": "2026-10-07T10:55:11.655Z",
+    "probe_environment": "local Windows Playwright HTTP client",
+    "status": 200,
+    "final_url": "https://www.nea.gov.cn/",
+    "content_type": "text/html",
+    "bytes": 108996,
+    "is_valid_feed": false,
+    "discovered_feed_links": []
+  },
+  {
+    "id": "stats",
+    "url": "https://www.stats.gov.cn/",
+    "checked_at": "2026-10-07T10:55:11.655Z",
+    "probe_environment": "local Windows Playwright HTTP client",
+    "status": 200,
+    "final_url": "https://www.stats.gov.cn/",
+    "content_type": "text/html",
+    "bytes": 141526,
+    "is_valid_feed": false,
+    "discovered_feed_links": []
+  },
+  {
+    "id": "mnr",
+    "url": "https://www.mnr.gov.cn/",
+    "checked_at": "2026-10-07T10:55:11.655Z",
+    "probe_environment": "local Windows Playwright HTTP client",
+    "status": null,
+    "error": "apiRequestContext.get: getaddrinfo ENOTFOUND www.mnr.gov.cn"
+  },
+  {
+    "id": "sodir-api",
+    "url": "https://factmaps.sodir.no/api/rest/services/DataService/Data/FeatureServer?f=pjson",
+    "checked_at": "2026-10-07T10:55:11.655Z",
+    "probe_environment": "local Windows Playwright HTTP client",
+    "status": null,
+    "error": "apiRequestContext.get: Timeout 18000ms exceeded."
+  }
+]

@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="zh-Hans">
+<script src="/res/portal/js/jquery-1.9.1.js"></script> 
+<script type="text/javascript">
+
+	$(function() { 
+		var post_flag = false; 
+		if(post_flag) {
+			return};
+		post_flag = true;
+		$.ajax({
+			async: false,
+			url: "/clickNumber.html?id="+"22150",
+		  	data : {
+		    	ref:document.referrer
+		    },
+		 	dataType: "json",
+		  	success: function (data) {
+		  		post_flag = false;
+		    	if(data.success&&data.obj!=null){
+		    		htmlWrite(data.obj);
+		    	}
+		   	},
+		    error:function(){
+		    	post_flag = false;
+		    }
+		});
+	});
+	
+</script>
+
+<!--引入公共资源-->
+
+<head>
+<meta charset="utf-8" >
+<meta name="renderer" content="webkit|ie-comp|ie-stand">
+<meta name="Keywords" content="一带一路、能源、能源合作" >
+<meta name="description" content="一带一路能源合作" />
+<!-- 禁止浏览器缓存 -->
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta http-equiv="expires" content="Wed, 26 Feb 1997 08:21:57 GMT">
+ <meta http-equiv="Expires" content="-1">
+
+<title>“一带一路”能源合作</title>
+
+<link rel="shortcut icon" href="/res/portal/images/favicon.ico" />
+<link rel="stylesheet" type="text/css" href="/res/portal/css/common.css">
+<link rel="stylesheet" type="text/css" href="/res/portal/css/layout.css">
+<link rel="stylesheet" type="text/css" href="/res/portal/css/slide.css">
+
+<script type="text/javascript" src="/res/portal/js/jquery.min.js"></script>
+<script type="text/javascript" src="/res/portal/js/common.js"></script>
+<script type="text/javascript" src="/res/portal/js/jquery.tab.js"></script>
+<script type="text/javascript" src="/res/portal/js/jquery.SuperSlide.2.1.1.js"></script>
+<script type="text/javascript" src="/jslib/My97DatePicker/WdatePicker.js"></script>
+<script>
+$(function() {
+	$.tab(".tab");
+});
+</script>
+</head><body>
+<!--page head-->
+<!--page head-->
+<script type="text/javascript">  
+    $(function() {  
+        $('#searchBT').click(function() {
+         $('#searchForm').submit();
+        });  
+    }); 
+    function checkDic(dictName){
+        $('#queryKey').val(dictName);
+         $('#searchForm').submit();
+    } 
+</script>
+<!--page head-->
+<style type="text/css">
+.head{
+background:#68bae3 url(/res/portal/images/header-01.png) center top repeat-y ;
+position:relative;
+min-width:1100px
+}
+
+.head .top-nv{
+background:none;
+}
+.head .mini-bar{
+position:absolute;
+right:0px;
+top:5px;
+text-align:center;
+
+}
+.head .mini-bar a{
+color:#fff;
+font-size:14px;
+}
+.head .main-logo{
+position:absolute;
+left:20px;
+}
+.head .main-logo img{
+display:block
+}
+.head .search{
+	height:30px;
+	width:300px;
+	position: absolute;
+	right:70px;
+	top:65px;
+	border-radius:15px;
+	border:#fff 1px solid;
+	background:#fff;
+	overflow:hidden;
+}
+.head .search input{
+	float:left;
+	height:30px;
+	width:260px;
+	outline:none;
+	padding-left:10px;
+	border:none;
+}
+.head .search span{
+	float:right;
+	width:30px;
+	height:30px;
+	cursor:pointer;
+	background:#FFF url(/res/portal/images/sbtn.png);
+
+}
+
+.top-bar{
+height:160px;
+width:1100px;
+margin:0 auto;
+position:relative;
+
+}
+.searchLink{
+	position:absolute;
+	right:5px;
+	top:70px;
+	color:#fff
+}
+</style>
+<div class="head part">
+	<div class="top-bar">
+	  <a href="#" class="main-logo"><img src="/res/portal/images/logo-1-01.png"  width="360px" border="0"  /></a>
+	   <div class="mini-bar"> 
+                <a href="/index.html?webSiteId=2" target="_blank">English</a>&nbsp;
+     </div>
+<a href="#" class="searchLink" id="searchBT">全文搜索</a>
+	 <div class="search clearfix">
+        <form action="/doc/search.html" method="post" id="searchForm">
+            	<input type="hidden" name="CSRFToken" value="c69aab2d-52ca-4164-9a2a-21b2ec246c2b" /> <span></span>	
+                <input type="text" name="queryKey"  value=""/><button ></button>
+        </form>
+      </div>
+  </div>
+<div class="nvBar">
+		<ul class="nv wp">
+        <li><a href="/index.html">首页</a></li>
+		          	 <li>
+			        	<a href="/news.html?1=1">新闻资讯</a>
+			                <ul>
+			                		 <li><a href="/channel/2.html?1=1">国际新闻</a></li>
+			                		 <li><a href="/channel/3.html?1=1">国内新闻</a></li>
+			                </ul>			       		 
+					</li>
+		          	 <li>
+			        	<a href="/information.html?1=1">信息发布</a>
+			                <ul>
+			                		 <li><a href="/informationList.html?1=1">会议</a></li>
+			                		 <li><a href="/informationListTender.html?1=1">招投标</a></li>
+			                		 <li><a href="/channel/4.html?1=1">能源价格</a></li>
+			                </ul>			       		 
+					</li>
+		          	 <li>
+			        	<a href="/v_country/toDataPage.html">数据资料</a>
+			                <ul>
+			                		 <li><a href="/v_country/toData.html?1=1">数据</a></li>
+			                		 <li><a href="/v_country/toInfomation.html?channelId=1125">资料</a></li>
+			                </ul>			       		 
+					</li>
+		          	 <li>
+			        	<a href="/v_finance/toFinance.html?1=1">金融法务</a>
+			                <ul>
+			                		 <li><a href="/v_finance/toFund.html?type=5&amp;channelId=33">基金</a></li>
+			                		 <li><a href="/v_finance/toBank.html?type=6&amp;channelId=34">银行</a></li>
+			                		 <li><a href="/v_finance/toInsurance.html?type=7&channelId=35">保险</a></li>
+			                </ul>			       		 
+					</li>
+		          	 <li>
+			        	<a href="/v_practice/toPractice.html?1=1">最佳实践</a>
+			                <ul>
+			                		 <li><a href="/v_practice/toPractice.html?channelId=1083">双边机制</a></li>
+			                		 <li><a href="/v_practice/toPractice.html?channelId=1084">多边机制</a></li>
+			                </ul>			       		 
+					</li>
+        
+	</ul>
+</div>
+
+</div>
+<!--page head end--><!--page head end-->
+<div class="sitePath wp clearfix">
+<a href="/index.html"><img src="/images/d.gif"></a>
+<a href="/index.html">首 页</a>
+	      	<span>&gt;</span><a href="/news.html?1=1">新闻资讯</a>
+	      	<span>&gt;</span><a href="/channel/3.html?1=1">国内新闻</a>
+	      	<span>&gt;</span><a href="/channel/1090.html?1=1">政府动态</a>
+<span>&gt;</span><p>正文</p>
+</div>
+<style type="text/css">
+.bTitle{
+	padding:30px 0;
+	border-bottom:#ebebec 1px solid;
+}
+.bTitle h1{
+	font-size:38px;
+	text-align:center;
+	line-height:50px;
+	display:block;
+	padding:10px 40px 30px 40px;
+	color:#000
+}
+.bTitle>div{
+	line-height:30px;
+	text-align:center;
+}
+.bTitle>div>span{
+	color:#808080
+}
+.content{
+	position:relative;
+	font-size:16px;
+	line-height:30px;
+	color:#000;
+	padding:30px 40px 30px 25px;
+	min-height:650px;
+	margin-bottom: 60px;
+    font-family: "宋体";
+	
+	
+}
+</style>
+<div class="wp cwp ly83">
+	<div class="bTitle">
+        <h1>国家能源局2025年第三季度新闻发布会文字实录</h1>
+        <div>
+	        	<span>发布时间：2025-07-31 14:16:26</span>
+        	
+	    	    <span>&nbsp;&nbsp;&nbsp;</span>
+	    	   <span>来源：国家能源局网站</span>
+        	
+        </div>
+    </div>
+    <div class="fl">
+   		<div class="content">
+			 <p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-align:="" left;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" initial;"=""><img src="https://www.nea.gov.cn/20250731/83ffa46373ec42dd99e0e3271028c151/59b9a7f6c73e472c89a1da4912fb4316.jpg" data-material-id="undefined" data-name="59b9a7f6c73e472c89a1da4912fb4316" style="border: none; margin: 0px auto; padding: 0px; display: block; width: 677px; height: 463px;"></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-align:="" justify;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" initial;"="">&emsp;&emsp;<span style="font-size: 14pt;">国家能源局举行新闻发布会，发布上半年全国能源形势、上半年可再生能源并网运行情况，介绍迎峰度夏电力供需总体情况，发布《中国新型储能发展报告（2025）》，并回答记者提问。图为新闻发布会现场。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); text-align: center;" arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><strong><span style="color: rgb(0, 0, 128); font-size: 14pt;">发布会文字实录</span></strong></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【综合司副司长张星】各位记者朋友，大家上午好！欢迎大家出席国家能源局例行新闻发布会。今天的新闻发布会将介绍上半年全国能源形势、上半年可再生能源并网运行、迎峰度夏电力保供等有关情况，发布《中国新型储能发展报告（2025）》并回答记者提问。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;出席今天发布会的有发展规划司副司长邢翼腾先生、能源节约和科技装备司副司长边广琦先生、电力司副司长刘明阳先生、新能源和可再生能源司副司长潘慧敏女士。我是综合司副司长、新闻发言人张星。各位司长发布内容之后，统一安排回答记者提问。现在，请规划司邢翼腾副司长介绍上半年全国能源形势相关情况。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【发展规划司副司长邢翼腾】各位记者朋友，大家上午好。下面，我就上半年全国能源形势作简要介绍。今年上半年，全国能源供应充足，供需总体宽松，能源结构持续优化，新型能源体系建设加快推进，助力我国经济持续回升向好，主要有以下四个特点：</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;一是能源安全保障能力稳步提升。上半年，原煤生产平稳增长，规上工业原煤产量同比增长5.4%。油气生产稳定增长，规上工业原油产量同比增长1.3%，规上工业天然气产量同比增长5.8%。扣除天数原因，规上工业发电量日均同比增长1.3%。电力大范围优化配置能力进一步增强，陇东-山东、哈密-重庆等特高压直流输电工程投产送电。迎峰度夏以来，有效应对15.08亿千瓦的历史最高用电负荷，全国未实施有序用电。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;二是绿色低碳转型加速推进。新能源装机保持快速增长。继3月底全国风电、太阳能发电装机历史性超过火电后，5月底非化石能源发电装机容量占比首次突破六成。今年上半年，风电、太阳能发电新增装机规模较去年同期翻一番。新型电力系统加快构建，组织开展新型电力系统建设第一批试点，支撑新能源高质量发展。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;三是能源消费总体保持增长。全社会用电量增速企稳回升，4月、5月全社会用电量增速分别达到4.7%、4.4%，6月份全社会用电量同比增长5.4%。天然气需求小幅增长，城镇燃气是主要拉动因素。煤炭消费小幅下降，主要受暖冬天气、新能源出力明显增加等因素影响。成品油消费延续负增长态势，新能源汽车和液化天然气（LNG）重卡对交通用油的替代效应持续显现。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;四是重要政策举措密集出台。出台新能源上网电价市场化改革政策，新能源全面进入市场，开启新的发展进程。推进电力体制改革，制定出台《关于有序推动绿电直连发展有关事项的通知》，研究解决高比例新能源消纳难题；联合五部门印发促进可再生能源绿色电力证书市场高质量发展的政策文件，加快建立绿色能源消费促进机制。印发实施《关于深化提升“获得电力”服务水平 全面打造现代化用电营商环境的意见》，将低压免费办电服务对象拓展至160千瓦及以下各类民营经济组织。出台促进能源领域民营经济发展的十项重点举措，推动能源发展与民营经济发展协调联动。印发《电力辅助服务市场基本规则》《电力市场计量结算基本规则》，电力中长期、现货、辅助服务市场基本规则全部出台。谢谢大家！</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【综合司副司长张星】谢谢邢翼腾副司长。下面请新能源司潘慧敏副司长介绍上半年可再生能源并网运行情况。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【新能源和可再生能源司副司长潘慧敏】 各位媒体朋友，上午好。现在我来介绍今年上半年可再生能源并网运行情况。今年以来，国家能源局深入贯彻落实党的二十大和二十届二中、三中全会精神，锚定碳达峰、碳中和目标，统筹能源安全供应和绿色低碳发展，全力推动可再生能源发展再上新台阶。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;可再生能源装机规模持续实现新突破。可再生能源继续保持新增装机的主体地位，接近全国总装机的六成。今年上半年，全国可再生能源新增装机2.68亿千瓦，同比增长99.3%，约占新增装机的91.5%。其中，水电新增393万千瓦，风电新增5139万千瓦，太阳能发电新增2.12亿千瓦，生物质发电新增71万千瓦。截至今年6月底，全国可再生能源装机达到21.59亿千瓦，同比增长30.6%，约占我国总装机的59.2%，其中，水电装机4.4亿千瓦，风电装机5.73亿千瓦，太阳能发电装机11亿千瓦，生物质发电装机0.47亿千瓦。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;可再生能源发电量再上新台阶。可再生能源发电量接近全国总发电量的四成，超过同期第三产业用电量与城乡居民生活用电量之和。风电、光伏新增发电量超过全社会用电量增量。今年上半年，全国可再生能源发电量达17993亿千瓦时，同比增加15.6%，约占全部发电量的39.7%，超过同期第三产业用电量（9164亿千瓦时）与城乡居民生活用电量（7093亿千瓦时）之和；其中，风电、太阳能发电量合计达11478亿千瓦时，同比增长27.4%，在全社会用电量中占比达到23.7%，较去年同期提高4.4个百分点。风电、光伏合计发电量较去年同期增加2470亿千瓦时，超出全社会用电量增量。下面，分别介绍主要可再生能源发电品种的有关情况。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;（一）水电建设和运行情况。今年上半年，全国新增水电并网容量393万千瓦，其中常规水电110万千瓦，抽水蓄能283万千瓦。截至今年6月底，全国水电累计装机容量达4.4亿千瓦，其中常规水电3.79亿千瓦，抽水蓄能6129万千瓦。今年上半年，全国规模以上水电累计发电量5398亿千瓦时，全国水电累计平均利用小时数为1377小时。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;（二）风电建设和运行情况。今年上半年，全国风电新增并网容量5139万千瓦，其中陆上风电4890万千瓦，海上风电249万千瓦。截至2025年6月底，全国风电累计并网容量达到5.73亿千瓦，同比增长22.7%，其中陆上风电5.28亿千瓦，海上风电4420万千瓦。今年上半年，全国风电累计发电量5880亿千瓦时，同比增长15.6%，全国风电平均利用率93.2%。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;（三）光伏发电建设和运行情况。今年上半年，全国光伏新增并网2.12亿千瓦，其中集中式光伏约1亿千瓦，分布式光伏1.13亿千瓦。截至2025年6月底，全国光伏发电装机容量达到约11亿千瓦，同比增长54.1%，其中集中式光伏6.06亿千瓦，分布式光伏4.93亿千瓦。 今年上半年，全国光伏累计发电量5591亿千瓦时，同比增长42.9%，全国光伏发电平均利用率94%。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;（四）生物质发电建设和运行情况。今年上半年，全国生物质发电新增装机71万千瓦，累计装机达4669万千瓦，同比增长3.3%。生物质发电量1117亿千瓦时，同比增长8.4%。发布完毕，谢谢！</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【综合司副司长张星】谢谢潘慧敏副司长。下面请科技司边广琦副司长发布《中国新型储能发展报告（2025）》。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【能源节约和科技装备司副司长边广琦】各位记者朋友，大家上午好，下面我介绍《中国新型储能发展报告（2025）》基本情况。近年来，我国新型储能快速发展，在新型电力系统中作用日益凸显，有力促进新能源开发消纳，提高电力系统安全稳定运行水平。为加强行业发展引导，服务“双碳”战略实施，我局于近期组织编制《中国新型储能发展报告（2025）》，已经在现场提供给各位记者朋友，发布会后将在国家能源局门户网站公开。下面，我作一下简要介绍。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;《报告》主要包括三部分内容：一是从政策体系、装机规模、应用场景、技术创新、产业发展、标准体系等方面，系统总结2024年国内外新型储能发展情况。二是从科学谋划发展、健全市场机制、加大技术攻关、促进作用发挥和巩固产业优势等方面提出2025年新型储能行业发展展望。三是系统梳理2021-2024年新型储能主要政策、技术创新和示范工程等大事记情况。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;总体来看，“十四五”以来，我国新型储能发展政策的“四梁八柱”初步构建，新型储能产业稳步发展。截至2024年底，已建成投运新型储能7376万千瓦/1.68亿千瓦时，装机规模已占全球总装机比例超过40%。新型储能技术路线“百花齐放”，涵盖全球工程应用的主要技术路线，调度运用水平稳步提高，有力支撑新型电力系统建设。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;一是我国新型储能发展的政策体系持续完善，陆续出台《关于促进新型储能并网和调度运用的通知》《加快构建新型电力系统行动方案（2024-2027年）》《关于支持电力领域新型经营主体创新发展的指导意见》等多项政策文件，健全电力市场机制，引导科学发展。二是新型储能应用效果逐步显现，2024年全年新型储能调用情况相较2023年大幅提升，浙江、江苏、重庆、新疆等多省（区）年均等效利用小时数达到1000小时以上，成为促进新能源开发消纳的重要手段。迎峰度夏期间，新型储能充分发挥“超级充电宝”功效，为顶峰时段电力保供贡献了关键力量。三是技术创新实践迈出坚实步伐，2024年国家能源局发布56个新型储能试点项目，涵盖十余种技术路线，多个试点项目为国内首次工程应用，总体呈现多元化发展态势，有力促进新型储能关键技术和装备实现突破。与此同时，12个新型储能项目入选为第四批能源领域首台（套）重大技术装备的依托工程，为首台（套）重大技术装备落地转化提供了应用场景。四是标准体系持续健全，2024年超过20项电化学储能标准发布实施，多项标准立项，覆盖规划设计、接入电网、运行控制、检修试验、后评价等多个环节，我国新型储能标准体系建设水平进一步提升。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;2025年，是“十四五”规划收官之年，也是“十五五”规划谋局开篇之年，更是新型储能技术创新不断突破、管理体系逐渐完善、产业迈向高质量发展的关键一年。国家能源局将认真贯彻落实党中央、国务院决策部署，进一步强化顶层设计，扎实开展“十五五”新型储能实施方案研究编制，做好新型储能技术创新攻关和产业可持续发展的统筹工作，为实现“十五五”良好开局打牢基础。谢谢大家！</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【综合司副司长张星】 谢谢边广琦副司长。下面请电力司刘明阳副司长介绍今年迎峰度夏电力保供情况。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【电力司副司长刘明阳】各位媒体朋友，大家好。下面，我来介绍今年迎峰度夏电力供应情况。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;一是迎峰度夏期间用电负荷屡创新高。7月以来，全国气温热力值拉满，大部分地区平均气温较常年同期偏高1~2℃，叠加南方等地“出梅”降雨结束，呈现高温闷热天气。在国内上半年GDP同比增长5.3%的拉动下，各地电力负荷快速上升，较6月下旬增长超2亿千瓦。7月4日、7日、16日、17日，全国最大电力负荷四次创历史新高，突破15亿千瓦，最高达到15.08亿千瓦，较去年最大负荷增加0.57亿千瓦。截至目前，江苏、山东、广东等19个省级电网负荷46次突破历史新高。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;二是各地电力供应总体平稳。今年上半年，全国新增投产发电装机容量超2亿千瓦，其中新增水电、气电、煤电等支撑调节性电源3000万千瓦；新投三回跨省区输电通道，增加跨区输电能力1600万千瓦。7月以来，又新增投产（并网）支撑调节性电源超1000万千瓦，电力保供基础进一步夯实。入夏以来，各类支撑调节性电源应开尽开，电煤、天然气等一次燃料供应充足，全国电力供应平稳有序（仅四川在17日晚峰时段短时采取需求响应措施），经受住了今年入夏以来的首轮高温大负荷考验。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;三是迎峰度夏电力供应总体有保障。迎峰度夏期间，如果发生多区域同热，全国用电负荷预计可能突破15.5亿千瓦。预计8月上旬，还将有高温天气过程，如出现极端气候、大范围连续高温天气，电力供应保障压力将进一步加大。目前看，全国电力供应总体有保障，华东、华中、南方区域部分省份高峰时段电力供应趋紧，但可以通过采取相关措施有效管控。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;下一步，国家能源局将加强电力供需形势监测研判，强化常规电源顶峰发电能力，优化电力资源配置，一省一策指导电力保供工作，全力确保迎峰度夏电力供需形势可控、在控，坚决守住不拉闸限电的底线，坚决确保民生用电。发布完毕，谢谢。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【综合司副司长张星】谢谢刘明阳副司长。现在开始提问，请各位记者朋友围绕今天新闻发布会的内容提出问题，提问前请先报一下自己所代表的新闻机构。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【总台中国之声记者】刚刚提到进入夏季以来全国的电力负荷屡创历史新高，在这样一个情况下，各地电力供应总体保持平稳。请问国家能源局采取了哪些具体措施提升电力供应能力？</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【电力司副司长刘明阳】感谢这位媒体朋友的提问。为提升电力供应能力，我们主要采取了五方面措施。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;一是加强电力供需形势监测研判，一省一策指导电力保供工作。国家能源局认真贯彻落实党中央、国务院关于电力保供的指示批示精神，紧盯迎峰度夏关键时点，持续完善日、周、月、季信息监测和报送机制，重点加强全国电力供需情况每日监测和季度研判，按月监测煤电建设情况。组织有关地方、企业开展迎峰度夏电力供需形势分析及保供措施研究，制定重点地区一省一策工作举措，指导地方做好电力保供工作。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;二是多措并举督促有关地方、企业加快各类电源规划建设。推动具备条件的水电、新型储能、新能源在迎峰度夏前建设投产，增强电力供应保障能力。下达年度支撑性电源建设投产和开工目标任务，督促有关地区、企业在确保安全的前提下加快实施，确保按期建设投产，夯实电力供应保障基础。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;三是持续优化电力资源配置，增强省间互济能力。推动陇东-山东、哈密-重庆、宁夏-湖南跨省区输电通道，以及贵州二郎电厂灵活转接工程在今年上半年投产，迎峰度夏期间有效发挥电力保供作用；持续推进闽赣背靠背等省间电力灵活互济工程核准建设工作，力争尽早投产发挥紧急支援作用。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;四是督促企业加强电力设备运维管理。督促电力企业持续优化检修安排、加强运行维护，尽可能减少机组非计划停运和出力受阻，全力保障迎峰度夏期间各类电源应开尽开，应调尽调。指导地方和电力企业做实做细应急工作预案，及时抢修复电，最大程度减少极端天气突发事件对人民正常生活的影响。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;五是发挥市场调节作用，加强投诉举报处理。发挥大电网、大通道、大市场作用，充分利用跨省跨区通道送电能力和各地富余电力资源，错时、错峰开展省间市场化交易互济。充分发挥12398能源监管热线民生通道作用，积极回应民生诉求，高效解决群众投诉事项，对于漠视侵害群众用能权益违法行为依法进行惩处，全力保障广大群众可靠用能、放心用能、满意用能。谢谢。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【每日经济新闻记者】近期绿证的社会关注度越来越高，能否介绍一下上半年中国绿证市场的情况。另外，近年来我国分布式能源快速发展，用能企业通过分布式自发自用方式满足绿色用能需求趋势明显，国家能源局在分布式发电项目绿证核发方面有哪些举措？</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【新能源和可再生能源司副司长潘慧敏】感谢这位记者朋友的提问。今年上半年，国家能源局从供需两端持续发力，通过一系列举措推动绿证市场高质量发展。供给端继续深化绿证核发全覆盖，完善电量归集报送机制，加强国家绿证核发交易系统技术支撑，不断提升绿证核发效率和质量；健全绿证全生命周期闭环管理，实现绿证核销机制落地，进一步强化绿证的权威性和唯一性。需求端着力拓展绿证的应用场景，稳步推进绿证强制消费，对更多重点用能行业提出绿色电力消费比例并使用绿证核算；积极引导绿证自愿消费，举办“绿证走进粤港澳大湾区”“绿证走进长三角”等一系列活动，绿色电力消费理念日渐深入人心。上半年绿证市场呈现三个方面特点。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;一是绿证市场供给充足。今年上半年，全国共计核发绿证13.71亿个，其中可交易绿证9.58亿个，同比增长1.49倍，云南省、内蒙古自治区和四川省绿证核发数量均超过1亿个。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;二是交易规模实现翻倍。今年上半年，全国共计交易绿证3.48亿个，同比增长1.18倍，其中单独交易绿证2.42亿个、绿色电力交易对应绿证1.07亿个。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;三是交易价格逐步回归合理。今年4月份以来，我国绿证市场建设不断提速，绿证市场活力不断激发，特别是国际可再生能源电力自愿消费倡议组织（RE100）全面认可中国绿证，推动各方对绿证需求快速增长，绿证价格稳步回升，2025年绿证上半年均价5元/个，6月份均价达到6.5元/个，较今年最低价增长4.4倍，可再生能源绿色电力环境价值逐步回归合理。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;另外，这位记者朋友关心的分布式发电项目绿证核发，借此机会我也介绍一下情况。 2023年以来，国家能源局在做好集中式发电项目绿证核发的基础上，积极有序推进分布式发电项目的绿证核发，截至今年6月底，核发分布式发电项目绿证8927万个，取得阶段性成果。但分布式发电项目数量巨大，核发覆盖率仍有待提高。为统筹做好分布式发电项目绿证核发，国家能源局按照先行先试、分步实施原则，今年在浙江、河南、广东三个省探索开展分布式可再生能源发电项目的绿证核发工作，为后续全国推广提供经验借鉴，主要举措包括4个方面内容，一是推进项目建档立卡，二是做好电量数据归集，三是分类实施绿证核发，四是规范开展绿证划转。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;《浙江、河南、广东省分布式可再生能源发电项目绿证核发工作方案》已于近日印发，其他地区也可以结合当地实际参照该方案推进相关工作。回答完毕，谢谢！</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【央视财经记者】2025年是新一轮电力体制改革实施十周年的关键节点，也是全国统一电力市场计划初步建成之年，请问目前全国统一电力市场进展成效如何？</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【综合司副司长张星】谢谢您的提问，我来回答您的问题。今年以来，在各方共同努力下，全国统一电力市场建设进一步提质增速，取得一系列新进展新成效，集中体现为“四个新”。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;一是跨经营区常态化电力交易机制取得新突破。国家发改委、国家能源局建立协同工作机制，指导国家电网、南方电网组建工作专班，编制形成跨经营区常态化交易机制方案，并于7月1日联合批复，推动跨电网交易常态化开市。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;二是区域电力市场建设迈上新台阶。南方区域电力市场于今年6月28日成功转入连续结算试运行，在全国范围内首次实现多省区电力资源统一优化配置，是全球集中统一出清电量规模最大的电力市场，对于构建全国统一大市场、打破省间壁垒具有重要意义。长三角电力市场创新探索省市间抽蓄、皖电、绿电交易机制，在6月成立了市场管理委员会，为长三角一体化发展贡献力量。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;三是省级电力现货市场建设实现新加速。国家发改委、国家能源局联合印发了《关于全面加快电力现货市场建设工作的通知》，对全年现货市场建设作出系统安排，各地也形成了阶梯式、加快推进的良好态势。其中，蒙西、湖北连续试运行一年以上，在经历新能源大发、极端天气等多场景考验后，分别于2月、6月转入正式运行；陕西、安徽、辽宁、河北南网已进入连续结算试运行。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;四是电力市场基础规则获得新成果。国家发改委、国家能源局联合印发《电力辅助服务市场基本规则》《电力市场计量结算基本规则》，这意味着涵盖电力市场各品种各环节的全国统一电力市场“1+6”基础规则体系初步建设完成。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;2025年上半年，全国电力市场运行总体平稳，市场化交易电量规模和市场主体数量延续稳步增长态势。各电力交易中心累计完成市场交易电量2.95万亿千瓦时，同比增长4.8%，其中，国家电网经营区市场交易电量2.27万亿千瓦时，同比增长3.3%；南方电网经营区市场交易电量5238亿千瓦时，同比增长14.2%；蒙西电网经营区市场交易电量1506亿千瓦时，同比降低0.4%。截至6月底，全国电力市场经营主体数量97.3万家，同比增长23.8%，其中发电企业3.7万家，电力用户93.1万家，售电公司4366家。 回答完毕。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【综合司副司长张星】下面请各位记者朋友接着提问。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【人民网记者】当前，新能源汽车保有量持续增长，请问二季度我国电动汽车充电设施发展情况如何，国家能源局开展了哪些工作？</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【电力司副司长刘明阳】 感谢您对电动汽车充电设施发展的关注。为提升用户充电体验，顺应支持大功率充电车型快速发展的趋势，6月13日，国家发展改革委、国家能源局等四部委联合出台《关于促进大功率充电设施科学规划建设的通知》，提出要进一步优化完善我国充电设施网络布局，稳步构建布局合理、品质升级、技术先进的大功率充电基础设施体系。同时，为实现全国充电设施建设运行数据静态可追溯、动态可更新，依托国家充电基础设施监测服务平台、省级充电基础设施监测服务平台以及电网企业信息系统，我们优化和调整了充电设施数据统计口径，建立了由地方主管部门上报、国家能源局统一复核汇总的新统计体系。今后，我们将按照月度向全社会发布充电设施数据。据统计，截至2025年6月底，我国电动汽车充电设施（充电枪）总数已达到1610万个，其中公共充电设施（充电枪）409.6万个，私人充电设施（充电枪）1200.4万个；充电设施县域覆盖率达到97.08%，乡镇覆盖率达到80.02%。今年上半年，全国新能源汽车总充电量达549.23亿千瓦时，全年的充电量预计与三峡电站的年发电量相当。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;下一步，我们将加强工作统筹和政策谋划，持续完善充电网络，提高设施运营服务质量，加快构建高质量充电基础设施，更好满足人民群众购置和使用新能源汽车需要。回答完毕，谢谢。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【总台央视记者】请问今年上半年能源重点项目投资建设有什么特点？</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【发展规划司副司长邢翼腾】谢谢您的提问。据监测，今年上半年，我国能源基础设施建设保持良好势头，全国在建和年内计划开工的能源重点项目完成投资额超过1.5万亿元，同比增长21.6%，东、中、西部地区完成投资额同比增速均超过20%，民营企业投资保持较快增长，新增能源投资不断“向绿向新”聚集。具体来看，能源重点项目投资建设呈现以下四个特点。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;一是新能源发电投资保持快速增长。上半年，广西、新疆陆上风电完成投资额较去年同期实现翻番，广东、福建、上海海上风电投资集中释放。集中式光伏完成投资额同比增长24.5%，分布式光伏完成投资额同比增长超70%，东中部地区分布式光伏投资保持快速增长。光热发电完成投资额较去年同期接近翻番。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;二是电力供应保障投资持续扩大。上半年，煤电、核电等领域投资保持较快增长，华东、华中、内蒙古西部一批迎峰度夏电力保供重点支撑性煤电项目建成投产。电网、抽水蓄能等领域投资保持稳步增长，160多项迎峰度夏电网重点工程按期投产，多条特高压直流工程投产送电，四川攀西电网优化改造工程全面建成投产，华北、华东、西北、东北电网一批省间联络线工程加快推进前期工作。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;三是能源新业态投资加快释放。上半年，氢能重点项目投资额实现翻番，吉林省多个在建绿氢项目加快推进。充换电基础设施完成投资额同比增长近70%，首批车网互动规模化应用9个试点城市加快推进智能化充换电基础设施建设。新型储能、源网荷储一体化完成投资额同比增长均超过30%。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;四是能源领域民营企业投资较快增长。上半年，能源领域民营企业完成投资额同比增长27.8%。民营企业在分布式光伏、陆上风电等领域投资加快释放，完成投资额同比增长都在40%以上，在充换电基础设施、集中式光伏等领域投资保持较快增长，完成投资额同比增长15%左右。谢谢！</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【新华社新华财经记者】请问，今年上半年新型储能发展取得了哪些进展和成效？</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【能源节约和科技装备司副司长边广琦】谢谢这位记者朋友的提问。当前，随着新能源快速发展，系统调峰、电力保供压力不断增大，发展新型储能成为构建新型电力系统的客观需要。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;2025年上半年，新型储能保持平稳较快发展态势。从装机规模来看，全国新型储能装机规模达到9491万千瓦/2.22亿千瓦时，较2024年底增长约29%。其中，内蒙古、新疆装机规模超过1000万千瓦，山东、江苏、宁夏装机规模超过500万千瓦。河北、浙江、云南、甘肃、广东、安徽、广西、山西、湖南、河南、湖北、青海、贵州等13省区装机规模超过200万千瓦。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;分区域来看，华北、西北、南方地区是上半年新型储能主要增长区，占全国新增装机80%以上。其中，华北、西北地区已投运新型储能装机分别占全国29.7%、25.7%，占比与2024年底相比基本保持稳定。南方地区增速较快，已投运新型储能装机占全国15.4%，与2024年底相比增加3个百分点，主要原因是广西、云南等水电占比较高、调节资源相对充裕的省份，由于新能源快速发展，调节能力逐步趋紧，新型储能发展需求不断增加。此外，华东、华中、东北地区已投运新型储能装机分别占全国16.6%、12.2%、0.4%。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;从调用情况来看，据电网公司初步统计，上半年全国新型储能等效利用小时数约570小时，同比增加超过100小时，浙江、广东、甘肃、新疆等多省区及河北南网、新疆生产建设兵团上半年调用情况良好，等效利用小时数超过600小时，新型储能调节作用进一步发挥。七月份以来，我国多地出现持续高温，带动用电负荷快速增长，新型储能为电力保供做出积极贡献。其中，江苏、山东、云南先后开展全省新型储能电站用电高峰期间集中调用，最大放电功率分别达714万千瓦、804万千瓦、474万千瓦，调用同时率达到95%以上，发挥了重要的顶峰保供作用。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;下一步，国家能源局将认真贯彻落实“四个革命、一个合作”能源安全新战略，进一步拓展新型储能应用场景，提升调度运用水平，加快完善市场机制，推动新型储能产业高质量发展。谢谢。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【科技日报记者】 迎峰度夏期间是煤炭的传统消费旺季，请问当前煤炭供应情况如何？下一步国家能源局将采取哪些措施保障迎峰度夏煤炭供应？</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【综合司副司长张星】感谢您的提问。今年以来，国家能源局认真贯彻落实党中央、国务院关于能源稳定供应的决策部署，坚持底线思维，持续做好煤炭供需及价格动态监测分析，推动煤炭安全稳产稳供，煤炭市场总体平衡偏宽松。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;一是煤炭供应保持平稳。今年以来，煤炭先进产能有序释放，推动煤炭产量在去年高位增长基础上保持平稳。据国家统计局数据，1-6月规上工业原煤产量24亿吨、同比增长5.4%。7月份以来日均调度煤炭产量保持在1200万吨以上。据海关总署数据，1-6月进口煤炭2.2亿吨，月均维持3700万吨左右的高水平。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;二是煤炭库存处于高位。迎峰度夏以来，电煤库存持续增加，目前全国统调电厂煤炭库存超过2亿吨、可用30天。7月28日，环渤海港口、秦皇岛港存煤分别达到2781万吨、576万吨，处于较高水平。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;三是煤炭价格较为稳定。煤炭中长期合同价格和现货价格均出现不同程度的回落，7月份秦皇岛5500大卡动力煤中长期合同价格为666元/吨，较年初下降27元/吨。7月28日，秦皇岛5500大卡动力煤现货价格为646元/吨，迎峰度夏以来煤炭价格保持稳定。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;下一步，我们将深入贯彻落实党中央、国务院决策部署，充分发挥煤炭在能源保供中的“压舱石”作用，全力做好煤炭安全稳产稳供，强化供需衔接协调，推动煤炭市场平稳运行，有效保障迎峰度夏期间煤炭稳定供应。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;一是加强供需形势监测分析。定期调度煤炭产运销以及价格、进口等关键指标变化情况，密切关注西南、两湖一江等重点地区电煤供应情况，及时协调解决影响煤炭生产供应的重大问题。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;二是扎实做好煤炭稳产稳供。指导有关产煤省区和煤炭企业持续抓好生产组织，科学制定生产计划，合理安排设备日常检修，全力做好煤炭生产供应。组织晋、陕、蒙、新等重点产煤省（区）开展煤矿生产情况核查，督促企业严格按公告能力组织生产，严禁超能力生产，维护好平稳有序的生产秩序。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;三是远近结合提高煤炭供给质量和弹性。以山西、蒙西、蒙东、陕北、新疆五大煤炭供应保障基地为重点，有序核准一批大型现代化煤矿项目，推动释放优质先进产能。推动煤炭产能储备制度落地实施，加快推进产能储备煤矿项目建设，进一步提升煤炭供给弹性。回答完毕，谢谢！</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【中能传媒记者】当前正值汛期和夏季用电高峰，我们注意到多个地区发生了强降水和台风天气，对电力安全可靠供应带来了影响，请问今年上半年我国电力可靠性总体情况如何？</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【电力司副司长刘明阳】感谢这位记者朋友的提问。确实，极端天气事件频发会给电力系统安全稳定运行和电力可靠供应带来一定冲击。近日，华东、华北、东北等地持续遭遇强降雨，引发洪涝和地质灾害，造成北京、河北、吉林、山东等地重大人员伤亡和财产损失。习近平总书记对防汛抢险救灾工作作出重要指示，李强总理作出批示。国家能源局高度重视，局党组第一时间部署安排，派员赴北京等地指导电力企业全力做好抢修复电工作。目前，全国电力系统和我局监管范围内702座水电站大坝运行平稳。今年以来，我局密切跟踪灾害天气过程，指导电力行业加强灾害监测预警和防范应对，通过加强提前预警、设备升级、应急响应等措施，最大限度降低极端天气对电力系统的影响。从今年上半年电力可靠性数据来看，全国电力供应总体保持平稳，电力系统及设备持续安全稳定运行，为电力安全可靠供应提供了有力保障。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;在发电方面，机组运行状态稳定。上半年主要发电企业纳入电力可靠性统计的燃煤机组等效可用系数为92.12%，同比增加0.68个百分点，平均利用小时数为1961.31小时，同比减少166.29小时；纳入电力可靠性统计的常规水电机组等效可用系数为92.93%，同比减少0.27个百分点，平均利用小时数为1631.61小时，同比减少7.84小时。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;在输变电和直流系统方面，呈现“四升一降”的特点。其中，全国电网220千伏及以上电压等级变压器的可用系数为99.6%，同比上升0.29个百分点；断路器的可用系数为99.81%，同比上升0.05个百分点；架空线路的可用系数为99.71%，同比上升0.07个百分点。纳入电力可靠性统计的51个直流输电系统合计能量可用率为97.09%，同比增加2.22个百分点。直流输电系统总计发生强迫停运6次，同比下降10次。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;在供电方面，停电时长和停电频率继续“双下降”。全国上半年平均供电可靠率为99.948%，用户平均停电时间2.25小时/户，同比降低1.24小时/户，用户平均停电频率0.90次/户，同比降低0.22次/户。其中，城市用户平均停电时间0.55小时/户，用户平均停电频率0.24次/户；农村用户平均停电时间2.53小时/户，用户平均停电频率1.01次/户。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;下一步，国家能源局将深入做好民生用能保障，持续加强电力可靠性管理，全力保障电力系统安全稳定运行和电力可靠供应。谢谢！</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;">&emsp;&emsp;【综合司副司长张星】由于时间关系，今天的新闻发布会到此结束，本场发布会由新华网、我局门户网站同步现场图文直播，我局微信公众号转发，请大家关注。谢谢大家，再见。</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); font-family: 宋体, " arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" justify;"=""><span style="font-size: 14pt;"><br>
+</span></p>
+<p style="margin: 15px 0px 0px; padding: 0px; line-height: 30px; color: rgb(0, 0, 0); text-align: right;" arial="" narrow",="" helvetica;="" font-size:="" 14px;="" font-style:="" normal;="" font-variant-ligatures:="" font-variant-caps:="" font-weight:="" 400;="" letter-spacing:="" orphans:="" 2;="" text-indent:="" 0px;="" text-transform:="" none;="" widows:="" word-spacing:="" -webkit-text-stroke-width:="" white-space:="" background-color:="" rgb(255,="" 255,="" 255);="" text-decoration-thickness:="" initial;="" text-decoration-style:="" text-decoration-color:="" text-align:="" right;"=""><span style="font-size: 14pt;">责编：木鱼</span></p>
+        </div>
+    </div>
+    <div class="fr">
+    <!--新闻内容页一周焦点开始-->
+<!--新闻内容页一周焦点开始-->
+ <style>
+	.focus{
+		margin:40px 0 0 0;
+		border-left:#ebebec 1px solid;
+		border-bottom:#ebebec 1px solid;
+	}
+	.focus ul{
+		padding-left:10px;
+		padding-bottom:20px;
+	}
+	.focus li h3,.focus li h4{
+		position:absolute;
+		display:block;
+		width:25px;
+		height:25px;
+		line-height:25px;
+		text-align:center;
+		font-size:10px;
+		background:#e84c00;
+		color:#fff;
+		top:8px;
+		
+	}
+	.focus li h4{
+		background:#d1d1d1;
+	}
+
+	.focus li a{
+		background: none;
+		padding-left:30px;
+		font-size:12px;
+		left:40px;
+		line-height:25px;
+	}
+    </style>
+    	<div class="cls focus">
+       		<div class="title">
+            	<span class="lTab">
+                    <a href="javascript:void(0);" class="activity"   tabindex="1">一周热点</a>
+                </span>
+                <span class="more">
+                    <!--<a href="/channel/2.html" class="tab-more" tabindex="1">更多</a>-->
+                </span>
+            </div>
+            <ul class="list">
+            </ul>
+        </div><!--新闻内容页一周焦点结束-->
+    </div>
+    <div class="clear"></div>
+</div>
+<div class="spacing"></div>
+<!--page footer-->
+<!--引入公共页脚-->
+<!--页脚开始-->
+
+ <div class="floot">
+<!--    <div class="floot-wp clearfix">
+      <div class="floot-wp-fl">
+
+ 					          <div class="floot-wp-li fl">
+			          	  <a href="/news.html?1=1"><h5>新闻资讯</h5></a>
+			                <a href="/channel/2.html?1=1">国际新闻</a>
+			                <a href="/channel/3.html?1=1">国内新闻</a>
+			          </div>					
+			          <div class="floot-wp-li fl">
+			          	  <a href="/information.html?1=1"><h5>信息发布</h5></a>
+			                <a href="/informationList.html?1=1">会议</a>
+			                <a href="/informationListTender.html?1=1">招投标</a>
+			                <a href="/channel/4.html?1=1">能源价格</a>
+			          </div>					
+			          <div class="floot-wp-li fl">
+			          	  <a href="/v_country/toDataPage.html"><h5>数据资料</h5></a>
+			                <a href="/v_country/toData.html?1=1">数据</a>
+			                <a href="/v_country/toInfomation.html?channelId=1125">资料</a>
+			          </div>					
+			          <div class="floot-wp-li fl">
+			          	  <a href="/v_finance/toFinance.html?1=1"><h5>金融法务</h5></a>
+			                <a href="/v_finance/toFund.html?type=5&amp;channelId=33">基金</a>
+			                <a href="/v_finance/toBank.html?type=6&amp;channelId=34">银行</a>
+			                <a href="/v_finance/toInsurance.html?type=7&channelId=35">保险</a>
+			          </div>					
+			          <div class="floot-wp-li fl">
+			          	  <a href="/v_practice/toPractice.html?1=1"><h5>最佳实践</h5></a>
+			                <a href="/v_practice/toPractice.html?channelId=1083">双边机制</a>
+			                <a href="/v_practice/toPractice.html?channelId=1084">多边机制</a>
+			          </div>					
+
+      
+        <div class="clear"></div>
+      </div>
+    </div>
+-->    
+    <div class="floot-wp-bottom clearfix">
+		<!-- 20220929 增加政府找错功能链接 -->
+		<div style="position: absolute;">
+		<a target="blank" href="https://zfwzgl.www.gov.cn/exposure/jiucuo.html?site_code=bm62000002&amp;url=http%3A%2F%2Fwww.nea.gov.cn%2F" style="margin: auto;">
+			<img src="/res/portal/images/zhaocuo.png" style="width: 110px;margin-top: -15px;height: 55px;border: blue;border-top-color: azure;" />
+		</a>
+		</div>	
+      <p class="floot-bottom-p">
+      		<a href="/detailFoot/1146.html">关于我们</a>
+      		<b>|</b>
+            <a href="/detailFoot/1145.html">联系我们</a>
+      		<b>|</b>
+      		<a href="/detailFoot/1173.html">法律声明</a>
+      </p>
+	 
+      <div class="floot-bottom-fl">
+	  
+          <p class="">
+          	主办单位：国家能源局&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          	运营单位：中国国信信息总公司
+			</br></br>
+			京ICP备11044902号	
+          </p>
+		<p style="margin-bottom:15px">为了您最佳的浏览效果，建议使用Chrome,Firefox,IE9及以上版本的浏览器</p>
+		<p><img alt="DR_code" src="/res/portal/images/DR_code.jpg" width="100px" height="100px"></img></p>
+     
+	 </div>
+
+      <div class="clear"></div>
+    </div>
+
+  </div>
+<!--页脚结束-->
+<!--page footer end-->
+</body>
+</html>

@@ -1,0 +1,63 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "windfarms.1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.84,
+          51.69
+        ]
+      },
+      "geometry_name": "the_geom",
+      "properties": {
+        "country": "Belgium",
+        "name": "Belwind Alstom Haliade Demonstration Bligh Bank",
+        "n_turbines": 1,
+        "power_mw": 6,
+        "status": "Production",
+        "type_inst": null,
+        "updateyear": "2024",
+        "year": "2013",
+        "dist_coast": 43900.7770495,
+        "notes": null
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "windfarms.31",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.13,
+          54.97
+        ]
+      },
+      "geometry_name": "the_geom",
+      "properties": {
+        "country": "Denmark",
+        "name": "Vindeby-Lolland",
+        "n_turbines": 11,
+        "power_mw": 4.95,
+        "status": "Dismantled",
+        "type_inst": null,
+        "updateyear": "2024",
+        "year": "1991",
+        "dist_coast": 1676.31282224,
+        "notes": null
+      }
+    }
+  ],
+  "totalFeatures": 631,
+  "numberMatched": 631,
+  "numberReturned": 2,
+  "timeStamp": "2026-10-07T12:59:08.616Z",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:EPSG::4326"
+    }
+  }
+}

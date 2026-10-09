@@ -1,0 +1,139 @@
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head><meta name="source" content="新华网"> <meta name="publishdate" content="2026-07-30"> <meta name="contentid" content="20260730bb571bc20d7445e5ae7d9dc51c3f700d"> <meta name="subject" content=""> <meta name="catalogs" content="01009005000"> <meta name="author" content=""> <meta name="publishedtype" content="1"> <meta name="filetype" content="0"> <meta name="pagetype" content="1"> <meta name="templateId" content="b5427b58c834414690d6e6f7dca0826e"> <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> <meta name="SiteName" content="国家能源局"> <meta name="SiteDomain" content="www.nea.gov.cn"> <meta name="SiteIDCode" content="bm62000002号"> <div data="datasource:20260730bb571bc20d7445e5ae7d9dc51c3f700d" datatype="content"><meta name="ArticleTitle" content="国家能源局举行新闻发布会 介绍2026年上半年可再生能源并网运行情况"></div> <div data="datasource:20260730bb571bc20d7445e5ae7d9dc51c3f700d" datatype="content"><meta name="PubDate" content="2026-07-30 12:06:23"></div> <div data="datasource:20260730bb571bc20d7445e5ae7d9dc51c3f700d" datatype="content"><meta name="ContentSource" content="国家能源局"></div> <meta name="description" content="国家能源网"> <meta name="keywords" content="国家能源网"> <title data="datasource:20260730bb571bc20d7445e5ae7d9dc51c3f700d" datatype="content">
+            国家能源局举行新闻发布会 介绍2026年上半年可再生能源并网运行情况---国家能源局
+        </title> <link href="http://www.nea.gov.cn/static/default/css/public/master_nyj_v1.0.css" rel="stylesheet" type="text/css"> <link href="http://www.nea.gov.cn/static/default/css/article.css" rel="stylesheet" type="text/css"> <link href="http://www.nea.gov.cn/2015nyj/xinban/topbase.css" rel="stylesheet"> <link href="http://www.nea.gov.cn/detail/css/cb_videoPlayer.css" rel="stylesheet"> <script src="http://www.nea.gov.cn/static/default/js/public/jquery-1.9.1.min.js" type="text/javascript"></script> <script language="javascript">
+        $(document).ready(function () {
+
+            var lefttmp = new Image();
+            lefttmp.src = "http://www.xinhuanet.com/photo/static/arr_left.cur";
+            var righttmp = new Image();
+            righttmp.src = "http://www.xinhuanet.com/photo/static/arr_right.cur";
+            leng = $("a", $("#div_currpage")).length;
+
+            if (leng != 0)
+            //curr里有a标签==稿件不止一页
+            {
+
+                //看一共有多少个a标签
+                leng = leng - 1;
+                var nextLin = $("a", $("#div_currpage"))[leng].href; //对于多页的情况，取得下一页的地址
+                var oneword = location.href + "#";
+                if (nextLin == oneword) {
+                    leng = leng - 1;
+                    nextLin = $("a", $("#div_currpage"))[leng].href;
+                }
+                var currurl = location
+                    .href; //当前页链接地址<meta http-equiv="expires" content="Sunday 26 October 2011 01:00 GMT" /> 
+
+                var underpd = currurl.substring(currurl.indexOf("c_") + 2, currurl.indexOf(".htm"));
+                if (underpd.indexOf("_") == -1) {
+
+                    prevLink = location.href; //如果是文章首页，则左键仍是替换到本页面
+                    nextLink = $("a", $("#div_currpage"))[0].href; //下一页的赋值
+                    setTimeout("window.opener=null;window.location.href='" + nextLink + "'", 60000); //30秒跳转到下一页
+                } else
+                //是末页，http://news.xinhuanet.com/photo/2011-08/06/c_121822530.htm
+                {
+                    //当前页分页号判断
+                    var currnum = currurl.indexOf(".htm"); //链接中第一次出现.htm的位置
+                    var underlineindex = currurl.lastIndexOf("_") + 1; //下划线甄别标识，第一页则不是下划线
+                    //下一页的分页号
+                    var nextnum = nextLin.indexOf(".htm"); //链接中第一次出现.htm的位置
+                    var underlinenext = nextLin.lastIndexOf("_") + 1; //下划线甄别标识，第一页则不是下划线
+                    var undernum = nextLin.substr(nextLin.indexOf("c_")).split("_").length - 1;
+
+                    var temp = currurl.substring(underlineindex, currnum); //当前页的分页号
+                    var nexttemp = nextLin.substring(underlinenext, nextnum); //最后a标签的分页号
+                    var boolx = parseInt(temp, 10) > parseInt(nexttemp, 10);
+
+                    if ((boolx) || (undernum == 1)) //末页
+
+                    {
+
+                        if ($("img", $("a", $("#content"))).length == 0) //没有带链接的图片
+
+                        {
+                            prevLink = nextLin;
+                            if (undernum == 1) {
+                                nextLink = nextLin;
+                            } else {
+                                nextLink = prevLink.substr(0, (prevLink.lastIndexOf("_"))) + ".htm";
+                            }
+                            setTimeout("window.opener=null;window.location.href='" + nextLink + "'",
+                                60000); //30秒跳转到下一页
+                        } else //末页正文图片有链接
+                        {
+                            prevLink = nextLin;
+                            nextLink = $("a", $("#content"))[0].href; //把正文第一个带链接的链接地址赋给下一页
+                        }
+
+                    } else //不是末页
+                    {
+
+                        prevLink = $("a", $("#div_currpage"))[0].href; //把正文第一个带链接的链接地址赋给下一页
+                        nextLink = nextLin; //把正文最后一个带链接的链接地址赋给下一页
+                    }
+
+                }
+            } else
+            //只有一页
+            {
+                prevLink = location.href;
+                nextLink = location.href;
+            }
+
+            document.onkeydown = pageEvent;
+
+            function pageEvent(evt) {
+                evt = evt || window.event;
+                var key = evt.which || evt.keyCode;
+                if (key == 37) location = prevLink;
+                if (key == 39) location = nextLink;
+            };
+
+            var lefturl = prevLink;
+            var righturl = nextLink;
+            var imgurl = righturl;
+
+            $("#content img").each(function () {
+                var width = $(this).width();
+                var thisImage = $(this);
+                //alert("01");
+                $(thisImage)[0].onmousemove = function () {
+
+                    if (event.offsetX < width / 2) {
+
+                        this.style.cursor = 'url(' + lefttmp.src + '),auto';
+                        imgurl = lefturl;
+                    } else {
+
+                        this.style.cursor = 'url(' + righttmp.src + '),auto';
+                        imgurl = righturl;
+                    }
+
+                }
+
+                $(thisImage)[0].onmouseup = function () {
+                    top.location = imgurl;
+
+                }
+            });
+
+        });
+    </script></head> <body><script src="http://www.nea.gov.cn/2015nyj/xinban/topnav.js" type="text/javascript"></script> <div class="main-colum"><div class="now-site">您当前位置：<a href="http://www.nea.gov.cn/" target="_blank">首页</a> &gt; 正文</div> <div class="channel-page"><div class="article-title" data="datasource:20260730bb571bc20d7445e5ae7d9dc51c3f700d" datatype="content"><div class="hr_10"></div> <div class="titles">
+                        国家能源局举行新闻发布会 介绍2026年上半年可再生能源并网运行情况
+                    </div> <div class="hr_10"></div> <span class="times">
+                        发布时间：2026-07-30
+                    </span> <span class="author">
+                        来源：国家能源局
+                    </span> <span class="switchsize"><b class="bigger">大</b><b class="medium">中</b><b class="smaller">小</b></span> <div class="arrow"></div></div> <div class="article-box"><div class="hr_10"></div> <div class="hr_10"></div> <div class="hr_10"></div> <div id="detail" data="datasource:20260730bb571bc20d7445e5ae7d9dc51c3f700d" datatype="content"><div class="article-content"><span id="detailContent"><p>&emsp;&emsp;7月30日，国家能源局举行新闻发布会，介绍2026年上半年全国能源形势及能源转型成效、可再生能源并网运行、迎峰度夏能源电力保供、电动汽车充电基础设施建设情况，发布《中国新型储能发展报告（2026）》并回答记者提问。</p><p>&emsp;&emsp;<span style="color: #000080;"><strong>【新能源司副司长潘慧敏】</strong></span>各位记者朋友，大家上午好。今年上半年，国家能源局深入贯彻党的二十大和二十届历次全会精神，认真落实四中全会部署，完整准确全面贯彻新发展理念，以碳达峰碳中和工作为引领，锚定2030年初步建成新型能源体系、推进能源强国建设的目标任务，高标准践行能源安全新战略，扎实推进能源绿色低碳转型，推动可再生能源扩量提质发展起好步、开好头。</p><p>&emsp;&emsp;可再生能源装机规模稳步扩大。可再生能源新增装机占比超七成，累计装机占比超六成，风光累计装机约19.5亿千瓦、占比接近一半，太阳能发电装机与燃煤发电装机基本持平。今年上半年，全国可再生能源新增装机1.17亿千瓦，占全部新增装机的73.9%，继续保持新增装机主体地位；其中，水电新增并网603万千瓦，风电新增并网3862万千瓦，太阳能发电新增并网7207万千瓦，生物质发电新增并网60万千瓦。截至今年6月底，全国可再生能源装机达到24.55亿千瓦，同比增长13.7%，约占我国总装机的60.7%；其中，水电装机4.54亿千瓦，风电装机6.79亿千瓦，太阳能发电装机12.74亿千瓦，生物质发电装机0.48亿千瓦。风光装机合计19.51亿千瓦，约占全国电力总装机的48.3%，太阳能发电装机与燃煤发电装机（12.75亿千瓦）基本持平。</p><p>&emsp;&emsp;可再生能源发电量稳步提升。可再生能源发电量占比首次超四成，全国用的每四度电中，有一度电是风光所发。今年上半年，全国可再生能源发电量近2万亿千瓦时，同比增加约9%，占全部发电量的41.2%，超过同期第三产业用电量（9916亿千瓦时）与城乡居民生活用电量（7315亿千瓦时）之和，可满足全社会近四成的用电需求；其中，风光发电量合计1.25万亿千瓦时，同比增长9.3%，占全社会用电量的24.6%，占到四分之一，达到同期第三产业用电量（9916亿千瓦时）约1.3倍。可再生能源发电增量1598亿千瓦时，覆盖全社会用电量增量的61.9%。下面，我来分别介绍主要可再生能源发电品种有关情况。</p><p>&emsp;&emsp;（一）水电建设和运行情况。今年上半年，全国新增水电并网容量603万千瓦，其中常规水电303万千瓦，抽水蓄能300万千瓦。截至今年6月底，全国水电累计装机容量达4.54亿千瓦，其中常规水电3.85亿千瓦，抽水蓄能0.69亿千瓦。今年上半年，全国规模以上水电累计发电量5886亿千瓦时，全国水电累计平均利用小时数为1452小时。</p><p>&emsp;&emsp;（二）风电建设和运行情况。今年上半年，全国风电新增并网容量3862万千瓦，其中陆上风电3778万千瓦，海上风电84万千瓦。截至今年6月底，全国风电累计并网容量达到6.79亿千瓦，同比增长18.5%，其中陆上风电6.3亿千瓦，海上风电4841万千瓦。今年上半年，全国风电累计发电量5984亿千瓦时，全国风电平均利用率90.9%。</p><p>&emsp;&emsp;（三）光伏发电建设和运行情况。今年上半年，全国光伏新增并网7177万千瓦，其中集中式光伏2955万千瓦，分布式光伏4222万千瓦。截至今年6月底，全国光伏发电装机容量达到12.72亿千瓦，同比增长15.8%，其中集中式光伏6.96亿千瓦，分布式光伏5.76亿千瓦。今年上半年，全国光伏累计发电量6555亿千瓦时，全国光伏发电利用率91.4%。</p><p>&emsp;&emsp;（四）生物质发电建设和运行情况。今年上半年，全国生物质发电新增装机60万千瓦，累计装机达4791万千瓦，同比增长2.6%。生物质累计发电量1158亿千瓦时。</p><p>&emsp;&emsp;（五）光热发电建设和运行情况。今年上半年，全国光热发电新增装机30万千瓦。截至今年6月底，全国光热发电装机容量达到212万千瓦，同比增长39.5%。光热累计发电量8.5亿千瓦时。</p></span></div></div> <div class="back-top"></div> <div class="hr_10"></div> <div class="hr_10"></div> <div class="hr_10"></div></div> <div class="article-other"><div class="hr_10"></div> <div class="hr_10"></div> <div class="clear"></div></div> <div class="hr_10"></div> <div class="hr_10"></div> <div class="hr_10"></div></div></div> <script src="http://www.nea.gov.cn/2015nyj/xinban/bottom.js" type="text/javascript"></script> <script src="http://www.nea.gov.cn/static/default/js/public/article-font.js" type="text/javascript"></script> <script src="http://www.nea.gov.cn/detail/js/pager.js"></script> <script src="http://www.nea.gov.cn/detail/js/cb-video.js"></script> <script>
+        $(function () {
+            /* 分页调用 */
+            parsePagingFun({
+                // preText: 'prev',//上一页
+                // nextText: 'next',//下一页
+                id: 'detailContent', //正文分页id
+                num: 8 //显示页码数个数
+            })
+
+        })
+    </script><script src="//imgs.news.cn/webdig/xinhua_webdig.js" language="javascript" type="text/javascript" async></script></body></html>

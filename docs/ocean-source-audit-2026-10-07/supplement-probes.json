@@ -1,0 +1,193 @@
+[
+  {
+    "id": "C24",
+    "name": "NEA 2024",
+    "url": "https://www.nea.gov.cn/20250221/e10f363cabe3458aaf78ba4558970054/c.html",
+    "checked_at": "2026-10-07T13:16:21.739Z",
+    "route": "direct",
+    "status": 200,
+    "title": "\r\n            2024年可再生能源并网运行情况---国家能源局\r\n        ",
+    "snippets": [
+      "量7982万千瓦，同比增长6%，其中陆上风电7579万千瓦，海上风电404万千瓦。从新增装机分布看，“三北”地区占全国新增装机的75%。截至2024年12月，全国风电累计并网容量达到5.21亿千瓦，同比增长18%，其中陆上风电4.8亿千瓦，海上风电"
+    ]
+  },
+  {
+    "id": "G01",
+    "name": "SODIR field feature query",
+    "url": "https://factmaps.sodir.no/api/rest/services/DataService/Data/FeatureServer/7100/query?where=1%3D1&outFields=*&returnGeometry=true&outSR=4326&resultRecordCount=3&f=json",
+    "checked_at": "2026-10-07T13:16:21.737Z",
+    "route": "proxy",
+    "status": 200,
+    "features": 3,
+    "first_attributes": {
+      "OBJECTID": 1,
+      "fldName": "ALBUSKJELL",
+      "fldCurrentActivitySatus": "Approved for production",
+      "wlbName": "1/6-1",
+      "fldDiscoveryYear": 1972,
+      "fldOwnerKind": "PRODUCTION LICENCE",
+      "fldOwnerName": "018 F",
+      "fldNpdidOwner": 38724120,
+      "cmpLongName": "ConocoPhillips Skandinavia AS",
+      "cmpNpdidCompany": 2410696,
+      "fldMainSupplyBase": null,
+      "fldHcType": "GAS/CONDENSATE",
+      "fldMainArea": "North sea",
+      "wlbFactPageUrl": "https://factpages.sodir.no/wellbore/pageview/exploration/all/239",
+      "fldFactMapUrl": "https://factmaps.sodir.no/map/redirect/fld.ashx?id=43437",
+      "fldFactPageUrl": "https://factpages.sodir.no/field/pageview/all/43437",
+      "wlbNpdidWellbore": 239,
+      "fldNpdidField": 43437,
+      "fldGUID": "FDAABF63-0C5C-4BDC-B43F-5C63CED0F360",
+      "fldDateUpdated": 1778112000000,
+      "fldDateUpdatedMax": 1791331200000,
+      "Shape__Area": 0.0046152838374376014,
+      "Shape__Length": 0.46122155079803756
+    },
+    "spatialReference": {
+      "wkid": 4326,
+      "latestWkid": 4326
+    }
+  },
+  {
+    "id": "N01",
+    "name": "Northern Lights corrected newsroom",
+    "url": "https://norlights.com/newsroom/",
+    "checked_at": "2026-10-07T13:16:21.739Z",
+    "route": "direct",
+    "status": 200,
+    "title": "Newsroom - Northern Lights",
+    "headline": "Newsroom",
+    "links": [
+      {
+        "text": "How to store CO2 with Northern Lights",
+        "url": "https://norlights.com/how-to-store-co2-with-northern-lights/"
+      },
+      {
+        "text": "About the Longship project",
+        "url": "https://norlights.com/about-the-longship-project/"
+      },
+      {
+        "text": "Reports, analysis and assessments",
+        "url": "https://norlights.com/reports-2/"
+      },
+      {
+        "text": ".cls-1 { fill: #60c; } .cls-2 { fill: none; }",
+        "url": "/"
+      },
+      {
+        "text": "Northern Lights signs agreement with Öresundskraft for CO₂ transport and storage from Sweden October 1, 2026 Northern Lights and Öresundskraft have signed an agreement for the transport and storage of up to 200,000 tonnes of CO₂ per year from the Filbornaverket waste-to-energy plant in Helsingborg, Sweden.",
+        "url": "https://norlights.com/news/northern-lights-signs-agreement-with-oresundskraft-for-co2-transport-and-storage-from-sweden/"
+      },
+      {
+        "text": "Explore Northern Lights’ CO₂ transport and storage facility September 28, 2026",
+        "url": "https://norlights.com/news/explore-northern-lights-co%e2%82%82-transport-and-storage-facility/"
+      },
+      {
+        "text": "Northern Purpose arrives in Norway July 29, 2026",
+        "url": "https://norlights.com/news/northern-purpose-arrives-in-norway/"
+      },
+      {
+        "text": "Time charter awards completed June 3, 2026",
+        "url": "https://norlights.com/news/time-charter-awards-completed/"
+      },
+      {
+        "text": "The Northern Phoenix welcomed and blessed in Bergen, Norway April 9, 2026",
+        "url": "https://norlights.com/news/the-northern-phoenix-welcomed-and-blessed-in-bergen-norway/"
+      },
+      {
+        "text": "Northern Lights has injected first CO₂ from wastewater March 24, 2026",
+        "url": "https://norlights.com/news/northern-lights-has-injected-first-co%e2%82%82-from-wastewater/"
+      },
+      {
+        "text": "Northern Lights Phase 2: Expanding Europe’s CO₂ Storage Capacity March 17, 2026",
+        "url": "https://norlights.com/news/northern-lights-phase-2-expanding-europes-co%e2%82%82-storage-capacity/"
+      },
+      {
+        "text": ".cls-1{fill:#60c;}.cls-2{fill:none;}",
+        "url": "/"
+      }
+    ]
+  },
+  {
+    "id": "G02",
+    "name": "EMODnet windfarms WFS",
+    "url": "https://ows.emodnet-humanactivities.eu/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=emodnet:windfarms&count=2&outputFormat=application%2Fjson",
+    "checked_at": "2026-10-07T13:16:21.739Z",
+    "route": "direct",
+    "status": 200,
+    "features": 2,
+    "first_attributes": {
+      "country": "Belgium",
+      "name": "Belwind Alstom Haliade Demonstration Bligh Bank",
+      "n_turbines": 1,
+      "power_mw": 6,
+      "status": "Production",
+      "type_inst": null,
+      "updateyear": "2024",
+      "year": "2013",
+      "dist_coast": 43900.7770495,
+      "notes": null
+    }
+  },
+  {
+    "id": "C25",
+    "name": "NEA 2025",
+    "url": "https://www.nea.gov.cn/20260212/742b8c6a078347b0b39de676c05c5d58/c.html",
+    "checked_at": "2026-10-07T13:16:27.109Z",
+    "route": "direct",
+    "status": 200,
+    "title": "\r\n            2025年可再生能源并网运行情况---国家能源局\r\n        ",
+    "snippets": [
+      "1.2亿千瓦，同比增长51%，其中陆上风电新增1.1亿千瓦，海上风电新增659万千瓦。从新增装机分布看，“三北”地区占全国新增装机的79%。 截至2025年12月，全国风电累计并网容量达到6.4亿千瓦，同比增长23%，其中陆上风电5.9亿千瓦，海上"
+    ]
+  },
+  {
+    "id": "NO08",
+    "name": "SODIR August production",
+    "url": "https://www.sodir.no/en/whats-new/news/production-figures/2026/production-figures-august-2026/",
+    "checked_at": "2026-10-07T13:16:27.110Z",
+    "route": "direct",
+    "status": 403
+  },
+  {
+    "id": "C25H",
+    "name": "NEA 2025H1",
+    "url": "https://obor.nea.gov.cn/detail2/22150.html",
+    "checked_at": "2026-10-07T13:16:27.109Z",
+    "route": "direct",
+    "status": 200,
+    "title": "“一带一路”能源合作",
+    "headline": "国家能源局2025年第三季度新闻发布会文字实录"
+  },
+  {
+    "id": "R01",
+    "name": "Yinson Production and Eni amplifying African FPSO’s gas capacity",
+    "url": "https://offshore-energy.biz/2026/10/05/yinson-production-and-eni-amplifying-african-fpsos-gas-capacity",
+    "checked_at": "2026-10-07T13:16:27.110Z",
+    "route": "direct",
+    "status": 200,
+    "title": "Yinson Production and Eni amplifying African FPSO’s gas capacity - Offshore Energy",
+    "headline": "Yinson Production and Eni amplifying African FPSO’s gas capacity"
+  },
+  {
+    "id": "R02",
+    "name": "Subsea battery system for offshore wind completes test before deployment",
+    "url": "https://offshore-energy.biz/2026/10/06/subsea-battery-system-for-offshore-wind-completes-test-before-deployment",
+    "checked_at": "2026-10-07T13:16:29.494Z",
+    "route": "direct",
+    "status": 200,
+    "title": "Subsea battery system for offshore wind completes test before deployment - Offshore Energy",
+    "headline": "Subsea battery system for offshore wind completes test before deployment"
+  },
+  {
+    "id": "R03",
+    "name": "Vestas Partners with Deepwater Wind Technology Developer",
+    "url": "https://offshorewind.biz/2026/10/07/vestas-partners-with-deepwater-wind-technology-developer",
+    "checked_at": "2026-10-07T13:16:29.495Z",
+    "route": "direct",
+    "status": 200,
+    "title": "Vestas Partners with Deepwater Wind Technology Developer - Offshore Wind",
+    "headline": "Vestas Partners with Deepwater Wind Technology Developer"
+  }
+]

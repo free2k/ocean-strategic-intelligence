@@ -1,0 +1,90 @@
+[
+  {
+    "url": "https://blogs.shell.com/feed/",
+    "date": "2026-10-07T13:33:26.038Z",
+    "status": 200,
+    "feed": {
+      "count": 10,
+      "title": "Shell Climate Change",
+      "latest": {
+        "title": "Where to next for aviation?",
+        "date": "Thu, 09 Jul 2026 13:20:48 +0000"
+      }
+    }
+  },
+  {
+    "url": "https://www.oedigital.com/",
+    "date": "2026-10-07T13:33:26.038Z",
+    "status": 403,
+    "title": "Just a moment...",
+    "feeds": []
+  },
+  {
+    "url": "https://ir.exxonmobil.com/rss/news-releases.xml",
+    "date": "2026-10-07T13:33:26.038Z",
+    "status": 404,
+    "title": "Page Not Found :: ExxonMobil Holdings Corporation (XOM)",
+    "feeds": [
+      "https://investor.exxonmobil.com/company-information/press-releases/rss",
+      "https://investor.exxonmobil.com/rss/news-releases.xml",
+      "https://investor.exxonmobil.com/company-information/press-releases/rss"
+    ]
+  },
+  {
+    "url": "https://oilprice.com/rss/main",
+    "date": "2026-10-07T13:33:26.036Z",
+    "status": 200,
+    "feed": {
+      "count": 15,
+      "title": "Oilprice.com",
+      "latest": {
+        "title": "IEA Discusses G7&#039;s 100 Million-Barrel Oil and Diesel Release",
+        "date": "Wed, 07 Oct 2026 08:30:00 -0500"
+      }
+    }
+  },
+  {
+    "url": "https://www.shell.com/news-and-insights/newsroom.html",
+    "date": "2026-10-07T13:33:28.925Z",
+    "status": 200,
+    "title": "Newsroom | Shell Global",
+    "feeds": []
+  },
+  {
+    "url": "https://www.rystadenergy.com/spektra",
+    "date": "2026-10-07T13:33:28.925Z",
+    "status": 200,
+    "title": "Spektra",
+    "feeds": [],
+    "evidence": [
+      "stad Energy data through Copilot, ChatGPT or Claude using MCP standards.MCP and APIAdvanced MCP connectors and API gateway​Spektra connects directly to your existing tools and workflows via an advanced API and MCP connectors, and allows progra",
+      "atformA single system that combines web-based workspaces, MCP connectors and an API gateway, giving clients the flexibility to consume and integrate capabilities in the way that works best for them.Built on two decades of proprietary data2M+Gl",
+      "ription\":\"A single system combining web-based workspaces, MCP connectors and an API gateway, giving clients flexibility to consume and integrate capabilities their way.\",\"noIndex\":false,\"image\":{\"responsiveImage\":{\"src\":\"https://www.datocms-as",
+      "content\":\"A single system combining web-based workspaces, MCP connectors and an API gateway, giving clients flexibility to consume and integrate capabilities their way.\"},\"content\":null,\"tag\":\"meta\"},{\"attributes\":{\"property\":\"og:description\","
+    ]
+  },
+  {
+    "url": "https://www.upstreamonline.com/",
+    "date": "2026-10-07T13:33:28.925Z",
+    "status": 200,
+    "title": "Upstream Online | Upstream",
+    "feeds": []
+  },
+  {
+    "url": "https://agencia.petrobras.com.br/en",
+    "date": "2026-10-07T13:33:28.925Z",
+    "status": 200,
+    "title": "Petrobras News Agency",
+    "feeds": []
+  },
+  {
+    "url": "https://www.clarksons.com/research/",
+    "date": "2026-10-07T13:33:31.838Z",
+    "status": 200,
+    "title": "Maritime Research | Shipping Research Services | Clarksons | Clarksons",
+    "feeds": [],
+    "evidence": [
+      "egister, Offshore Intelligence Network, Renewables Intelligence Network and our API Portal. Clarksons Research Portal Press this button to close a popup and stop a video Tailored solutions We provide tailored solutions supporting organisations"
+    ]
+  }
+]
