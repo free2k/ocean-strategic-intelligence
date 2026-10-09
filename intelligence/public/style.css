@@ -15,3 +15,5 @@
 .advanced-chart{min-width:0}.advanced-chart h2{margin:10px 0 16px}.chart-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px}.statistical-grid{align-items:start}.advanced-chart svg{max-height:none}.advanced-chart .table-wrap{max-height:360px;overflow:auto}.stat-source-link{font-weight:600}.business-points .business-point{overflow-wrap:anywhere}@media(max-width:1000px){.statistical-grid{grid-template-columns:1fr}}
 
 .maintenance{margin-top:32px;padding-top:16px;border-top:1px solid var(--line)}.maintenance>summary{color:var(--muted);font-size:12px;cursor:pointer}.maintenance .row button{font-size:12px}
+
+.extract-feedback{margin-top:14px;padding:10px 14px;border-left:3px solid var(--accent);background:var(--panel2);font-size:13px}.extract-error{border-color:var(--gold)}[data-extract][disabled]{opacity:.65;cursor:progress}
