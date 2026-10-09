@@ -29,6 +29,6 @@ export function translatedData(data) {
   const documents = data.documents.map(translatedDoc), byId = new Map(documents.map(d => [d.id, d]));
   return {...data, documents, events: data.events.map(e => {
     const d = byId.get(e.documentId);
-    return d && e.title === d.title && d.titleZh !== d.title ? {...e, title: d.titleZh, originalTitle: d.title} : e;
+    return d && e.title === d.title && d.titleZh !== d.title ? {...e, title: d.titleZh, originalTitle: d.title,summary:e.type==='报道线索'&&d.translationVersion?d.summaryZh:e.summary} : e;
   })};
 }

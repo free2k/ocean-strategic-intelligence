@@ -1,0 +1,27 @@
+海洋能源智库：模型、翻译与资讯采集升级（2026-10-09）
+
+部署入口：enable-intelligence-ai.sh。仅更新 /opt/ocean-intelligence/current/intelligence，独立PM2进程 ocean-intelligence；不改变原站路由。
+先上传 ai-upgrade-code.tar.gz 和解包后的 ai-upgrade-stage/snapshot.json、原文快照。
+脚本取得 /opt/ocean-intelligence/eia-daily.lock，备份代码与当前数据，停止智库、合并增量、启动并检查健康。
+服务器继续读取 /opt/knowledge-base/.env 中已有的阿里云凭据，不向浏览器暴露密钥。
+
+运行开关（PM2保存环境）：
+INTEL_ENABLE_AI=true：千问辅助研判、实体关系提取、翻译；text-embedding-v4向量与关键词融合。
+INTEL_SCHEDULE=true：智库进程内每6小时执行增量资讯检查，任务重启后按已记录的下次运行时间恢复。
+INTEL_EIA_EXTERNAL=true：EIA指标及新闻保持独立每日任务，本任务不重复运行EIA统计采集。
+与EIA发布器共用flock维护锁。任务在隔离暂存目录采集，发布时串行合并，保留人工录入及审核；不需要为资讯另建cron。
+
+全球信息感知显示任务状态、最近完成和下次运行时间，可手动触发；运行中不重复启动。
+每轮每个资讯源最多新增4篇，翻译/向量最多处理8篇。模型调用按现有云账户计费；数据不足时不生成统计值。
+国家能源局当前仅巡检配置的指定文章，并非全站发现；其他RSS/网站按适配器发现。
+Shell通过官网公开页面内容JSON适配动态网页，这是页面内部数据地址，不宣称官方开放API或稳定接口。
+Transocean采集官网船队PDF索引及季度业绩公告；量化图来自公告结构化运营统计，尚未自动解析逐船PDF合同表。
+Whale预计峰值、水深独立展示，不能当作实际月产量。Transocean统计代表公司船队，非全球行业或注册国统计。
+季度筛选按日历重叠处理；原始月份/季度、发布日期、采集时间分别保留。
+
+原文不可被翻译覆盖。contentZh、quoteZh为AI译文，仍需核对；技术证据ID保留在后台，不在详情展示。
+既有结构化关系不因模型启用而自动变为已核验；所有模型关系必须有原文连续片段依据。
+后台采集状态位于共享数据目录 collection-status.json；每轮暂存于 jobs/，便于检查失败任务。
+若采集或模型失败，保留已有资料；界面显示部分完成或失败。运行日志不输出密钥。
+
+验证：node --test intelligence/tests/*.test.mjs；qa-ai.cjs检查双语、引用、官方图表和移动端。

@@ -1,0 +1,3 @@
+import OpenAI from 'openai';
+const c=new OpenAI({apiKey:process.env.OPENAI_API_KEY,baseURL:process.env.OPENAI_BASE_URL,timeout:30000,maxRetries:0});
+for(const kind of ['chat','embedding'])try{const r=kind==='chat'?await c.chat.completions.create({model:process.env.CHAT_MODEL||'qwen-plus',messages:[{role:'user',content:'只回复：连接正常'}],max_tokens:20}):await c.embeddings.create({model:process.env.EMBEDDING_MODEL||'text-embedding-v4',input:'海洋能源',dimensions:1024});console.log(JSON.stringify({kind,ok:true,...(kind==='embedding'?{dimensions:r.data[0].embedding.length}:{reply:r.choices[0].message.content})}));}catch(e){console.log(JSON.stringify({kind,ok:false,status:e.status,code:e.code}));process.exitCode=1;}
