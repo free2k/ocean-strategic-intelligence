@@ -8,3 +8,16 @@ dist/
 
 # Deploy secrets
 deploy/.env.deploy
+
+# Local environment files (keep templates tracked)
+.env.*
+!.env.example
+!.env.*.example
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
+# Local system files
+.DS_Store
+Thumbs.db
