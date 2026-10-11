@@ -1,0 +1,3 @@
+import {pool} from '../server/integrations/mp2rss-store.mjs';
+try{const rows=(await pool.query("SELECT payload,classification FROM mp2rss.items WHERE subscription_id='mp:3299105144'")).rows;
+console.log(JSON.stringify({likeHits:rows.filter(r=>r.classification.negative?.some(n=>n.keyword==='喜欢')).length,excludedWithPositive:rows.filter(r=>r.classification.status==='excluded'&&r.classification.positive?.length).length,samples:rows.slice(0,3).map(r=>{const text=r.payload.content||'',i=text.indexOf('喜欢');return{title:r.payload.title,context:text.slice(Math.max(0,i-90),i+160),remainingAfterHit:text.length-i};})}));}finally{await pool.end();}

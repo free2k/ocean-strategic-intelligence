@@ -1,0 +1,395 @@
+{
+  "核验时间": "2026-10-11T07:05:06.806Z",
+  "更新前": {
+    "documents": 155,
+    "events": 182,
+    "observations": 395,
+    "relations": 367,
+    "entities": 659,
+    "series": 13,
+    "points": 772,
+    "cards": 46
+  },
+  "更新后": {
+    "documents": 167,
+    "events": 190,
+    "observations": 398,
+    "relations": 376,
+    "entities": 672,
+    "series": 13,
+    "points": 772,
+    "cards": 46
+  },
+  "订阅渠道": [
+    {
+      "id": "mp:3990115016",
+      "name": "中国海上油气",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 3,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:41.786Z"
+    },
+    {
+      "id": "mp:3227018184",
+      "name": "中国石油",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 9,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:49.286Z"
+    },
+    {
+      "id": "mp:3274340540",
+      "name": "中国石油大学经济管理学院",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 3,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:44.901Z"
+    },
+    {
+      "id": "mp:2398542272",
+      "name": "中国石油报",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 11,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:42.539Z"
+    },
+    {
+      "id": "mp:3625714951",
+      "name": "中国能源网",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 3,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:45.830Z"
+    },
+    {
+      "id": "mp:3095581803",
+      "name": "亚洲油气决策者俱乐部",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 3,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:05:02.643Z"
+    },
+    {
+      "id": "mp:2399686001",
+      "name": "南方能源观察",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 7,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:40.565Z"
+    },
+    {
+      "id": "mp:3201541388",
+      "name": "国家能源局",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 19,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:54.703Z"
+    },
+    {
+      "id": "mp:3099863021",
+      "name": "彭博新能源财经",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 12,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:05:06.787Z"
+    },
+    {
+      "id": "mp:3010302962",
+      "name": "海油工程微讯",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 8,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:05:05.034Z"
+    },
+    {
+      "id": "mp:3867577799",
+      "name": "海油智库",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 2,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:50.136Z"
+    },
+    {
+      "id": "mp:3553987152",
+      "name": "海洋开发咨询",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 10,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:05:01.599Z"
+    },
+    {
+      "id": "mp:3299105144",
+      "name": "海洋知圈",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 56,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:30.428Z"
+    },
+    {
+      "id": "mp:3081124774",
+      "name": "石油Link",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 6,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:47.424Z"
+    },
+    {
+      "id": "mp:3091110512",
+      "name": "石油商报",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 6,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:05:03.926Z"
+    },
+    {
+      "id": "mp:3861671611",
+      "name": "立方石油",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 44,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:44.057Z"
+    },
+    {
+      "id": "mp:2390762081",
+      "name": "能源情报",
+      "platform": "mp",
+      "enabled": true,
+      "posts": false,
+      "count": 7,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:39.822Z"
+    },
+    {
+      "id": "x:1241579611",
+      "name": "Clarksons Research",
+      "platform": "x",
+      "enabled": true,
+      "posts": true,
+      "count": 20,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:31.386Z"
+    },
+    {
+      "id": "x:84679163",
+      "name": "International Energy Agency",
+      "platform": "x",
+      "enabled": true,
+      "posts": true,
+      "count": 192,
+      "status": "partial",
+      "lastSync": "2026-10-11T06:50:57.040Z"
+    },
+    {
+      "id": "x:138163749",
+      "name": "Offshore",
+      "platform": "x",
+      "enabled": true,
+      "posts": true,
+      "count": 20,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:52.171Z"
+    },
+    {
+      "id": "x:176569624",
+      "name": "Offshore Energy - Alternative Fuels",
+      "platform": "x",
+      "enabled": true,
+      "posts": true,
+      "count": 20,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:51.063Z"
+    },
+    {
+      "id": "x:83303338",
+      "name": "Offshore Engineer",
+      "platform": "x",
+      "enabled": true,
+      "posts": true,
+      "count": 20,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:34.857Z"
+    },
+    {
+      "id": "x:22032260",
+      "name": "Oil by S&P Global Energy",
+      "platform": "x",
+      "enabled": true,
+      "posts": true,
+      "count": 21,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:37.123Z"
+    },
+    {
+      "id": "x:87241834",
+      "name": "OilPrice.com",
+      "platform": "x",
+      "enabled": true,
+      "posts": true,
+      "count": 26,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:38.040Z"
+    },
+    {
+      "id": "x:950687846469390336",
+      "name": "OPEC",
+      "platform": "x",
+      "enabled": true,
+      "posts": true,
+      "count": 16,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:33.219Z"
+    },
+    {
+      "id": "x:58793497",
+      "name": "OPEC News+",
+      "platform": "x",
+      "enabled": true,
+      "posts": true,
+      "count": 33,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:32.307Z"
+    },
+    {
+      "id": "x:316383161",
+      "name": "Wood Mackenzie",
+      "platform": "x",
+      "enabled": true,
+      "posts": true,
+      "count": 20,
+      "status": "completed",
+      "lastSync": "2026-10-11T07:00:35.965Z"
+    }
+  ],
+  "主任务新增": 330,
+  "含线程新增": 347,
+  "后台状态": {
+    "posts": 158,
+    "assets": 0,
+    "failed": 0,
+    "status": "running",
+    "documents": 0,
+    "lastRunAt": "2026-10-11T07:04:56.312Z"
+  },
+  "外链实测": [
+    {
+      "post": "https://x.com/i/web/status/2108340665449111965",
+      "publishedAt": "2026-10-08T23:36:00.000Z",
+      "url": "https://t.co/fJABzT4T58",
+      "finalUrl": "https://www.offshore-mag.com/renewable-energy/news/55410737/north-sea-projects-and-vessel-developments-lead-this-weeks-offshore-wind-updates",
+      "http": 200,
+      "kind": "html",
+      "chain": [
+        "https://t.co/fJABzT4T58",
+        "https://www.offshore-mag.com/renewable-energy/news/55410737/north-sea-projects-and-vessel-developments-lead-this-weeks-offshore-wind-updates"
+      ],
+      "title": "North Sea projects and vessel developments lead this week's offshore wind updates",
+      "access": "public",
+      "bodyLength": 10519,
+      "tables": 0,
+      "images": 9
+    },
+    {
+      "post": "https://x.com/i/web/status/2108339326430105940",
+      "publishedAt": "2026-10-08T23:30:41.000Z",
+      "url": "https://t.co/V8scBMEGZ3",
+      "finalUrl": "https://www.offshore-mag.com/regional-reports/latin-america/news/55410631/brazils-anp-awards-56-exploration-areas-in-dual-oct-7-rounds",
+      "http": 200,
+      "kind": "html",
+      "chain": [
+        "https://t.co/V8scBMEGZ3",
+        "https://www.offshore-mag.com/regional-reports/latin-america/news/55410631/brazils-anp-awards-56-exploration-areas-in-dual-oct-7-rounds"
+      ],
+      "title": "Brazil’s ANP awards 56 exploration areas in dual Oct. 7 rounds",
+      "access": "public",
+      "bodyLength": 3784,
+      "tables": 0,
+      "images": 6
+    },
+    {
+      "post": "https://x.com/i/web/status/2108338743786783171",
+      "publishedAt": "2026-10-08T23:28:22.000Z",
+      "url": "https://t.co/elqxFHr2P3",
+      "finalUrl": "https://www.offshore-mag.com/business-briefs/equipment-engineering/news/55410658/slb-chevron-joins-slb-totalenergies-digital-subsurface-collaboration",
+      "http": 200,
+      "kind": "html",
+      "chain": [
+        "https://t.co/elqxFHr2P3",
+        "https://www.offshore-mag.com/business-briefs/equipment-engineering/news/55410658/slb-chevron-joins-slb-totalenergies-digital-subsurface-collaboration"
+      ],
+      "title": "Chevron joins SLB-TotalEnergies digital subsurface collaboration",
+      "access": "public",
+      "bodyLength": 407,
+      "tables": 0,
+      "images": 0
+    }
+  ],
+  "图表变化": [
+    [
+      "六大行业：来源与资料层级",
+      110,
+      121
+    ],
+    [
+      "从渠道到行业：资料覆盖分布",
+      110,
+      121
+    ],
+    [
+      "2026：资讯发布节奏",
+      106,
+      117
+    ],
+    [
+      "海洋油气：渠道与资料结构",
+      44,
+      47
+    ],
+    [
+      "海上风电：渠道与资料结构",
+      9,
+      12
+    ],
+    [
+      "海洋低碳：渠道与资料结构",
+      13,
+      14
+    ],
+    [
+      "海洋装备：渠道与资料结构",
+      29,
+      33
+    ]
+  ]
+}

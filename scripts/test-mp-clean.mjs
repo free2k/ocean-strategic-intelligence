@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {cleanMPContent,prepareMPItem} from '../server/integrations/mp-content-clean.mjs';
+const body='万吨级深远海工程勘测船完成研发，作业水深1500米。'.repeat(12)+'\n信息来源：中交公规院。';
+const raw=body+'\n►《海洋生物图鉴》正式出版！\n►《海岸研究》正式出版！\n►《海洋报告》正式出版！\n如您喜欢，请点赞并点亮在看';
+assert.equal(cleanMPContent(raw).content,body);
+assert.equal(cleanMPContent(body+'\n**如您喜欢，请“点赞”并点亮“在看”**').content,body);
+const real=body+'\n采访中研究者说喜欢这项技术，报道介绍了项目投资规模。';
+assert.equal(cleanMPContent(real).content,real);
+assert.equal(cleanMPContent(body+'\n推荐阅读\n无关推荐').content,body);
+assert.equal(cleanMPContent(body+'\n本研究推荐阅读完整报告。').content,body+'\n本研究推荐阅读完整报告。');
+const a=prepareMPItem({kind:'mp_article',title:'勘测船',content:raw,publishedAt:'2026-10-11'});
+assert.equal(a.originalContent,raw);assert.equal(a.hash,prepareMPItem(a).hash);
+const x={kind:'x_post',content:raw};assert.equal(prepareMPItem(x),x);
+console.log('7 cleaner regression checks passed');

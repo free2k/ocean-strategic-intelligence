@@ -1,3 +1,4 @@
+// MP_CLEAN_V1
 import fs from 'node:fs/promises';import path from 'node:path';import pg from 'pg';
 import {id,chunks,mergeRecords} from './core.mjs';import {ruleExtract} from './rules.mjs';
 import {importXEvidence} from './import-x-evidence.mjs';
@@ -16,7 +17,7 @@ try{
  for(const row of rows){const p=row.payload,docId=id('doc',p.url),versionId=id('ver',p.url+p.hash);const existing=data.documents.find(d=>d.id===docId||d.url===p.url);if(existing?.providerHash===p.hash){existing.industry=row.classification;if(row.classification.primary)existing.topic=row.classification.primary;existing.discovery=p.discovery;if(p.contentZh){existing.contentZh=p.contentZh;existing.titleZh=p.titleZh||existing.titleZh;existing.translationVersion=existing.versionId;}continue;}
   // Keep manually entered records and separately collected originals; no overwrite by an aggregator.
   if(existing&&!existing.providerHash)continue;
-  const d={id:docId,versionId,contentHash:p.hash,providerHash:p.hash,sourceId:'mp2rss_'+row.subscription_id,url:p.url,title:p.title,titleZh:p.title,content:p.content,language:p.language,publishedAt:p.publishedAt,publishedPrecision:'second',collectedAt:row.updated_at.toISOString(),originalPublisher:p.author,platform:p.source.platform==='mp'?'微信公众号':'X',provider:'Mp2RSS',contentKind:p.kind,articleId:row.article_id,context:p.context,discovery:p.discovery,industry:row.classification,chunks:chunks(p.content),extractionStatus:'candidate',extractionVersion:'rules-v1'};
+  const d={id:docId,versionId,contentHash:p.hash,providerHash:p.hash,sourceId:'mp2rss_'+row.subscription_id,url:p.url,title:p.title,titleZh:p.title,content:p.content,originalContent:p.originalContent,cleaning:p.cleaning,language:p.language,publishedAt:p.publishedAt,publishedPrecision:'second',collectedAt:row.updated_at.toISOString(),originalPublisher:p.author,platform:p.source.platform==='mp'?'微信公众号':'X',provider:'Mp2RSS',contentKind:p.kind,articleId:row.article_id,context:p.context,discovery:p.discovery,industry:row.classification,chunks:chunks(p.content),extractionStatus:'candidate',extractionVersion:'rules-v1'};
   if(p.contentZh){d.contentZh=p.contentZh;d.titleZh=p.titleZh||d.title;d.translationVersion=versionId;d.translationModel=p.translationModel;d.translatedAt=p.translatedAt;}
   d.extraction=ruleExtract(d);d.topic=row.classification.primary||d.extraction.topic;d.summaryZh=d.extraction.summaryZh;
   d.evidenceAssets=linkRows.filter(a=>a.origins.some(o=>o.postUrl===p.url)).map(a=>({url:a.url,status:a.status,...a.payload}));

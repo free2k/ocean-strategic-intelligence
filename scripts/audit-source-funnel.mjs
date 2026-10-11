@@ -1,0 +1,5 @@
+import {pool} from '../server/integrations/mp2rss-store.mjs';
+try{
+const ss=(await pool.query("SELECT id,payload->>'name' name FROM mp2rss.subscriptions WHERE id IN ('mp:3299105144','mp:3091110512','mp:3099863021','mp:3010302962')")).rows;
+for(const s of ss){const rows=(await pool.query("SELECT i.payload->>'title' title,i.payload->>'contentStatus' body,i.classification,d.id delivered,d.payload->'industry' deliveredClassification FROM mp2rss.items i LEFT JOIN ocean_intel.documents d ON d.payload->>'url'=i.payload->>'url' WHERE i.subscription_id=$1",[s.id])).rows;console.log(JSON.stringify({source:s.name,total:rows.length,body:rows.filter(r=>r.body==='complete').length,counts:rows.reduce((a,r)=>(a[r.classification.status]=(a[r.classification.status]||0)+1,a),{}),delivered:rows.filter(r=>r.delivered).length,reasons:rows.reduce((a,r)=>(a[r.classification.reason]=(a[r.classification.reason]||0)+1,a),{}),samples:rows.slice(0,9).map(r=>({title:r.title,status:r.classification.status,reason:r.classification.reason,negative:r.classification.negative,positive:r.classification.positive}))}));}
+}finally{await pool.end();}
