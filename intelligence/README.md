@@ -16,6 +16,14 @@
 
 未指定页面时默认进入“全球态势总览”。原有 `#sources`、`#library`、`#events`、`#dashboard`、`#graph`、`#analysis`、`#research` 链接保持有效。
 
+## 页面响应优化
+
+标签切换先显示对应页面，按同一筛选范围复用一分钟内的数据读取；刷新在后台完成，过期请求不会覆盖后来选择的页面。采集分类统计单独通过受登录保护的 `/api/source-funnels` 加载，不阻塞主数据接口；服务器合并并发统计读取并缓存一分钟。`/api/data` 支持 gzip，图表依据表格在展开时生成，原始记录保持完整。
+
+程序重启不再写入采集状态文件；实际采集任务仍按原有流程保存状态。升级只替换程序文件，不执行采集、导入或数据库迁移。
+
+验证：`node --test intelligence/performance.test.mjs`，以及浏览器中的连续切换、慢请求、研究输入保留和绘图依据展开检查。
+
 ## 运行
 
 Node.js 20.6+。复用项目已有的 pg、undici、linkedom、Readability、fast-xml-parser、openai 依赖。
