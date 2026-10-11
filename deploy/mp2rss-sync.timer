@@ -1,0 +1,10 @@
+[Unit]
+Description=Check Mp2RSS requested jobs every minute (automatic sync every 30 minutes)
+
+[Timer]
+OnBootSec=1min
+OnUnitInactiveSec=1min
+AccuracySec=10s
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,14 @@
+const fs=require('fs'),{chromium}=require('playwright-core');
+(async()=>{const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});try{
+ const context=await browser.newContext({viewport:{width:1440,height:1000},...(fs.existsSync('.data/mp2rss/session.json')?{storageState:'.data/mp2rss/session.json'}:{})}),base='http://49.233.77.111';
+ if(!fs.existsSync('.data/mp2rss/session.json')){const login=await context.request.post(base+'/api/auth/login',{data:{password:process.env.SITE_PASSWORD}});if(!login.ok())throw Error('Normal login failed');}
+ const r=await context.request.get(base+'/api/subscriptions');if(!r.ok())throw Error('Subscriptions unavailable');const data=await r.json();
+ const token=new URL(process.env.MP2_RSS_LINK).pathname.split('/')[2];if(JSON.stringify(data).includes(token))throw Error('Credential exposed');
+ const row=data.list[0];const update=await context.request.post(base+'/api/subscriptions/action',{data:{action:'update',id:row.id,enabled:row.enabled,posts:row.posts,articles:row.articles}});if(!update.ok())throw Error('Update failed');
+ const old=await context.request.get(base+'/api/wechat/auth/status');if(old.status()!==410)throw Error('Legacy collector not retired');
+ const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message.slice(0,150)));await page.goto(base+'/wechat/subscriptions',{waitUntil:'networkidle'});await page.getByRole('heading',{name:'公众号与 X 订阅管理'}).waitFor();if((await page.content()).includes(token))throw Error('Credential in HTML');await page.screenshot({path:'.data/mp2rss/desktop.png',fullPage:true});
+ await page.getByRole('button',{name:'刷新远端订阅',exact:true}).click();await page.waitForTimeout(1500);
+ await page.setViewportSize({width:390,height:844});await page.screenshot({path:'.data/mp2rss/mobile.png',fullPage:true});const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
+ await page.goto(base+'/wechat/accounts',{waitUntil:'networkidle'});const redirected=new URL(page.url()).pathname==='/wechat/subscriptions';
+ const summary={subscriptions:data.list.length,articles:data.list.reduce((n,s)=>n+s.count,0),bridge:data.bridge,legacyStatus:old.status(),mobileOverflow:overflow,oldPageRedirected:redirected,pageErrors:errors};fs.writeFileSync('.data/mp2rss/ui-verification.json',JSON.stringify(summary,null,2));console.log(JSON.stringify(summary));if(overflow||errors.length||!redirected)process.exitCode=1;
+}finally{await browser.close();}})().catch(e=>{console.error(['Normal login failed','Subscriptions unavailable','Update failed','Legacy collector not retired','Credential exposed','Credential in HTML'].includes(e.message)?e.message:'Browser validation failed (details withheld to protect credentials)');process.exitCode=1});

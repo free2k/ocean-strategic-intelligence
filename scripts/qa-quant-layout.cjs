@@ -1,0 +1,9 @@
+const {chromium}=require('playwright-core');
+(async()=>{const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});try{const context=await browser.newContext({storageState:'.data/open-test-session.json',viewport:{width:1500,height:1000}}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://49.233.77.111/ocean-intelligence/#analysis',{waitUntil:'networkidle'});
+await page.locator('#topic').selectOption('宏观政策');await page.waitForFunction(()=>document.querySelector('#quant-native')?.shadowRoot?.querySelector('#scope')?.textContent.includes('宏观政策'));
+await page.locator('#quant-native [data-tab="coverage"]').click();const scope=await page.locator('#quant-native #scope').textContent();
+await page.locator('#source').selectOption('uk-repd');await page.locator('#quant-native [data-tab="templates"]').click();await page.waitForFunction(()=>[...document.querySelector('#quant-native').shadowRoot.querySelectorAll('.demo-chart')].every(el=>window.echarts.getInstanceByDom(el)));await page.waitForTimeout(400);
+const demos=await page.locator('#quant-native .demo-chart').count(),matches=await page.locator('#quant-native .template-copy .tag').allTextContents();await page.screenshot({path:'.data/open-stage/layout-dark-desktop.png',fullPage:true});
+await page.setViewportSize({width:390,height:844});await page.screenshot({path:'.data/open-stage/layout-dark-mobile.png',fullPage:true});const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
+console.log(JSON.stringify({scopePreserved:scope.includes('宏观政策'),emptyScopeDemos:demos,noLiveMatches:matches.every(t=>t.includes('暂无匹配')),overflow,errors}));if(demos!==16||overflow||errors.length||matches.some(t=>!t.includes('暂无匹配')))process.exitCode=1;
+}finally{await browser.close();}})().catch(e=>{console.error(e.message);process.exitCode=1;});

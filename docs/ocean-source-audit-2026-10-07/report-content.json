@@ -1,0 +1,1521 @@
+{
+  "blocks": [
+    {
+      "type": "h",
+      "text": "海洋能源资讯渠道可靠性与趋势数据核验报告",
+      "level": 0
+    },
+    {
+      "type": "p",
+      "text": "独立调研报告｜2026-10-07｜面向业务评审与数据选型"
+    },
+    {
+      "type": "p",
+      "text": "目标：确认哪些渠道值得信任、哪些能够实际获取、近期更新到什么时间、历史资料能否支撑趋势。本文包含实际采集样例与可复用数据表，不将“官网可打开”当作“接口已接通”。此前需求文档保持不变。"
+    },
+    {
+      "type": "h",
+      "text": "1 核验结果与优先选择",
+      "level": 1
+    },
+    {
+      "type": "p",
+      "text": "本轮对36个入口完成初始只读检查，并对10个数据或文章入口补充验证。覆盖原台账中的32项具体来源及4个样例入口；沿海省市集合未作为单个来源测试。使用本地10808代理处理直连网络失败，未购买服务、注册账号或调用付费模型。"
+    },
+    {
+      "type": "t",
+      "heads": [
+        "已经拿到什么",
+        "适合展示什么",
+        "不能据此宣称什么"
+      ],
+      "rows": [
+        [
+          "4个RSS，合计129条元数据；其中3篇文章标题另行核对",
+          "近期资讯列表、主题线索、事件候选",
+          "不是129个已核验事件，也不是完整历史新闻库"
+        ],
+        [
+          "EIA 547个月度观察值，1981-01至2026-07",
+          "长期及近年海上原油趋势、同比/环比",
+          "本次来自官方网页表，不是已认证API调用"
+        ],
+        [
+          "挪威2026年1—8月初步生产公告数值",
+          "较新的月度生产走势",
+          "未取得最终修订序列；本地公告读取受限"
+        ],
+        [
+          "中国海上风电3个时点的累计并网容量",
+          "2024年底至2026年中的规模变化",
+          "非完整月度序列；2025年末原值精度较低"
+        ],
+        [
+          "Transocean报告中的3个季度比较值",
+          "公司平台利用率同比/环比",
+          "非全球平台市场指标；缺失季度不插值"
+        ],
+        [
+          "SODIR 3个油气田要素、EMODnet 2个风场要素",
+          "地图位置、项目/设施属性样例",
+          "抽样不是全量；空间接口不等于实时运营数据"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "建议首批组合：EIA＋国家能源局＋Transocean 支撑数值趋势；Offshore Energy＋OffshoreWIND 支撑资讯发现；SODIR＋EMODnet 支撑空间分布；企业与项目官网支撑事件和关系证据。商业机构作为补充选项，不应成为首个演示版本的唯一数据依赖。"
+    },
+    {
+      "type": "h",
+      "text": "2 “可靠”如何判断",
+      "level": 1
+    },
+    {
+      "type": "t",
+      "heads": [
+        "判断维度",
+        "本次检查方法",
+        "结论边界"
+      ],
+      "rows": [
+        [
+          "发布者可信度",
+          "确认官方域名、机构/企业主体、原始发布还是转载",
+          "官方企业对自身项目是一手来源，但预测和宣传口径仍需标识"
+        ],
+        [
+          "数据可追溯性",
+          "记录标题、原文地址、发布日期、统计期、数值与单位",
+          "不依据新闻标题直接确认合作、金额或实际产量"
+        ],
+        [
+          "获取可用性",
+          "直连请求；网络失败后尝试本地代理；检查返回内容而非仅看状态码",
+          "单次成功不证明全天候稳定；本报告不提供虚构的稳定率"
+        ],
+        [
+          "时间新鲜度",
+          "分开登记新闻日期、统计期、发布期和采集时刻",
+          "最新统计可能滞后数周或数月；目录最新文章也可能与海洋无关"
+        ],
+        [
+          "历史连续性",
+          "检查历史表格/报告，并提取可比数值",
+          "RSS常只保留最近几十条，不能倒推出过去数月新闻热度"
+        ],
+        [
+          "开放与授权",
+          "区分无需认证的读取、免费注册API、商业API和受限社媒",
+          "本次成功读取不代表所有再分发、全文保存和AI加工权已确认"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "对平台采用逐账号判断：公众号、X、LinkedIn、NewsAPI 不是统一可信的“作者”。同一机构官网与社媒转发不算两份独立证据；同集团媒体转载也不能人为增加证据数量。"
+    },
+    {
+      "type": "h",
+      "text": "3 近期资讯采集结果",
+      "level": 1
+    },
+    {
+      "type": "t",
+      "heads": [
+        "订阅源",
+        "条数 / 本次窗口",
+        "可靠性与用途"
+      ],
+      "rows": [
+        [
+          "Oilprice.com [S07]",
+          "15条；Tue, 06 Oct 2026 14:00:00 -0500 → Wed, 07 Oct 2026 07:30:00 -0500",
+          "覆盖广，普通油价和财政话题不自动纳入核心库"
+        ],
+        [
+          "EIA Today in Energy [S12]",
+          "14条；Tue, 01 Sep 2026 09:00:00 EST → Wed, 07 Oct 2026 09:00:00 EST",
+          "官方能源背景资料，仍需海洋主题筛选"
+        ],
+        [
+          "Offshore Energy [S14]",
+          "50条；Tue, 29 Sep 2026 14:06:20 GMT → Wed, 07 Oct 2026 10:57:09 GMT",
+          "海洋专题相关度较高，关键事实回溯企业/项目公告"
+        ],
+        [
+          "OffshoreWIND.biz [S15]",
+          "50条；Mon, 21 Sep 2026 09:52:20 GMT → Wed, 07 Oct 2026 10:43:12 GMT",
+          "海洋专题相关度较高，关键事实回溯企业/项目公告"
+        ]
+      ]
+    },
+    {
+      "type": "t",
+      "heads": [
+        "近期文章样例（中文释义）",
+        "原始日期 / 来源",
+        "本次验证到哪一层"
+      ],
+      "rows": [
+        [
+          "Yinson Production 与 Eni 扩大非洲FPSO天然气能力 [R01]",
+          "2026-10-05；Offshore Energy",
+          "RSS条目与原文标题一致；正文事实未逐条核验"
+        ],
+        [
+          "海上风电水下电池系统部署前完成测试 [R02]",
+          "2026-10-06；Offshore Energy",
+          "RSS条目与原文标题一致；不由标题推导商业投运"
+        ],
+        [
+          "Vestas 与深水风电技术开发商合作 [R03]",
+          "2026-10-07；OffshoreWIND",
+          "RSS条目与原文标题一致；合作双方角色待正文核验"
+        ],
+        [
+          "Northern Lights 与 Öresundskraft 的运输封存协议 [N01]",
+          "2026-10-01；官方新闻目录",
+          "目录已读到；协议能力不等于实际封存量"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "发现1条日期需要额外核对：保留原始时区字符串，不直接改写。对于RSS给出的发布时间晚于采集时刻的条目，先列为“时间待核验”，不纳入严格的截至时刻统计。CSV中保留逐条标记。"
+    },
+    {
+      "type": "p",
+      "text": "历史资讯方案：先回补官网档案、历史月报/季报和获授权新闻库；从正式接入日开始持续保留RSS增量。未补齐的月份显示“未覆盖”，不能填零后绘制新闻热度下降趋势。"
+    },
+    {
+      "type": "h",
+      "text": "4 已取得的真实趋势数据",
+      "level": 1
+    },
+    {
+      "type": "h",
+      "text": "4.1 EIA：连续海上原油月序列",
+      "level": 2
+    },
+    {
+      "type": "chart",
+      "title": "美国联邦海域海湾原油月度日均产量｜千桶/日",
+      "rows": [
+        [
+          "2025-01",
+          1808
+        ],
+        [
+          "2025-02",
+          1774
+        ],
+        [
+          "2025-03",
+          1811
+        ],
+        [
+          "2025-04",
+          1830
+        ],
+        [
+          "2025-05",
+          1843
+        ],
+        [
+          "2025-06",
+          1941
+        ],
+        [
+          "2025-07",
+          1926
+        ],
+        [
+          "2025-08",
+          2025
+        ],
+        [
+          "2025-09",
+          2054
+        ],
+        [
+          "2025-10",
+          2133
+        ],
+        [
+          "2025-11",
+          2058
+        ],
+        [
+          "2025-12",
+          2087
+        ],
+        [
+          "2026-01",
+          2060
+        ],
+        [
+          "2026-02",
+          1984
+        ],
+        [
+          "2026-03",
+          1990
+        ],
+        [
+          "2026-04",
+          2123
+        ],
+        [
+          "2026-05",
+          1958
+        ],
+        [
+          "2026-06",
+          2042
+        ],
+        [
+          "2026-07",
+          2043
+        ]
+      ],
+      "max": 2500,
+      "note": "来源 [D01]；1981年以来完整采集值在附件，图示2025-01至2026-07。发布于2026-09-30。"
+    },
+    {
+      "type": "p",
+      "text": "样例计算：2026年7月为2043千桶/日，较2025年7月1926增长6.07%；较6月2042增长0.05%。公式为（本期/基期−1）×100%。这些是本次下载版本的区域产量变化，不是全球海上油气走势。"
+    },
+    {
+      "type": "p",
+      "text": "API官方提供免费注册Key，本次没有账号认证调用；已通过公开统计表取得全部样例。图表使用统计月份而非发布日期；月度日均流量不能直接相加当作累计总产量。"
+    },
+    {
+      "type": "h",
+      "text": "4.2 挪威：近期生产公告",
+      "level": 2
+    },
+    {
+      "type": "chart",
+      "title": "挪威油、NGL与凝析油初步月度日均产量｜千桶/日",
+      "rows": [
+        [
+          "2026-01",
+          2219
+        ],
+        [
+          "2026-02",
+          2176
+        ],
+        [
+          "2026-03",
+          2152
+        ],
+        [
+          "2026-04",
+          2158
+        ],
+        [
+          "2026-05",
+          1909
+        ],
+        [
+          "2026-06",
+          2022
+        ],
+        [
+          "2026-07",
+          1976
+        ],
+        [
+          "2026-08",
+          2073
+        ]
+      ],
+      "max": 2500,
+      "note": "来源 [NO]；各月首次公布的初步值，最新2026-08于2026-09-22发布；可能后续修订。"
+    },
+    {
+      "type": "p",
+      "text": "本组数值经官方目录的浏览检索结果核对，本地直接获取目录及8月正文返回403，因此与本地成功解析的EIA序列分开标识。正式接入应取得官方最新修订表再计算严谨同比；目前可展示“各月初步披露值走势”。其介质包括NGL和凝析油，不能与EIA原油口径直接叠加。"
+    },
+    {
+      "type": "h",
+      "text": "4.3 国内海上风电：公开统计快照",
+      "level": 2
+    },
+    {
+      "type": "chart",
+      "title": "中国海上风电累计并网容量｜GW",
+      "rows": [
+        [
+          "2024-12",
+          41.27
+        ],
+        [
+          "2025-12",
+          47
+        ],
+        [
+          "2026-06",
+          48.41
+        ]
+      ],
+      "max": 60,
+      "note": "来源：2024末 [C24]、2025末 [C25]、2026年中 [D04]；2025末原文为0.47亿千瓦，图中47按近似值理解。"
+    },
+    {
+      "type": "p",
+      "text": "这三份官方材料已经本地取得。适合使用离散时点条形图；不生成虚构月度值。2026年上半年新增海上风电84万千瓦，与2025年末粗精度累计值相减所得结果不能强行对账；可能涉及取整或统计调整，应保留原披露口径。全国风电发电量和利用率包含陆上部分，不进入“海上风电发电量”指标。"
+    },
+    {
+      "type": "h",
+      "text": "4.4 海工装备：公司季度比较",
+      "level": 2
+    },
+    {
+      "type": "chart",
+      "title": "Transocean 全船队钻井平台利用率｜%",
+      "rows": [
+        [
+          "2025-Q2",
+          67.3
+        ],
+        [
+          "2026-Q1",
+          86.7
+        ],
+        [
+          "2026-Q2",
+          78.2
+        ]
+      ],
+      "max": 100,
+      "note": "来源 [D03]，2026-08-05发布。3个非连续季度作分类比较，未补齐季度不连线。"
+    },
+    {
+      "type": "p",
+      "text": "2026Q2为78.2%，较2026Q1的86.7%下降8.5个百分点，较2025Q2的67.3%上升10.9个百分点。原报告定义为作业天数占平台日历天数比例。它反映公司船队，并不是全市场利用率，也不等于收入效率。"
+    },
+    {
+      "type": "h",
+      "text": "5 地图数据能否真正获取",
+      "level": 1
+    },
+    {
+      "type": "t",
+      "heads": [
+        "服务",
+        "实测结果",
+        "数据时效及限制"
+      ],
+      "rows": [
+        [
+          "SODIR FactMaps [G01]",
+          "通过10808代理、无需登录，实际返回3个油气田要素与几何；不是只读取介绍页",
+          "具有名称、运营机构、状态、官方事实页链接；更新时间不等于投产时间；仅抽样"
+        ],
+        [
+          "EMODnet 海上风场 [G02]",
+          "直连、无需登录，实际返回2个风场要素及属性",
+          "样例含国家、容量、状态；updateyear=2024，不能标为实时数据"
+        ],
+        [
+          "新闻项目坐标",
+          "本轮未从每篇新闻提取坐标",
+          "只能定位到国家/海域时显示聚合，不猜测设施位置"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "这两个服务可以称为“本次无认证读取成功的公开空间服务”。是否开放读取、能否长期稳定访问、授权是否允许特定用途，是三个不同问题。地图要素不自动构成投资或供货关系；关系仍需公告正文证据。"
+    },
+    {
+      "type": "h",
+      "text": "6 渠道可靠性与接入建议总表",
+      "level": 1
+    },
+    {
+      "type": "p",
+      "text": "表中“可信度”按发布主体与资料类型判断，不是统一分数；“最新”只指本轮实际确认的样例，不承诺该站全部资料已检查。一次返回200也可能只是文档、登录页或空壳页面，只有取得条目、正文、表格或要素才提升验证等级。"
+    },
+    {
+      "type": "h",
+      "text": "6.1 RSS订阅",
+      "level": 2
+    },
+    {
+      "type": "t",
+      "heads": [
+        "来源 / 可信度",
+        "实测与近期/历史",
+        "建议与限制"
+      ],
+      "rows": [
+        [
+          "Oilprice.com [S07]。行业媒体：发现线索，重要事实回源",
+          "200 / 直连；Wed, 07 Oct 2026 07:30:00 -0500；RSS仅当前窗口，完整历史未验证",
+          "优先资讯线索；事实仍需回源。本次读取15条元数据；不视为完整历史或全部海洋主题。"
+        ],
+        [
+          "EIA Today in Energy [S12]。官方机构/统计平台：优先事实依据",
+          "200 / 直连；Wed, 07 Oct 2026 09:00:00 EST；RSS仅当前窗口，完整历史未验证",
+          "优先资讯线索；事实仍需回源。14?RSS???????????????EST?????????????????????????"
+        ],
+        [
+          "Offshore Energy [S14]。行业媒体：发现线索，重要事实回源",
+          "200 / 直连；Wed, 07 Oct 2026 10:57:09 GMT；RSS仅当前窗口，完整历史未验证",
+          "优先资讯线索；事实仍需回源。本次读取50条元数据；不视为完整历史或全部海洋主题。"
+        ],
+        [
+          "OffshoreWIND.biz [S15]。行业媒体：发现线索，重要事实回源",
+          "200 / 直连；Wed, 07 Oct 2026 10:43:12 GMT；RSS仅当前窗口，完整历史未验证",
+          "优先资讯线索；事实仍需回源。本次读取50条元数据；不视为完整历史或全部海洋主题。"
+        ]
+      ],
+      "kind": "E8F5EF"
+    },
+    {
+      "type": "h",
+      "text": "6.2 API / 数据服务",
+      "level": 2
+    },
+    {
+      "type": "t",
+      "heads": [
+        "来源 / 可信度",
+        "实测与近期/历史",
+        "建议与限制"
+      ],
+      "rows": [
+        [
+          "Wood Mackenzie [S03]。专业研究机构：方法与样本需核对",
+          "200 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "有条件：账号/授权/采购。产品介绍页可达，商业API未认证；先索取海上样本和历史覆盖。"
+        ],
+        [
+          "Rystad Energy [S04]。专业研究机构：方法与样本需核对",
+          "200 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "有条件：账号/授权/采购。产品介绍页可达，商业API未认证；历史、频率和加工权待询价。"
+        ],
+        [
+          "Clarksons Research [S05]。专业研究机构：方法与样本需核对",
+          "200 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "有条件：账号/授权/采购。官网可达；付费接口未认证；优先询价平台利用率、日租金和订单历史。"
+        ],
+        [
+          "EIA Open Data [S13]。官方机构/统计平台：优先事实依据",
+          "200 / 直连；统计到2026-07，发布2026-09-30；已采集1981-01至2026-07",
+          "优先趋势/空间数据试用。??API?????Key??????????????????547???????????????"
+        ],
+        [
+          "Norwegian Offshore Directorate [S16]。官方机构/统计平台：优先事实依据",
+          "200 / 10808代理；样例字段有更新时间，非统计时序；历史入口/产品范围待逐项验证",
+          "优先趋势/空间数据试用。代理下实际取得3个油气田要素及几何；可作地图底座，字段更新时间不是事件发生日。"
+        ],
+        [
+          "EMODnet Human Activities [S17]。官方机构/统计平台：优先事实依据",
+          "200 / 直连；抽样 updateyear=2024；历史入口/产品范围待逐项验证",
+          "优先趋势/空间数据试用。实际取得2个风场要素；样例 updateyear=2024，不能称实时现状。"
+        ],
+        [
+          "X 官方账号 [S28]。渠道/平台：可信度取决于具体发布者",
+          "200 / 10808代理；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "有条件：账号/授权/采购。代理能打开计费文档；没有社媒数据认证调用。"
+        ],
+        [
+          "NewsAPI [S30]。渠道/平台：可信度取决于具体发布者",
+          "200 / 10808代理；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "有条件：账号/授权/采购。代理能打开API文档；未认证获取；摘要不能当全文。"
+        ]
+      ],
+      "kind": "EAF2FC"
+    },
+    {
+      "type": "h",
+      "text": "6.3 官网栏目",
+      "level": 2
+    },
+    {
+      "type": "t",
+      "heads": [
+        "来源 / 可信度",
+        "实测与近期/历史",
+        "建议与限制"
+      ],
+      "rows": [
+        [
+          "Offshore Engineer [S06]。行业媒体：发现线索，重要事实回源",
+          "403 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。直连403；来源可用于线索，但当前不作为稳定采集承诺。"
+        ],
+        [
+          "Shell [S09]。企业/项目官方：自身业务一手披露",
+          "200 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。页面可达；正文、历史覆盖及连续稳定性尚待验证。"
+        ],
+        [
+          "ExxonMobil [S10]。企业/项目官方：自身业务一手披露",
+          "200 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。页面可达；正文、历史覆盖及连续稳定性尚待验证。"
+        ],
+        [
+          "Petrobras [S11]。企业/项目官方：自身业务一手披露",
+          "200 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。页面可达；正文、历史覆盖及连续稳定性尚待验证。"
+        ],
+        [
+          "国家能源局 [S20]。官方机构/统计平台：优先事实依据",
+          "200 / 直连；统计到2026-06，发布2026-07-30；已采集2024末/2025末/2026年中",
+          "优先趋势/空间数据试用。近期发布会正文和历史统计已取得；公开网页方式，不是开放API。"
+        ],
+        [
+          "自然资源部 [S21]。官方机构/统计平台：优先事实依据",
+          "200 / 10808代理；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。代理恢复页面访问；只证明入口可达，未建立连续专题数据。"
+        ],
+        [
+          "生态环境部 [S22]。官方机构/统计平台：优先事实依据",
+          "200 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。页面可达；正文、历史覆盖及连续稳定性尚待验证。"
+        ],
+        [
+          "中国政府网政策库 [S23]。官方机构/统计平台：优先事实依据",
+          "200 / 10808代理；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。代理恢复页面访问；政策原文须逐条核查。"
+        ],
+        [
+          "中国海油等海洋能源企业 [S25]。企业/项目官方：自身业务一手披露",
+          "200 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。中国海油官网入口可达；近期正文和历史覆盖尚未逐项核验。"
+        ],
+        [
+          "沿海省市主管部门。候选机构集合：逐源核实",
+          "未单独实测；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。不计入36个初始实测入口；仍需逐省确定真实栏目。"
+        ],
+        [
+          "Equinor [S31]。企业/项目官方：自身业务一手披露",
+          "200 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。官网新闻入口可达；近期海洋项目在公开目录可检索，持续采集待验证。"
+        ],
+        [
+          "Transocean [S32]。企业/项目官方：自身业务一手披露",
+          "200 / 直连；2026Q2，发布2026-08-05；本次取得3个可比季度",
+          "优先趋势/空间数据试用。已取得2026Q2业绩正文及利用率比较值；网页/报告获取，无公开API验证。"
+        ],
+        [
+          "Northern Lights [S33]。企业/项目官方：自身业务一手披露",
+          "404 / 直连；新目录200；目录可见2026-10-01；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。旧 /news/ 返回404；更正 /newsroom/ 后200，目录含2026-10-01项目消息。"
+        ]
+      ],
+      "kind": "F1EDF8"
+    },
+    {
+      "type": "h",
+      "text": "6.4 官方文件下载",
+      "level": 2
+    },
+    {
+      "type": "t",
+      "heads": [
+        "来源 / 可信度",
+        "实测与近期/历史",
+        "建议与限制"
+      ],
+      "rows": [
+        [
+          "IEA 国际能源署 [S01]。官方机构/统计平台：优先事实依据",
+          "403 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。官方目录直连403；不能作为当前已接通来源。报告与数据产品另确认授权。"
+        ],
+        [
+          "OPEC [S02]。官方机构/统计平台：优先事实依据",
+          "403 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。月报入口直连403；可人工下载或申请供稿，不承诺自动获取。"
+        ],
+        [
+          "IRENASTAT [S18]。官方机构/统计平台：优先事实依据",
+          "失败 / 10808代理；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。直连及代理存在证书校验失败；本次不列为自动接入成功。"
+        ],
+        [
+          "IEA OES [S19]。官方机构/统计平台：优先事实依据",
+          "200 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。页面可达；正文、历史覆盖及连续稳定性尚待验证。"
+        ],
+        [
+          "国家统计局 [S24]。官方机构/统计平台：优先事实依据",
+          "200 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "辅助来源；进一步抽样。页面可达；正文、历史覆盖及连续稳定性尚待验证。"
+        ]
+      ],
+      "kind": "FCF3DF"
+    },
+    {
+      "type": "h",
+      "text": "6.5 手动 / 授权渠道",
+      "level": 2
+    },
+    {
+      "type": "t",
+      "heads": [
+        "来源 / 可信度",
+        "实测与近期/历史",
+        "建议与限制"
+      ],
+      "rows": [
+        [
+          "Upstream Online [S08]。行业媒体：发现线索，重要事实回源",
+          "200 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "有条件：账号/授权/采购。订阅页可达，不等于订阅正文可批量获取。"
+        ],
+        [
+          "微信公众号 [S27]。渠道/平台：可信度取决于具体发布者",
+          "200 / 10808代理；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "有条件：账号/授权/采购。代理能打开官方文档；没有第三方公众号账号授权或文章接口调用。"
+        ],
+        [
+          "LinkedIn 官方机构页 [S29]。渠道/平台：可信度取决于具体发布者",
+          "200 / 直连；未逐篇核验最新时间；历史入口/产品范围待逐项验证",
+          "有条件：账号/授权/采购。权限文档可达；不承诺任意第三方机构页采集。"
+        ]
+      ],
+      "kind": "EDF0F3"
+    },
+    {
+      "type": "h",
+      "text": "7 本轮修正、缺口与后续采集策略",
+      "level": 1
+    },
+    {
+      "type": "t",
+      "heads": [
+        "发现",
+        "本轮结论",
+        "下一步应怎样使用"
+      ],
+      "rows": [
+        [
+          "Northern Lights旧目录404",
+          "已找到并验证 /newsroom/ 正确入口",
+          "更新渠道目录，保留旧链接失败记录"
+        ],
+        [
+          "SODIR直连超时",
+          "代理下空间要素查询成功，公告网页仍受限",
+          "空间与资讯分开登记可用状态，不能用一个成功代表全站成功"
+        ],
+        [
+          "IRENA证书失败",
+          "未关闭证书校验，本次自动获取未成功",
+          "暂人工下载或排查证书链，不能标已接入"
+        ],
+        [
+          "IEA/OPEC/OE返回403",
+          "资料可能权威，但当前自动采集不稳定",
+          "人工、订阅或正式数据交付作为备选"
+        ],
+        [
+          "国家能源局某页面200但正文依赖动态加载",
+          "状态码不代表已取得正文",
+          "优先本轮已成功读取的发布会和统计正文"
+        ],
+        [
+          "RSS只覆盖近期窗口",
+          "129条是采集快照，非完整历史样本",
+          "增量留存并补齐历史，再做资讯量变化分析"
+        ],
+        [
+          "付费机构与社媒",
+          "只核查入口/产品文档，未使用账号调用",
+          "授权或采购后单独验证历史跨度、字段和更新频率"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "建议按“先趋势、再事件、最后扩展覆盖”推进：先用已取得的公开时序与官方报告形成可追溯图表；再用RSS和企业公告形成事件与关系；对深度市场指标确有需求时再采购商业数据。研究报告必须区分数据变化、资料覆盖变化和机构预测。"
+    },
+    {
+      "type": "p",
+      "text": "稳定性尚未完成长期观察。后续上线验收建议覆盖连续多个更新周期，记录应到/实到、正文解析成功、延迟、改版及修订；本轮不虚构通过率。各来源都保存原文版本与发布时间，数据修订不静默覆盖既有研究快照。"
+    },
+    {
+      "type": "h",
+      "text": "附录：交付文件与复核入口",
+      "level": 1
+    },
+    {
+      "type": "t",
+      "heads": [
+        "文件",
+        "内容"
+      ],
+      "rows": [
+        [
+          "本报告 PDF / Word / HTML",
+          "业务结论、近期样例、四类真实趋势图与33项渠道台账"
+        ],
+        [
+          "渠道核验与真实趋势数据.xlsx",
+          "渠道核验、趋势数据、资讯元数据三个工作表"
+        ],
+        [
+          "trend-data.csv / JSON",
+          "561条数值观察；含统计期、单位、原值、发布日期和来源"
+        ],
+        [
+          "recent-news-metadata.csv",
+          "129条RSS元数据；含日期异常和主题候选标记"
+        ],
+        [
+          "channel-reliability.csv",
+          "33项渠道的独立可用性与可信度结论"
+        ],
+        [
+          "channel-probes.json / supplement-probes.json",
+          "36个初始入口与10个补充入口的实际结果及检查时刻"
+        ],
+        [
+          "G01-features.json / G02-features.json",
+          "本次公开空间服务返回的3个及2个要素样例"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "所有样例均为此次实际获取或明确注明的官方浏览核对值，没有向正式知识库导入，没有部署采集任务，也没有改变线上服务。近期新闻仅保留元数据并标记核验层级，不作为未经审查的既成事实。"
+    },
+    {
+      "type": "h",
+      "text": "参考入口",
+      "level": 2
+    },
+    {
+      "type": "p",
+      "text": "D01 EIA 海上原油月度表"
+    },
+    {
+      "type": "p",
+      "text": "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?f=M&n=PET&s=MCRFP3FM2"
+    },
+    {
+      "type": "p",
+      "text": "D03 Transocean 2026Q2"
+    },
+    {
+      "type": "p",
+      "text": "https://investor.deepwater.com/news-releases/news-release-details/transocean-ltd-reports-second-quarter-2026-results"
+    },
+    {
+      "type": "p",
+      "text": "D04 国家能源局 2026上半年发布会"
+    },
+    {
+      "type": "p",
+      "text": "https://www.nea.gov.cn/20260730/bb571bc20d7445e5ae7d9dc51c3f700d/c.html"
+    },
+    {
+      "type": "p",
+      "text": "C24 NEA 2024"
+    },
+    {
+      "type": "p",
+      "text": "https://www.nea.gov.cn/20250221/e10f363cabe3458aaf78ba4558970054/c.html"
+    },
+    {
+      "type": "p",
+      "text": "C25 NEA 2025"
+    },
+    {
+      "type": "p",
+      "text": "https://www.nea.gov.cn/20260212/742b8c6a078347b0b39de676c05c5d58/c.html"
+    },
+    {
+      "type": "p",
+      "text": "NO SODIR 月度公告目录"
+    },
+    {
+      "type": "p",
+      "text": "https://www.sodir.no/en/whats-new/news/production-figures/"
+    },
+    {
+      "type": "p",
+      "text": "G01 SODIR field feature query"
+    },
+    {
+      "type": "p",
+      "text": "https://factmaps.sodir.no/api/rest/services/DataService/Data/FeatureServer/7100/query?where=1%3D1&outFields=*&returnGeometry=true&outSR=4326&resultRecordCount=3&f=json"
+    },
+    {
+      "type": "p",
+      "text": "G02 EMODnet windfarms WFS"
+    },
+    {
+      "type": "p",
+      "text": "https://ows.emodnet-humanactivities.eu/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=emodnet:windfarms&count=2&outputFormat=application%2Fjson"
+    },
+    {
+      "type": "p",
+      "text": "N01 Northern Lights corrected newsroom"
+    },
+    {
+      "type": "p",
+      "text": "https://norlights.com/newsroom/"
+    },
+    {
+      "type": "p",
+      "text": "R01 Yinson Production and Eni amplifying African FPSO’s gas capacity"
+    },
+    {
+      "type": "p",
+      "text": "https://offshore-energy.biz/2026/10/05/yinson-production-and-eni-amplifying-african-fpsos-gas-capacity"
+    },
+    {
+      "type": "p",
+      "text": "R02 Subsea battery system for offshore wind completes test before deployment"
+    },
+    {
+      "type": "p",
+      "text": "https://offshore-energy.biz/2026/10/06/subsea-battery-system-for-offshore-wind-completes-test-before-deployment"
+    },
+    {
+      "type": "p",
+      "text": "R03 Vestas Partners with Deepwater Wind Technology Developer"
+    },
+    {
+      "type": "p",
+      "text": "https://offshorewind.biz/2026/10/07/vestas-partners-with-deepwater-wind-technology-developer"
+    }
+  ],
+  "refs": {
+    "S01": [
+      "IEA 国际能源署",
+      "https://www.iea.org/data-and-statistics/data-sets/"
+    ],
+    "S02": [
+      "OPEC",
+      "https://www.opec.org/monthly-oil-market-report.html"
+    ],
+    "S03": [
+      "Wood Mackenzie",
+      "https://www.woodmac.com/lens/direct/"
+    ],
+    "S04": [
+      "Rystad Energy",
+      "https://www.rystadenergy.com/spektra"
+    ],
+    "S05": [
+      "Clarksons Research",
+      "https://www.clarksons.com/research/"
+    ],
+    "S06": [
+      "Offshore Engineer",
+      "https://www.oedigital.com/"
+    ],
+    "S07": [
+      "Oilprice.com",
+      "https://oilprice.com/rss/main"
+    ],
+    "S08": [
+      "Upstream Online",
+      "https://www.upstreamonline.com/subscription/"
+    ],
+    "S09": [
+      "Shell",
+      "https://www.shell.com/news-and-insights/newsroom.html"
+    ],
+    "S10": [
+      "ExxonMobil",
+      "https://corporate.exxonmobil.com/news"
+    ],
+    "S11": [
+      "Petrobras",
+      "https://agencia.petrobras.com.br/en"
+    ],
+    "S12": [
+      "EIA Today in Energy",
+      "https://www.eia.gov/rss/todayinenergy.xml"
+    ],
+    "S13": [
+      "EIA Open Data",
+      "https://www.eia.gov/opendata/documentation.php"
+    ],
+    "S14": [
+      "Offshore Energy",
+      "https://www.offshore-energy.biz/feed/"
+    ],
+    "S15": [
+      "OffshoreWIND.biz",
+      "https://www.offshorewind.biz/feed/"
+    ],
+    "S16": [
+      "Norwegian Offshore Directorate",
+      "https://factmaps.sodir.no/api/rest/services/DataService/Data/FeatureServer?f=pjson"
+    ],
+    "S17": [
+      "EMODnet Human Activities",
+      "https://emodnet.ec.europa.eu/geonetwork/srv/api/records/8201070b-4b0b-4d54-8910-abcea5dce57f"
+    ],
+    "S18": [
+      "IRENASTAT",
+      "https://pxweb.irena.org/pxweb/en/"
+    ],
+    "S19": [
+      "IEA OES",
+      "https://www.ocean-energy-systems.org/publications/"
+    ],
+    "S20": [
+      "国家能源局",
+      "https://www.nea.gov.cn/"
+    ],
+    "S21": [
+      "自然资源部",
+      "https://www.mnr.gov.cn/"
+    ],
+    "S22": [
+      "生态环境部",
+      "https://www.mee.gov.cn/"
+    ],
+    "S23": [
+      "中国政府网政策库",
+      "https://www.gov.cn/zhengce/"
+    ],
+    "S24": [
+      "国家统计局",
+      "https://www.stats.gov.cn/"
+    ],
+    "S25": [
+      "中国海油等海洋能源企业",
+      "https://www.cnooc.com.cn/"
+    ],
+    "S26": [
+      "沿海省市主管部门",
+      "https://www.nea.gov.cn/"
+    ],
+    "S27": [
+      "微信公众号",
+      "https://developers.weixin.qq.com/doc/subscription/api/public/api_freepublish_batchget.html"
+    ],
+    "S28": [
+      "X 官方账号",
+      "https://docs.x.com/x-api/getting-started/pricing"
+    ],
+    "S29": [
+      "LinkedIn 官方机构页",
+      "https://learn.microsoft.com/en-us/linkedin/marketing/community-management/community-management-overview"
+    ],
+    "S30": [
+      "NewsAPI",
+      "https://newsapi.org/docs/endpoints/everything"
+    ],
+    "S31": [
+      "Equinor",
+      "https://www.equinor.com/news"
+    ],
+    "S32": [
+      "Transocean",
+      "https://investor.deepwater.com/"
+    ],
+    "S33": [
+      "Northern Lights 正确新闻目录",
+      "https://norlights.com/newsroom/"
+    ],
+    "D01": [
+      "EIA 海上原油月度表",
+      "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?f=M&n=PET&s=MCRFP3FM2"
+    ],
+    "D02": [
+      "SODIR 月度生产公告",
+      "https://www.sodir.no/en/whats-new/news/production-figures/"
+    ],
+    "D03": [
+      "Transocean 2026Q2",
+      "https://investor.deepwater.com/news-releases/news-release-details/transocean-ltd-reports-second-quarter-2026-results"
+    ],
+    "D04": [
+      "国家能源局 2026上半年发布会",
+      "https://www.nea.gov.cn/20260730/bb571bc20d7445e5ae7d9dc51c3f700d/c.html"
+    ],
+    "C24": [
+      "NEA 2024",
+      "https://www.nea.gov.cn/20250221/e10f363cabe3458aaf78ba4558970054/c.html"
+    ],
+    "G01": [
+      "SODIR field feature query",
+      "https://factmaps.sodir.no/api/rest/services/DataService/Data/FeatureServer/7100/query?where=1%3D1&outFields=*&returnGeometry=true&outSR=4326&resultRecordCount=3&f=json"
+    ],
+    "N01": [
+      "Northern Lights corrected newsroom",
+      "https://norlights.com/newsroom/"
+    ],
+    "G02": [
+      "EMODnet windfarms WFS",
+      "https://ows.emodnet-humanactivities.eu/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=emodnet:windfarms&count=2&outputFormat=application%2Fjson"
+    ],
+    "C25": [
+      "NEA 2025",
+      "https://www.nea.gov.cn/20260212/742b8c6a078347b0b39de676c05c5d58/c.html"
+    ],
+    "NO08": [
+      "SODIR August production",
+      "https://www.sodir.no/en/whats-new/news/production-figures/2026/production-figures-august-2026/"
+    ],
+    "C25H": [
+      "NEA 2025H1",
+      "https://obor.nea.gov.cn/detail2/22150.html"
+    ],
+    "R01": [
+      "Yinson Production and Eni amplifying African FPSO’s gas capacity",
+      "https://offshore-energy.biz/2026/10/05/yinson-production-and-eni-amplifying-african-fpsos-gas-capacity"
+    ],
+    "R02": [
+      "Subsea battery system for offshore wind completes test before deployment",
+      "https://offshore-energy.biz/2026/10/06/subsea-battery-system-for-offshore-wind-completes-test-before-deployment"
+    ],
+    "R03": [
+      "Vestas Partners with Deepwater Wind Technology Developer",
+      "https://offshorewind.biz/2026/10/07/vestas-partners-with-deepwater-wind-technology-developer"
+    ],
+    "NO": [
+      "SODIR 月度公告目录",
+      "https://www.sodir.no/en/whats-new/news/production-figures/"
+    ]
+  },
+  "ledger": [
+    {
+      "id": "S01",
+      "name": "IEA 国际能源署",
+      "authority": "官方机构/统计平台：优先事实依据",
+      "method": "官方文件下载",
+      "url": "https://www.iea.org/data-and-statistics/data-sets/",
+      "probe": "403 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "官方目录直连403；不能作为当前已接通来源。报告与数据产品另确认授权。",
+      "checked_at": "2026-10-07T13:14:32.316Z"
+    },
+    {
+      "id": "S02",
+      "name": "OPEC",
+      "authority": "官方机构/统计平台：优先事实依据",
+      "method": "官方文件下载",
+      "url": "https://www.opec.org/monthly-oil-market-report.html",
+      "probe": "403 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "月报入口直连403；可人工下载或申请供稿，不承诺自动获取。",
+      "checked_at": "2026-10-07T13:14:32.317Z"
+    },
+    {
+      "id": "S03",
+      "name": "Wood Mackenzie",
+      "authority": "专业研究机构：方法与样本需核对",
+      "method": "API/数据服务",
+      "url": "https://www.woodmac.com/lens/direct/",
+      "probe": "200 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "有条件：账号/授权/采购",
+      "note": "产品介绍页可达，商业API未认证；先索取海上样本和历史覆盖。",
+      "checked_at": "2026-10-07T13:14:32.318Z"
+    },
+    {
+      "id": "S04",
+      "name": "Rystad Energy",
+      "authority": "专业研究机构：方法与样本需核对",
+      "method": "API/数据服务",
+      "url": "https://www.rystadenergy.com/spektra",
+      "probe": "200 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "有条件：账号/授权/采购",
+      "note": "产品介绍页可达，商业API未认证；历史、频率和加工权待询价。",
+      "checked_at": "2026-10-07T13:14:32.318Z"
+    },
+    {
+      "id": "S05",
+      "name": "Clarksons Research",
+      "authority": "专业研究机构：方法与样本需核对",
+      "method": "API/数据服务",
+      "url": "https://www.clarksons.com/research/",
+      "probe": "200 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "有条件：账号/授权/采购",
+      "note": "官网可达；付费接口未认证；优先询价平台利用率、日租金和订单历史。",
+      "checked_at": "2026-10-07T13:14:32.318Z"
+    },
+    {
+      "id": "S06",
+      "name": "Offshore Engineer",
+      "authority": "行业媒体：发现线索，重要事实回源",
+      "method": "官网栏目",
+      "url": "https://www.oedigital.com/",
+      "probe": "403 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "直连403；来源可用于线索，但当前不作为稳定采集承诺。",
+      "checked_at": "2026-10-07T13:14:37.504Z"
+    },
+    {
+      "id": "S07",
+      "name": "Oilprice.com",
+      "authority": "行业媒体：发现线索，重要事实回源",
+      "method": "RSS订阅",
+      "url": "https://oilprice.com/rss/main",
+      "probe": "200 / 直连",
+      "latest": "Wed, 07 Oct 2026 07:30:00 -0500",
+      "history": "RSS仅当前窗口，完整历史未验证",
+      "decision": "优先资讯线索；事实仍需回源",
+      "note": "本次读取15条元数据；不视为完整历史或全部海洋主题。",
+      "checked_at": "2026-10-07T13:14:37.505Z"
+    },
+    {
+      "id": "S08",
+      "name": "Upstream Online",
+      "authority": "行业媒体：发现线索，重要事实回源",
+      "method": "手动/授权",
+      "url": "https://www.upstreamonline.com/subscription/",
+      "probe": "200 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "有条件：账号/授权/采购",
+      "note": "订阅页可达，不等于订阅正文可批量获取。",
+      "checked_at": "2026-10-07T13:14:37.505Z"
+    },
+    {
+      "id": "S09",
+      "name": "Shell",
+      "authority": "企业/项目官方：自身业务一手披露",
+      "method": "官网栏目",
+      "url": "https://www.shell.com/news-and-insights/newsroom.html",
+      "probe": "200 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "页面可达；正文、历史覆盖及连续稳定性尚待验证。",
+      "checked_at": "2026-10-07T13:14:37.505Z"
+    },
+    {
+      "id": "S10",
+      "name": "ExxonMobil",
+      "authority": "企业/项目官方：自身业务一手披露",
+      "method": "官网栏目",
+      "url": "https://corporate.exxonmobil.com/news",
+      "probe": "200 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "页面可达；正文、历史覆盖及连续稳定性尚待验证。",
+      "checked_at": "2026-10-07T13:14:37.505Z"
+    },
+    {
+      "id": "S11",
+      "name": "Petrobras",
+      "authority": "企业/项目官方：自身业务一手披露",
+      "method": "官网栏目",
+      "url": "https://agencia.petrobras.com.br/en",
+      "probe": "200 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "页面可达；正文、历史覆盖及连续稳定性尚待验证。",
+      "checked_at": "2026-10-07T13:14:40.846Z"
+    },
+    {
+      "id": "S12",
+      "name": "EIA Today in Energy",
+      "authority": "官方机构/统计平台：优先事实依据",
+      "method": "RSS订阅",
+      "url": "https://www.eia.gov/rss/todayinenergy.xml",
+      "probe": "200 / 直连",
+      "latest": "Wed, 07 Oct 2026 09:00:00 EST",
+      "history": "RSS仅当前窗口，完整历史未验证",
+      "decision": "优先资讯线索；事实仍需回源",
+      "note": "14?RSS???????????????EST?????????????????????????",
+      "checked_at": "2026-10-07T13:14:40.846Z"
+    },
+    {
+      "id": "S13",
+      "name": "EIA Open Data",
+      "authority": "官方机构/统计平台：优先事实依据",
+      "method": "API/数据服务",
+      "url": "https://www.eia.gov/opendata/documentation.php",
+      "probe": "200 / 直连",
+      "latest": "统计到2026-07，发布2026-09-30",
+      "history": "已采集1981-01至2026-07",
+      "decision": "优先趋势/空间数据试用",
+      "note": "??API?????Key??????????????????547???????????????",
+      "checked_at": "2026-10-07T13:14:40.847Z"
+    },
+    {
+      "id": "S14",
+      "name": "Offshore Energy",
+      "authority": "行业媒体：发现线索，重要事实回源",
+      "method": "RSS订阅",
+      "url": "https://www.offshore-energy.biz/feed/",
+      "probe": "200 / 直连",
+      "latest": "Wed, 07 Oct 2026 10:57:09 GMT",
+      "history": "RSS仅当前窗口，完整历史未验证",
+      "decision": "优先资讯线索；事实仍需回源",
+      "note": "本次读取50条元数据；不视为完整历史或全部海洋主题。",
+      "checked_at": "2026-10-07T13:14:40.847Z"
+    },
+    {
+      "id": "S15",
+      "name": "OffshoreWIND.biz",
+      "authority": "行业媒体：发现线索，重要事实回源",
+      "method": "RSS订阅",
+      "url": "https://www.offshorewind.biz/feed/",
+      "probe": "200 / 直连",
+      "latest": "Wed, 07 Oct 2026 10:43:12 GMT",
+      "history": "RSS仅当前窗口，完整历史未验证",
+      "decision": "优先资讯线索；事实仍需回源",
+      "note": "本次读取50条元数据；不视为完整历史或全部海洋主题。",
+      "checked_at": "2026-10-07T13:14:40.847Z"
+    },
+    {
+      "id": "S16",
+      "name": "Norwegian Offshore Directorate",
+      "authority": "官方机构/统计平台：优先事实依据",
+      "method": "API/数据服务",
+      "url": "https://factmaps.sodir.no/api/rest/services/DataService/Data/FeatureServer?f=pjson",
+      "probe": "200 / 10808代理",
+      "latest": "样例字段有更新时间，非统计时序",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "优先趋势/空间数据试用",
+      "note": "代理下实际取得3个油气田要素及几何；可作地图底座，字段更新时间不是事件发生日。",
+      "checked_at": "2026-10-07T13:14:43.589Z"
+    },
+    {
+      "id": "S17",
+      "name": "EMODnet Human Activities",
+      "authority": "官方机构/统计平台：优先事实依据",
+      "method": "API/数据服务",
+      "url": "https://emodnet.ec.europa.eu/geonetwork/srv/api/records/8201070b-4b0b-4d54-8910-abcea5dce57f",
+      "probe": "200 / 直连",
+      "latest": "抽样 updateyear=2024",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "优先趋势/空间数据试用",
+      "note": "实际取得2个风场要素；样例 updateyear=2024，不能称实时现状。",
+      "checked_at": "2026-10-07T13:14:43.589Z"
+    },
+    {
+      "id": "S18",
+      "name": "IRENASTAT",
+      "authority": "官方机构/统计平台：优先事实依据",
+      "method": "官方文件下载",
+      "url": "https://pxweb.irena.org/pxweb/en/",
+      "probe": "失败 / 10808代理",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "直连及代理存在证书校验失败；本次不列为自动接入成功。",
+      "checked_at": "2026-10-07T13:14:43.589Z"
+    },
+    {
+      "id": "S19",
+      "name": "IEA OES",
+      "authority": "官方机构/统计平台：优先事实依据",
+      "method": "官方文件下载",
+      "url": "https://www.ocean-energy-systems.org/publications/",
+      "probe": "200 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "页面可达；正文、历史覆盖及连续稳定性尚待验证。",
+      "checked_at": "2026-10-07T13:14:43.589Z"
+    },
+    {
+      "id": "S20",
+      "name": "国家能源局",
+      "authority": "官方机构/统计平台：优先事实依据",
+      "method": "官网栏目",
+      "url": "https://www.nea.gov.cn/",
+      "probe": "200 / 直连",
+      "latest": "统计到2026-06，发布2026-07-30",
+      "history": "已采集2024末/2025末/2026年中",
+      "decision": "优先趋势/空间数据试用",
+      "note": "近期发布会正文和历史统计已取得；公开网页方式，不是开放API。",
+      "checked_at": "2026-10-07T13:14:43.589Z"
+    },
+    {
+      "id": "S21",
+      "name": "自然资源部",
+      "authority": "官方机构/统计平台：优先事实依据",
+      "method": "官网栏目",
+      "url": "https://www.mnr.gov.cn/",
+      "probe": "200 / 10808代理",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "代理恢复页面访问；只证明入口可达，未建立连续专题数据。",
+      "checked_at": "2026-10-07T13:14:58.618Z"
+    },
+    {
+      "id": "S22",
+      "name": "生态环境部",
+      "authority": "官方机构/统计平台：优先事实依据",
+      "method": "官网栏目",
+      "url": "https://www.mee.gov.cn/",
+      "probe": "200 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "页面可达；正文、历史覆盖及连续稳定性尚待验证。",
+      "checked_at": "2026-10-07T13:14:58.618Z"
+    },
+    {
+      "id": "S23",
+      "name": "中国政府网政策库",
+      "authority": "官方机构/统计平台：优先事实依据",
+      "method": "官网栏目",
+      "url": "https://www.gov.cn/zhengce/",
+      "probe": "200 / 10808代理",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "代理恢复页面访问；政策原文须逐条核查。",
+      "checked_at": "2026-10-07T13:14:58.618Z"
+    },
+    {
+      "id": "S24",
+      "name": "国家统计局",
+      "authority": "官方机构/统计平台：优先事实依据",
+      "method": "官方文件下载",
+      "url": "https://www.stats.gov.cn/",
+      "probe": "200 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "页面可达；正文、历史覆盖及连续稳定性尚待验证。",
+      "checked_at": "2026-10-07T13:14:58.618Z"
+    },
+    {
+      "id": "S25",
+      "name": "中国海油等海洋能源企业",
+      "authority": "企业/项目官方：自身业务一手披露",
+      "method": "官网栏目",
+      "url": "https://www.cnooc.com.cn/",
+      "probe": "200 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "中国海油官网入口可达；近期正文和历史覆盖尚未逐项核验。",
+      "checked_at": "2026-10-07T13:14:58.618Z"
+    },
+    {
+      "id": "S26",
+      "name": "沿海省市主管部门",
+      "authority": "候选机构集合：逐源核实",
+      "method": "官网栏目",
+      "url": "逐省确定",
+      "probe": "未单独实测",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "不计入36个初始实测入口；仍需逐省确定真实栏目。",
+      "checked_at": "2026-10-07"
+    },
+    {
+      "id": "S27",
+      "name": "微信公众号",
+      "authority": "渠道/平台：可信度取决于具体发布者",
+      "method": "手动/授权",
+      "url": "https://developers.weixin.qq.com/doc/subscription/api/public/api_freepublish_batchget.html",
+      "probe": "200 / 10808代理",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "有条件：账号/授权/采购",
+      "note": "代理能打开官方文档；没有第三方公众号账号授权或文章接口调用。",
+      "checked_at": "2026-10-07T13:14:59.397Z"
+    },
+    {
+      "id": "S28",
+      "name": "X 官方账号",
+      "authority": "渠道/平台：可信度取决于具体发布者",
+      "method": "API/数据服务",
+      "url": "https://docs.x.com/x-api/getting-started/pricing",
+      "probe": "200 / 10808代理",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "有条件：账号/授权/采购",
+      "note": "代理能打开计费文档；没有社媒数据认证调用。",
+      "checked_at": "2026-10-07T13:14:59.398Z"
+    },
+    {
+      "id": "S29",
+      "name": "LinkedIn 官方机构页",
+      "authority": "渠道/平台：可信度取决于具体发布者",
+      "method": "手动/授权",
+      "url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management/community-management-overview",
+      "probe": "200 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "有条件：账号/授权/采购",
+      "note": "权限文档可达；不承诺任意第三方机构页采集。",
+      "checked_at": "2026-10-07T13:14:59.398Z"
+    },
+    {
+      "id": "S30",
+      "name": "NewsAPI",
+      "authority": "渠道/平台：可信度取决于具体发布者",
+      "method": "API/数据服务",
+      "url": "https://newsapi.org/docs/endpoints/everything",
+      "probe": "200 / 10808代理",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "有条件：账号/授权/采购",
+      "note": "代理能打开API文档；未认证获取；摘要不能当全文。",
+      "checked_at": "2026-10-07T13:14:59.398Z"
+    },
+    {
+      "id": "S31",
+      "name": "Equinor",
+      "authority": "企业/项目官方：自身业务一手披露",
+      "method": "官网栏目",
+      "url": "https://www.equinor.com/news",
+      "probe": "200 / 直连",
+      "latest": "未逐篇核验最新时间",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "官网新闻入口可达；近期海洋项目在公开目录可检索，持续采集待验证。",
+      "checked_at": "2026-10-07T13:14:59.398Z"
+    },
+    {
+      "id": "S32",
+      "name": "Transocean",
+      "authority": "企业/项目官方：自身业务一手披露",
+      "method": "官网栏目",
+      "url": "https://investor.deepwater.com/",
+      "probe": "200 / 直连",
+      "latest": "2026Q2，发布2026-08-05",
+      "history": "本次取得3个可比季度",
+      "decision": "优先趋势/空间数据试用",
+      "note": "已取得2026Q2业绩正文及利用率比较值；网页/报告获取，无公开API验证。",
+      "checked_at": "2026-10-07T13:15:14.107Z"
+    },
+    {
+      "id": "S33",
+      "name": "Northern Lights",
+      "authority": "企业/项目官方：自身业务一手披露",
+      "method": "官网栏目",
+      "url": "https://norlights.com/newsroom/",
+      "probe": "404 / 直连；新目录200",
+      "latest": "目录可见2026-10-01",
+      "history": "历史入口/产品范围待逐项验证",
+      "decision": "辅助来源；进一步抽样",
+      "note": "旧 /news/ 返回404；更正 /newsroom/ 后200，目录含2026-10-01项目消息。",
+      "checked_at": "2026-10-07T13:15:14.107Z"
+    }
+  ],
+  "metrics_count": 561,
+  "news_count": 129
+}

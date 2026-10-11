@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {inPeriodWindow} from '../periods.mjs';
+test('quarterly data filters use calendar overlap rather than lexical quarter strings',()=>{assert.equal(inPeriodWindow('2026-Q1',{from:'2026-07-01'}),false);assert.equal(inPeriodWindow('2026-Q2',{from:'2026-06-01',to:'2026-06-30'}),true);assert.equal(inPeriodWindow('2026-Q3',{to:'2026-06-30'}),false);assert.equal(inPeriodWindow('2026-07',{from:'2026-07-15'}),true);assert.equal(inPeriodWindow('missing',{}),false);});

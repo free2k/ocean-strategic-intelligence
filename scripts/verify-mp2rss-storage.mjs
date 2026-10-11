@@ -1,0 +1,4 @@
+import {pool,persistItem,init} from '../server/integrations/mp2rss-store.mjs';import {compileRules} from '../intelligence/industry-classification.mjs';
+try{await init();const rules=(await pool.query('SELECT * FROM public.filter_rules')).rows,compiled=compileRules({rules});const records=(await pool.query('SELECT i.payload,s.id,s.source_id FROM mp2rss.items i JOIN mp2rss.subscriptions s ON s.id=i.subscription_id')).rows;let duplicate=0;for(const row of records){if(await persistItem(row,row.payload,compiled)==='duplicate')duplicate++;}
+console.log(JSON.stringify({replayed:records.length,duplicates:duplicate,noDuplicateInsert:duplicate===records.length}));if(duplicate!==records.length)process.exitCode=1;
+}catch{console.error('Storage validation failed');process.exitCode=1;}finally{await pool.end();}

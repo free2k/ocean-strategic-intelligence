@@ -1,0 +1,31 @@
+﻿自动采集与分析部署记录（2026-10-09）
+
+站点：http://49.233.77.111/ocean-intelligence/
+资讯调度：每轮完成后6小时再次检查；EIA新闻及统计沿用独立每日任务。
+各任务使用同一flock，避免同时发布覆盖数据。
+
+流程：采集文章及原文版本 -> 自动模型抽取实体、事件、关系、指标 ->
+逐字验证证据 -> 中文翻译及检索向量 -> 合并入库 -> 各栏目读取更新后的数据。
+文章正文版本未变化且已成功处理则跳过。既有完整模型提取结果直接复用。
+首次上线通过已登录的 POST /api/process 补处理现有文章，不重新采集。
+常规采集通过 POST /api/collection 或后台调度运行同一处理流程。
+上述接口均沿用站点身份验证，不公开后台权限。
+
+失败处理：自动提取失败保留旧数据，指数退避后在下一次调度重试。
+翻译与向量失败保留原文，后续任务继续补齐。零结果也记录为成功，避免反复付费。
+采集阶段模型异常改用规则结果保留文章，再交给自动流程补提取。
+所有自动关系仍保存来源与方法；人工校准结果在合并时优先保留。
+重新提取入口位于原文详情的“维护”折叠区域，日常浏览无需点击。
+
+部署位置：/opt/ocean-intelligence/current/intelligence/
+EIA新闻任务包装器：/opt/ocean-intelligence/eia-news-daily.sh
+（仓库模板 deploy/eia-news-pipeline.sh）
+状态文件：/opt/ocean-intelligence/data/collection-status.json
+每次任务检查点：/opt/ocean-intelligence/data/jobs/<时间戳>/snapshot.json
+任务在检查点中处理，完成后原子发布；网页刷新后读取新数据。
+提取、翻译处理窗口最长2小时；中断时保留已有检查点。
+
+回滚备份：/opt/ocean-intelligence/backups/before-auto-pipeline.tar.gz
+EIA任务原包装器：/opt/ocean-intelligence/backups/eia-news-before-pipeline.sh
+采集器原文件：/opt/ocean-intelligence/backups/collect-before-auto-fallback.mjs
+回滚应先等待运行任务结束并取得共享锁，避免中断写入。

@@ -1,0 +1,12 @@
+[Unit]
+Description=Mp2RSS subscriptions and incremental articles
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/knowledge-base/mp2rss-current
+EnvironmentFile=/opt/knowledge-base/mp2rss.env
+ExecStart=/usr/bin/node --env-file=/opt/knowledge-base/.env /opt/knowledge-base/mp2rss-current/scripts/mp2rss-worker.mjs
+TimeoutStartSec=45min
+UMask=0077

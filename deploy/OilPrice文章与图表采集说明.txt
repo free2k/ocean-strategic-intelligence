@@ -1,0 +1,24 @@
+OilPrice 文章与图表采集
+
+范围：RSS 发现文章，正文清洗和中文翻译，沿用原项目六类规则，保留表格、图表识别候选和引用链接。没有接入实时油价或期货行情流。
+
+订阅入口：原系统 /wechat/rss，可见 OilPrice 行业分析和 OilPrice 新闻快讯。删除相应来源后停止该源后续自动发现。RSS 是滚动窗口，不保证覆盖全部历史；同一文章地址去重，保留多个发现来源。
+已采文章和图片的处理状态：/wechat/subscriptions 的原文与图表证据面板。该面板共用原有 X 证据队列。
+智库：只有正文完整、中文化完成且分类通过的文章，才由现有处理流程导入。图片识别为候选证据，不自动生成已核准的量化序列。
+
+定时：oilprice-sync.timer，每轮结束后 30 分钟再次执行。没有文章数量上限；单轮处理设运行时间预算，剩余持久化任务在后续轮次继续，避免长任务阻塞。与 X 证据处理共用互斥锁，正在占用时延后。EIA 定时流程不变。
+阶段：RSS 摘要保留 → 正文清洗 → 中文翻译 → 六类分类 → 图表／附件识别 → 智库导入及现有事件／实体／关系／指标提取和证据校验。
+正文失败、受限或没有获取到全文，不当作完成；采集和模型失败自动重试。图表在正文完成后下一处理批次执行。
+
+证据：原始 URL、RSS 来源、作者、文章日期、发现时间、正文版本、引用来源、图表地址和图注。保留原始单位及实际／预测／目标含义，不把示意图当历史序列，也不把图片曲线估读作为精确值。
+OilPrice 文章仅作为媒体来源；文章中的第三方引用链接尚未自动逐项核实。受限内容不绕过访问控制。全文及图片使用按来源许可范围执行。
+
+服务器检查：
+systemctl status oilprice-sync.timer oilprice-sync.service
+journalctl -u oilprice-sync.service -n 30 --no-pager
+cd /opt/knowledge-base/mp2rss-current
+node --env-file=/opt/knowledge-base/.env --env-file=/opt/knowledge-base/mp2rss.env scripts/oilprice-worker.mjs --status
+
+暂停：systemctl stop oilprice-sync.timer
+已在执行的轮次继续完成；如需立即停止，再执行 systemctl stop oilprice-sync.service。
+回滚备份位于 /opt/knowledge-base/oilprice-backups/，恢复相应 worker 与 intelligence 文件后重启 ocean-intelligence。

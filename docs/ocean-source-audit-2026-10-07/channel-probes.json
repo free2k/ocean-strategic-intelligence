@@ -1,0 +1,3881 @@
+[
+  {
+    "id": "D01",
+    "name": "EIA 海上原油月度表",
+    "url": "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?f=M&n=PET&s=MCRFP3FM2",
+    "method": "web",
+    "checked_at": "2026-10-07T13:15:14.107Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?f=M&n=PET&s=MCRFP3FM2",
+        "elapsed_ms": 2200,
+        "type": "text/html; charset=utf-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 22039,
+    "title": "Federal Offshore--Gulf of America Field Production of Crude Oil (Thousand Barrels per Day)",
+    "links": [
+      {
+        "text": "Download Data (XLS File)",
+        "href": "../hist_xls/MCRFP3FM2m.xls"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "D02",
+    "name": "SODIR 月度生产公告",
+    "url": "https://www.sodir.no/en/whats-new/news/production-figures/",
+    "method": "web",
+    "checked_at": "2026-10-07T13:15:14.107Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 403,
+        "final_url": "https://www.sodir.no/en/whats-new/news/production-figures/",
+        "elapsed_ms": 1963,
+        "type": "text/html; charset=UTF-8"
+      }
+    ],
+    "status": 403,
+    "route": "direct",
+    "bytes": 5599
+  },
+  {
+    "id": "D03",
+    "name": "Transocean 2026Q2",
+    "url": "https://investor.deepwater.com/news-releases/news-release-details/transocean-ltd-reports-second-quarter-2026-results",
+    "method": "web",
+    "checked_at": "2026-10-07T13:15:14.107Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://investor.deepwater.com/news-releases/news-release-details/transocean-ltd-reports-second-quarter-2026-results",
+        "elapsed_ms": 909,
+        "type": "text/html; charset=UTF-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 576741,
+    "title": "Transocean Ltd. Reports Second Quarter 2026 Results | Transocean Ltd.",
+    "links": [
+      {
+        "text": "Skip to main navigation",
+        "href": "#main-menu"
+      },
+      {
+        "text": "Sustainability, Health, Safety and Environment",
+        "href": "https://www.deepwater.com/about/sustainability-health-safety-and-environment"
+      },
+      {
+        "text": "Share-Based Compensation Awards",
+        "href": "/summary"
+      },
+      {
+        "text": "Frequently Asked Questions",
+        "href": "/investor-faqs"
+      },
+      {
+        "text": "Global Marine Financial Info",
+        "href": "https://www.deepwater.com/investors/shareholder-info/global-marine-financial-info"
+      },
+      {
+        "text": "Annual and Quarterly Reports",
+        "href": "/annual-reports"
+      },
+      {
+        "text": "Non-GAAP Financial Measures",
+        "href": "/non-gaap-financial-measures-and-reconciliations"
+      },
+      {
+        "text": "Historical Price Lookup",
+        "href": "/historical-price-lookup"
+      },
+      {
+        "text": "View printer-friendly version",
+        "href": "#"
+      },
+      {
+        "text": "IR and Media Contacts",
+        "href": "/contact-ir"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "D04",
+    "name": "国家能源局 2026上半年发布会",
+    "url": "https://www.nea.gov.cn/20260730/bb571bc20d7445e5ae7d9dc51c3f700d/c.html",
+    "method": "web",
+    "checked_at": "2026-10-07T13:15:16.314Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.nea.gov.cn/20260730/bb571bc20d7445e5ae7d9dc51c3f700d/c.html",
+        "elapsed_ms": 357,
+        "type": "text/html"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 14204,
+    "title": "国家能源局举行新闻发布会 介绍2026年上半年可再生能源并网运行情况---国家能源局",
+    "links": [],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S01",
+    "name": "IEA 国际能源署",
+    "url": "https://www.iea.org/data-and-statistics/data-sets/",
+    "method": "download",
+    "checked_at": "2026-10-07T13:14:32.316Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 403,
+        "final_url": "https://www.iea.org/data-and-statistics/data-sets/",
+        "elapsed_ms": 288,
+        "type": "text/html; charset=UTF-8"
+      }
+    ],
+    "status": 403,
+    "route": "direct",
+    "bytes": 5598
+  },
+  {
+    "id": "S02",
+    "name": "OPEC",
+    "url": "https://www.opec.org/monthly-oil-market-report.html",
+    "method": "download",
+    "checked_at": "2026-10-07T13:14:32.317Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 403,
+        "final_url": "https://www.opec.org/monthly-oil-market-report.html",
+        "elapsed_ms": 2585,
+        "type": "text/html; charset=UTF-8"
+      }
+    ],
+    "status": 403,
+    "route": "direct",
+    "bytes": 5557
+  },
+  {
+    "id": "S03",
+    "name": "Wood Mackenzie",
+    "url": "https://www.woodmac.com/lens/direct/",
+    "method": "api",
+    "checked_at": "2026-10-07T13:14:32.318Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.woodmac.com/lens/direct/",
+        "elapsed_ms": 1418,
+        "type": "text/html; charset=utf-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 209421,
+    "title": "Lens Direct | Wood Mackenzie",
+    "links": [
+      {
+        "text": "Sign in Toggle subsection visibility",
+        "href": ""
+      },
+      {
+        "text": "Supply Chain Analytics platform (previously PowerAdvocate)",
+        "href": "https://www.poweradvocate.com/login.jsp"
+      },
+      {
+        "text": "Account and preferences management",
+        "href": "https://identity.woodmac.com/sign-in?goto=https%3a%2f%2faccount.woodmac.com%2fdetails"
+      },
+      {
+        "text": "WoodMac Lab - Share your feedback",
+        "href": "/about/woodmac-lab/"
+      },
+      {
+        "text": "Explore our portfolio",
+        "href": "/product-portfolio/"
+      },
+      {
+        "text": "Emissions & Carbon Management",
+        "href": "/industry/emissions-and-carbon-management/"
+      },
+      {
+        "text": "Energy Transition Scenarios & Technologies",
+        "href": "/industry/energy-transition-scenarios-and-technologies/"
+      },
+      {
+        "text": "Commodity Trading Analytics",
+        "href": "/industry/commodity-trading-analytics/"
+      },
+      {
+        "text": "Supply Chain Analytics",
+        "href": "/products/supply-chain-analytics/"
+      },
+      {
+        "text": "Investment intelligence",
+        "href": "/market-insights/topics/investors/"
+      },
+      {
+        "text": "Wood Mackenzie Events",
+        "href": "/worldwide-events/"
+      },
+      {
+        "text": "Macroeconomics, risk and global trends",
+        "href": "/store/industry-sector/macroeconomics-risk-and-global-trends/"
+      },
+      {
+        "text": "Midstream oil and gas",
+        "href": "/store/industry-sector/midstream-oil-and-gas/"
+      },
+      {
+        "text": "Downstream oil refining",
+        "href": "/store/industry-sector/downstream-oil-refining/"
+      },
+      {
+        "text": "Already a customer? Log-in to access Lens",
+        "href": "https://identity.woodmac.com/sign-in"
+      },
+      {
+        "text": "WoodMac Lab - Share your feedback",
+        "href": "/about/woodmac-lab/"
+      },
+      {
+        "text": "Working At WoodMac Explore",
+        "href": "/careers/overview/"
+      },
+      {
+        "text": "Featured Let's Share the Sun Through our partnership, we’re transforming lives by delivering clean, reliable energy to communities in need. Learn more",
+        "href": "/nslp/lets-share-the-sun/"
+      },
+      {
+        "text": "WoodMac Lab - Share your feedback",
+        "href": "/about/woodmac-lab/"
+      },
+      {
+        "text": "Explore our portfolio Explore All",
+        "href": "/product-portfolio/"
+      },
+      {
+        "text": "Upstream Accelerate your oil and gas strategies with unrivalled real-time data, immediate insights and trusted fiscal coverage.",
+        "href": "/industry/upstream/"
+      },
+      {
+        "text": "Emissions & Carbon Management Diversify your carbon management portfolio with detailed CCUS, offset and emissions data, all on one place.",
+        "href": "/industry/emissions-and-carbon-management/"
+      },
+      {
+        "text": "Energy Transition Scenarios & Technologies Get the trusted data and insight you need to thrive in a rapidly decarbonising energy landscape.",
+        "href": "/industry/energy-transition-scenarios-and-technologies/"
+      },
+      {
+        "text": "Power & Renewables Accelerate the move to clean energy with low-carbon intelligence connecting assets, markets, and companies.",
+        "href": "/industry/power-and-renewables/"
+      },
+      {
+        "text": "Gas & LNG In-depth insights, supported by robust data offerings, thorough research, and comprehensive consulting services.",
+        "href": "/industry/gas-and-lng/"
+      },
+      {
+        "text": "Metals & Mining Access reliable research and analysis within and across the metals and mining industry to make strategic, operational and investment decisions.",
+        "href": "/industry/metals-and-mining/"
+      },
+      {
+        "text": "Oils & Chemicals Understand the connections from feedstocks to end products and how each fits.",
+        "href": "/industry/oils-chemicals/"
+      },
+      {
+        "text": "Commodity Trading Analytics Access real-time data and analytics in all major commodities with innovative data points and comprehensive insights to guide strategic and trading decisions.",
+        "href": "/industry/commodity-trading-analytics/"
+      },
+      {
+        "text": "Supply Chain Analytics Identify and execute on cost savings, performance improvement, operational efficiency, and risk management opportunities across your organisation.",
+        "href": "/products/supply-chain-analytics/"
+      },
+      {
+        "text": "Consulting Bespoke strategic, market and operational improvement consulting services in energy & natural resources to suit your specific needs.",
+        "href": "/products/consulting/"
+      },
+      {
+        "text": "Consulting Positioning you for success Navigate market complexities and business issues with our expert team of industry consultants. Explore Consulting",
+        "href": "/products/consulting/"
+      },
+      {
+        "text": "Explore our portfolio",
+        "href": "/product-portfolio/"
+      },
+      {
+        "text": "Emissions & Carbon Management",
+        "href": "/industry/emissions-and-carbon-management/"
+      },
+      {
+        "text": "Energy Transition Scenarios & Technologies",
+        "href": "/industry/energy-transition-scenarios-and-technologies/"
+      },
+      {
+        "text": "Commodity Trading Analytics",
+        "href": "/industry/commodity-trading-analytics/"
+      },
+      {
+        "text": "Supply Chain Analytics",
+        "href": "/products/supply-chain-analytics/"
+      },
+      {
+        "text": "Market Insights News and insights from our thought leaders and experts",
+        "href": "/market-insights/"
+      },
+      {
+        "text": "Horizons Explore the themes shaping the energy transition with our monthly thought leadership.",
+        "href": "/horizons/"
+      },
+      {
+        "text": "Blogs Unique energy insight, spanning the renewables, energy and natural resources supply chain, to support strategic decision-making.",
+        "href": "/blogs/"
+      },
+      {
+        "text": "Podcasts Weekly discussions on the latest news and trends in energy, cleantech and renewables.",
+        "href": "/podcasts/"
+      },
+      {
+        "text": "The Inside Track Our weekly round up of the lasted opinions, new, industry analysis from our global analysts.",
+        "href": "/market-insights/sign-up/"
+      },
+      {
+        "text": "Book - Connected Data and energy insight from our thought leaders, Jason Liu and Simon Flowers, Connected the book.",
+        "href": "/connected-book/"
+      },
+      {
+        "text": "Data centres Explore data centre market analysis covering infrastructure trends, energy use, capacity planning and key developments across global markets.",
+        "href": "/market-insights/topics/data-centres/"
+      },
+      {
+        "text": "Middle East conflict Global energy market analysis and strategic insights",
+        "href": "/market-insights/topics/middle-east-conflict/"
+      },
+      {
+        "text": "Energy Transition In depth analysis of the energy transition and the path to a low carbon future.",
+        "href": "/market-insights/topics/energy-transition/"
+      },
+      {
+        "text": "CCUS Explore the future growth potential for carbon capture, utilisation and storage.",
+        "href": "/market-insights/topics/ccus/"
+      },
+      {
+        "text": "Electric vehicles Explore the growth trajectory for EVs and spot any possible bumps in the road.",
+        "href": "/market-insights/topics/electric-vehicles/"
+      },
+      {
+        "text": "Investment intelligence Interconnected market insights to challenge assumptions and understand trends across energy, infrastructure and transition markets.",
+        "href": "/market-insights/topics/investors/"
+      },
+      {
+        "text": "Webinar 8 October From land to load Unlocking large load intelligence with Wood Mackenzie and LandGate. Register now",
+        "href": "/events/webinar-from-land-to-load-unlocking-large-load-intelligence-with-wood-mackenzie-and-landgate/"
+      },
+      {
+        "text": "Investment intelligence",
+        "href": "/market-insights/topics/investors/"
+      },
+      {
+        "text": "Wood Mackenzie Events Our global events bring together influential decision-makers from the energy sector.",
+        "href": "/worldwide-events/"
+      },
+      {
+        "text": "Webinars Browse upcoming and past webinars - available on demand",
+        "href": "/worldwide-events/webinars/"
+      },
+      {
+        "text": "Featured event Carbon Capture, Utilization and Storage (CCUS) Conference 2026 October 7-8, 2026, Houston, USA Find out more",
+        "href": "/events/carbon-capture-utilization-storage-conference/"
+      },
+      {
+        "text": "Wood Mackenzie Events",
+        "href": "/worldwide-events/"
+      },
+      {
+        "text": "Browse All Reports Browse",
+        "href": "/store/"
+      },
+      {
+        "text": "Macroeconomics, risk and global trends",
+        "href": "/store/industry-sector/macroeconomics-risk-and-global-trends/"
+      },
+      {
+        "text": "Midstream oil and gas",
+        "href": "/store/industry-sector/midstream-oil-and-gas/"
+      },
+      {
+        "text": "Downstream oil refining",
+        "href": "/store/industry-sector/downstream-oil-refining/"
+      },
+      {
+        "text": "Reports Browse reports Make better commercial decisions with our objective insights and analyses. Explore reports",
+        "href": "/store/"
+      },
+      {
+        "text": "Macroeconomics, risk and global trends",
+        "href": "/store/industry-sector/macroeconomics-risk-and-global-trends/"
+      },
+      {
+        "text": "Midstream oil and gas",
+        "href": "/store/industry-sector/midstream-oil-and-gas/"
+      },
+      {
+        "text": "Downstream oil refining",
+        "href": "/store/industry-sector/downstream-oil-refining/"
+      },
+      {
+        "text": "Already a customer? Log-in to access Lens Log-in",
+        "href": "https://identity.woodmac.com/sign-in"
+      },
+      {
+        "text": "Lens - overview Agile decision-making with AI-powered trusted analysis",
+        "href": "/lens/"
+      },
+      {
+        "text": "Power & Renewables An integrated view of global renewable and conventional power data and insights across projects, technologies and markets.",
+        "href": "/lens/power-and-renewables/"
+      },
+      {
+        "text": "Hydrogen Maximise investment opportunities across the hydrogen, ammonia and methanol value chain.",
+        "href": "/lens/hydrogen/"
+      },
+      {
+        "text": "Upstream Industry renowned data and analysis to build resilient, sustainable portfolios.",
+        "href": "/lens/upstream/"
+      },
+      {
+        "text": "Subsurface Identify advantaged barrels and support critical investment decisions with an integrated view of commercial and technical data.",
+        "href": "/lens/subsurface/"
+      },
+      {
+        "text": "Gas & LNG The single source for exploring industry data alongside leading expertise, analyses, and modelling insights.",
+        "href": "/lens/gas-lng/"
+      },
+      {
+        "text": "Metals & Mining Unlock robust data and new unique perspectives across key mined commodities needed to assess the mining landscape.",
+        "href": "/lens/metals-and-mining/"
+      },
+      {
+        "text": "Carbon Analysis of CCUS and offset opportunities to shape decarbonisation strategies.",
+        "href": "/lens/carbon/"
+      },
+      {
+        "text": "Emissions Decision intelligence to simplify the complexity of emissions risk management.",
+        "href": "/lens/emissions/"
+      },
+      {
+        "text": "Energy Transition Trusted modelling capabilities to navigate the energy transition",
+        "href": "/lens/lens-energy-transition-scenarios/"
+      },
+      {
+        "text": "Lens Direct - API Seamlessly integrate Wood Mackenzie data into your own proprietary systems with Lens Direct API services.",
+        "href": "/lens/direct/"
+      },
+      {
+        "text": "Product Update New tool to Lens Insight Assistant powered by Synoptic enables you to ask a question and receive a concise answer, grounded in our proprietary library of written reports. Find out more",
+        "href": "/lens/"
+      },
+      {
+        "text": "Already a customer? Log-in to access Lens",
+        "href": "https://identity.woodmac.com/sign-in"
+      },
+      {
+        "text": "Supply Chain Analytics platform (previously PowerAdvocate)",
+        "href": "https://www.poweradvocate.com/login.jsp"
+      },
+      {
+        "text": "Account and preferences management",
+        "href": "https://identity.woodmac.com/sign-in?goto=https%3a%2f%2faccount.woodmac.com%2fdetails"
+      },
+      {
+        "text": "Lens Power & Renewables",
+        "href": "/lens/power-and-renewables/"
+      },
+      {
+        "text": "Lens Power & Renewables Feature Releases",
+        "href": "/lens-power-and-renewables-feature-releases/"
+      },
+      {
+        "text": "Lens Energy Transition Scenarios",
+        "href": "/lens/lens-energy-transition-scenarios/"
+      },
+      {
+        "text": "Lens Gas & LNG Assets Discovery",
+        "href": "/lens/gas-lng-assets-discovery/"
+      },
+      {
+        "text": "Lens LNG Assets Valuations",
+        "href": "/lens/lens-gas-lng-assets-valuations/"
+      },
+      {
+        "text": "Lens Gas & LNG Markets Forecast",
+        "href": "/lens/lens-gas-lng-markets-forecast/"
+      },
+      {
+        "text": "Lens Gas & LNG Markets Modelling",
+        "href": "/lens/lens-gas-and-lng-markets-modelling/"
+      },
+      {
+        "text": "Lens Metals & Mining Assets Discovery",
+        "href": "/lens/lens-metals-and-mining-assets-discovery/"
+      },
+      {
+        "text": "Lens Metals & Mining Assets Valuations",
+        "href": "/lens/lens-metals-and-mining-assets-valuations/"
+      },
+      {
+        "text": "Lens Metals & Mining Markets Forecast",
+        "href": "/lens/lens-metals-and-mining-markets-forecast/"
+      },
+      {
+        "text": "Lens Metals & Mining Markets Scenarios",
+        "href": "/lens/lens-metals-and-mining-market-scenarios/"
+      },
+      {
+        "text": "Lens Metals & Mining Supply Chain",
+        "href": "/lens/lens-metals-and-mining-supply-chain/"
+      },
+      {
+        "text": "Integrate our data into your own proprietary systems with Lens Direct Find out more",
+        "href": "/lens/direct/"
+      },
+      {
+        "text": "Lens Upstream Industry intelligence that enables you to minimise risk, identify upside, and optimise resources faster than anyone else.",
+        "href": "/lens/upstream/"
+      },
+      {
+        "text": "Lens Subsurface Integrated commercial and technical upstream data for key portfolio insights.",
+        "href": "/lens/subsurface/"
+      },
+      {
+        "text": "Wood Mackenzie Lens Carbon Source-to-sink evaluation of the carbon value chain.",
+        "href": "/lens/carbon/"
+      },
+      {
+        "text": "Lens Gas & LNG Gain a holistic view of the Gas and LNG industry with our comprehensive data solution.",
+        "href": "/lens/gas-lng/"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S04",
+    "name": "Rystad Energy",
+    "url": "https://www.rystadenergy.com/spektra",
+    "method": "api",
+    "checked_at": "2026-10-07T13:14:32.318Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.rystadenergy.com/spektra",
+        "elapsed_ms": 1537,
+        "type": "text/html; charset=utf-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 93985,
+    "title": "Spektra",
+    "links": [
+      {
+        "text": "Take the interactive tour",
+        "href": "#interactive-tour"
+      },
+      {
+        "text": "The vision behind Spektra",
+        "href": "#our-vision"
+      },
+      {
+        "text": "Cube Browser Download",
+        "href": "/downloads"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S05",
+    "name": "Clarksons Research",
+    "url": "https://www.clarksons.com/research/",
+    "method": "api",
+    "checked_at": "2026-10-07T13:14:32.318Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.clarksons.com/research/",
+        "elapsed_ms": 5181,
+        "type": "text/html; charset=utf-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 96541,
+    "title": "Maritime Research | Shipping Research Services | Clarksons | Clarksons",
+    "links": [
+      {
+        "text": "The Clarkson Foundation",
+        "href": "/home/about-us/the-clarkson-foundation/"
+      },
+      {
+        "text": "Green Transition Services",
+        "href": "/home/green-transition/green-transition-services/"
+      },
+      {
+        "text": "Carbon Intensity Indicator",
+        "href": "/home/green-transition/carbon-intensity-indicator/"
+      },
+      {
+        "text": "Approach to sustainability",
+        "href": "/home/sustainability/approach-to-sustainability/"
+      },
+      {
+        "text": "Stakeholder engagement",
+        "href": "/home/sustainability/stakeholder-engagement/"
+      },
+      {
+        "text": "Results and presentations",
+        "href": "/home/investors/results-and-presentations/"
+      },
+      {
+        "text": "Previous Annual Reports",
+        "href": "/home/investors/results-and-presentations/previous-annual-reports/"
+      },
+      {
+        "text": "Experienced professionals",
+        "href": "/home/careers/experienced-professionals/"
+      },
+      {
+        "text": "Global Trainee Broker Programme",
+        "href": "/home/careers/early-careers/global-trainee-broker-programme/"
+      },
+      {
+        "text": "Broking Summer Internship - London",
+        "href": "/home/careers/early-careers/broking-summer-internship-london/"
+      },
+      {
+        "text": "Summer Internship - Oslo",
+        "href": "/home/careers/early-careers/summer-internship-oslo/"
+      },
+      {
+        "text": "Getting into shipping",
+        "href": "/home/careers/getting-into-shipping/"
+      },
+      {
+        "text": "A career in shipbroking",
+        "href": "/home/careers/getting-into-shipping/a-career-in-shipbroking/"
+      },
+      {
+        "text": "Is shipbroking right for you?",
+        "href": "/home/careers/getting-into-shipping/is-shipbroking-right-for-you/"
+      },
+      {
+        "text": "Offshore Support Vessels",
+        "href": "/broking/offshore/offshore-support-vessels/"
+      },
+      {
+        "text": "Offshore Field Development",
+        "href": "/broking/offshore/offshore-field-development/"
+      },
+      {
+        "text": "Offshore Accommodation",
+        "href": "/broking/offshore/offshore-accommodation/"
+      },
+      {
+        "text": "Government and Specialised Projects",
+        "href": "/broking/offshore/government-and-specialised-projects/"
+      },
+      {
+        "text": "Offshore Shipbroking & Procurement",
+        "href": "/broking/renewables/offshore-shipbroking-procurement/"
+      },
+      {
+        "text": "Offshore Transport & Installation",
+        "href": "/broking/renewables/offshore-transport-installation/"
+      },
+      {
+        "text": "Marine Advisory Services",
+        "href": "/broking/renewables/marine-advisory-services/"
+      },
+      {
+        "text": "Renewables Derivatives",
+        "href": "/broking/derivatives/renewables-derivatives/"
+      },
+      {
+        "text": "Equity & Credit Research",
+        "href": "/financial/securities/equity-and-credit-research/"
+      },
+      {
+        "text": "Shipping Project Finance",
+        "href": "/financial/securities/shipping-project-finance/"
+      },
+      {
+        "text": "Structured Asset Finance",
+        "href": "/financial/structured-asset-finance/"
+      },
+      {
+        "text": "Real Estate Project Finance",
+        "href": "/financial/real-estate-project-finance/"
+      },
+      {
+        "text": "Voyage Agency Services",
+        "href": "/port-services/port-agency/voyage-agency-services/"
+      },
+      {
+        "text": "Support Base Operations",
+        "href": "/port-services/support-base-operations/"
+      },
+      {
+        "text": "Helicopter Chartering",
+        "href": "/port-services/helicopter-chartering/"
+      },
+      {
+        "text": "Clarksons Research Portal",
+        "href": "https://www.clarksons.net/"
+      },
+      {
+        "text": "Data and consultancy services",
+        "href": "https://www.clarksons.net/portal/services"
+      },
+      {
+        "text": "Modern Slavery Statement",
+        "href": "/media/3o2fjpon/2026-modern-slavery-statement-signed.pdf"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S06",
+    "name": "Offshore Engineer",
+    "url": "https://www.oedigital.com/",
+    "method": "web",
+    "checked_at": "2026-10-07T13:14:37.504Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 403,
+        "final_url": "https://www.oedigital.com/",
+        "elapsed_ms": 1203,
+        "type": "text/html; charset=UTF-8"
+      }
+    ],
+    "status": 403,
+    "route": "direct",
+    "bytes": 5352
+  },
+  {
+    "id": "S07",
+    "name": "Oilprice.com",
+    "url": "https://oilprice.com/rss/main",
+    "method": "rss",
+    "checked_at": "2026-10-07T13:14:37.505Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://oilprice.com/rss/main",
+        "elapsed_ms": 2382,
+        "type": "rss+xml; charset=utf-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 15983,
+    "feed_items": 15,
+    "newest_item": {
+      "source_id": "S07",
+      "source": "Oilprice.com",
+      "title": "Norway Plans to Tap $63.7 Billion From Its Oil Fund in 2027",
+      "published": "Wed, 07 Oct 2026 07:30:00 -0500",
+      "url": "https://oilprice.com/Latest-Energy-News/World-News/Norway-Plans-to-Tap-637-Billion-From-Its-Oil-Fund-in-2027.html",
+      "collected_at": "2026-10-07T13:14:37.505Z"
+    },
+    "oldest_date": "Tue, 06 Oct 2026 14:00:00 -0500"
+  },
+  {
+    "id": "S08",
+    "name": "Upstream Online",
+    "url": "https://www.upstreamonline.com/subscription/",
+    "method": "manual",
+    "checked_at": "2026-10-07T13:14:37.505Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.upstreamonline.com/subscription/?zephr_sso_ott=NRv4KO",
+        "elapsed_ms": 3338,
+        "type": "text/html; charset=utf-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 50451,
+    "title": "Upstream",
+    "links": [],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S09",
+    "name": "Shell",
+    "url": "https://www.shell.com/news-and-insights/newsroom.html",
+    "method": "web",
+    "checked_at": "2026-10-07T13:14:37.505Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.shell.com/news-and-insights/newsroom.html",
+        "elapsed_ms": 1421,
+        "type": "text/html;charset=utf-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 9404,
+    "title": "Newsroom | Shell Global",
+    "links": [],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S10",
+    "name": "ExxonMobil",
+    "url": "https://corporate.exxonmobil.com/news",
+    "method": "web",
+    "checked_at": "2026-10-07T13:14:37.505Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://corporate.exxonmobil.com/news",
+        "elapsed_ms": 1831,
+        "type": "text/html; charset=utf-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 123542,
+    "title": "Newsroom | ExxonMobil",
+    "links": [
+      {
+        "text": "Our global organization",
+        "href": "/who-we-are/our-global-organization"
+      },
+      {
+        "text": "Risk management and safety",
+        "href": "/who-we-are/technology-and-collaborations/energy-technologies/risk-management-and-safety"
+      },
+      {
+        "text": "Advanced recycling policy",
+        "href": "/what-we-do/materials-for-modern-living/advanced-recycling-technology/advanced-recycling-policy"
+      },
+      {
+        "text": "Advanced synthetic graphite",
+        "href": "/what-we-do/materials-for-modern-living/advanced-synthetic-graphite"
+      },
+      {
+        "text": "Proxxima thermoset resin systems",
+        "href": "https://www.proxxima.com/en"
+      },
+      {
+        "text": "Carbon capture & storage",
+        "href": "/what-we-do/delivering-industrial-solutions/carbon-capture-and-storage"
+      },
+      {
+        "text": "Integrating sustainability into what we do",
+        "href": "/publications/sustainability/integrating-sustainability-into-what-we-do"
+      },
+      {
+        "text": "Pursuing environmental excellence",
+        "href": "/publications/sustainability/pursuing-environmental-excellence"
+      },
+      {
+        "text": "Meeting society's critical needs for energy and products",
+        "href": "/publications/sustainability/meeting-societys-critical-needs-energy-products"
+      },
+      {
+        "text": "Contributing to the well-being of communities",
+        "href": "/publications/sustainability/contributing-to-communities"
+      },
+      {
+        "text": "Growing Low Carbon Solutions",
+        "href": "/publications/advancing-climate-solutions/growing-low-carbon-solutions"
+      },
+      {
+        "text": "Positioned for growth in a lower emission future",
+        "href": "/publications/advancing-climate-solutions/positioned-for-growth-in-a-lower-emission-future"
+      },
+      {
+        "text": "Driving reductions in methane emissions",
+        "href": "/publications/advancing-climate-solutions/driving-reductions-in-methane-emissions"
+      },
+      {
+        "text": "Rational and constructive policy",
+        "href": "/publications/advancing-climate-solutions/rational-and-constructive-policy"
+      },
+      {
+        "text": "Research and development",
+        "href": "/publications/advancing-climate-solutions/research-and-development"
+      },
+      {
+        "text": "Governance and risk management",
+        "href": "/publications/advancing-climate-solutions/governance-and-risk-management"
+      },
+      {
+        "text": "United States education initiatives",
+        "href": "/community/stem/united-states-education-initiatives"
+      },
+      {
+        "text": "International education initiatives",
+        "href": "/community/stem/international-education-initiatives"
+      },
+      {
+        "text": "Managing socioeconomic impacts",
+        "href": "/publications/sustainability/contributing-to-communities/managing-socioeconomic-impacts"
+      },
+      {
+        "text": "Working with suppliers",
+        "href": "/publications/sustainability/contributing-to-communities/working-with-suppliers"
+      },
+      {
+        "text": "Respecting human rights",
+        "href": "/publications/sustainability/safeguarding-people/respecting-human-rights"
+      },
+      {
+        "text": "Investing in STEM education",
+        "href": "/community/worldwide-giving-report/investing-in-stem-education"
+      },
+      {
+        "text": "Improving quality of life and economic well-being",
+        "href": "/community/worldwide-giving-report/economic-development-and-community-resilience"
+      },
+      {
+        "text": "Volunteering in local communities",
+        "href": "/community/worldwide-giving-report/volunteering-in-local-communities"
+      },
+      {
+        "text": "Questions and inquiries",
+        "href": "/community/royalty-owners/our-departments"
+      },
+      {
+        "text": "Revenue online support",
+        "href": "/community/royalty-owners/customer-support-revenue-departments"
+      },
+      {
+        "text": "Individual shareholders",
+        "href": "https://investor.exxonmobil.com/individual-shareholders"
+      },
+      {
+        "text": "Events & presentations",
+        "href": "https://investor.exxonmobil.com/news-events/ir-calendar"
+      },
+      {
+        "text": "Featured career paths",
+        "href": "/careers#careerpaths"
+      },
+      {
+        "text": "Internship opportunities",
+        "href": "/careers/internship-opportunities"
+      },
+      {
+        "text": "Carbon capture and storage",
+        "href": "/what-we-do/delivering-industrial-solutions/carbon-capture-and-storage"
+      },
+      {
+        "text": "Our global organization",
+        "href": "/who-we-are/our-global-organization"
+      },
+      {
+        "text": "One billion barrels: Guyana's remarkable journey continues",
+        "href": "/locations/guyana/guyana-newsroom/2026/one-billion-barrels-guyanas-remarkable-journey-continues"
+      },
+      {
+        "text": "Lower-carbon steel and permanent storage: CCS expands across the Gulf Coast",
+        "href": "/what-we-do/delivering-industrial-solutions/carbon-capture-and-storage/lower-carbon-steel-and-permanent-storage-ccs-expands-across-the-gulf-coast"
+      },
+      {
+        "text": "ExxonMobil: Announces pricing terms, expiration and results of its cash tender offers for outstanding 2030 1.900% Senior Notes and 2031 2.150% Senior Notes",
+        "href": "/news/news-releases/2026/0915-exxonmobil-announces-pricing-terms-expiration-and-results-of-cash-tender-offers"
+      },
+      {
+        "text": "ExxonMobil: Cash tender offers for outstanding 2030 1.900% Senior Notes and 2031 2.150% Senior Notes",
+        "href": "/news/news-releases/2026/0908-exxonmobil-cash-tender-offers"
+      },
+      {
+        "text": "ExxonMobil Advances $100M STEM Investment in Guyana",
+        "href": "/community/stem/newsroom/2026/exxonmobil-advances-stem-investment-in-guyana"
+      },
+      {
+        "text": "See all news releases",
+        "href": "/news/news-releases"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S11",
+    "name": "Petrobras",
+    "url": "https://agencia.petrobras.com.br/en",
+    "method": "web",
+    "checked_at": "2026-10-07T13:14:40.846Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://agencia.petrobras.com.br/en",
+        "elapsed_ms": 2416,
+        "type": "text/html;charset=UTF-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 809573,
+    "title": "Petrobras News Agency",
+    "links": [
+      {
+        "text": "ACCESS TO INFORMATION",
+        "href": "https://transparencia.petrobras.com.br/"
+      },
+      {
+        "text": "Pular para o Conteúdo principal",
+        "href": "#main-content"
+      },
+      {
+        "text": "Seleção de Jornalismo",
+        "href": "https://agencia.petrobras.com.br/en/selecao"
+      },
+      {
+        "text": "Página inicial Agência Logo Petrobras Petrobras' Agency",
+        "href": "https://agencia.petrobras.com.br"
+      },
+      {
+        "text": "Petrobras supera R$ 700 bilhões de valor de mercado e bate recorde após nova descoberta no Amapá",
+        "href": "/w/institucional/petrobras-supera-r-700-bilh%C3%B5es-de-valor-de-mercado-e-bate-recorde-ap%C3%B3s-nova-descoberta-no-amap%C3%A1"
+      },
+      {
+        "text": "Petrobras Platform P-80 (Búzios 9) Begins Journey to Brazil",
+        "href": "/w/negocio/plataforma-da-petrobras-p-80-b%C3%BAzios-9-inicia-viagem-rumo-ao-brasil"
+      },
+      {
+        "text": "Inativação de conteúdos no período eleitoral",
+        "href": "/w/institucional/inativa%C3%A7%C3%A3o-de-conte%C3%BAdos-no-per%C3%ADodo-eleitoral"
+      },
+      {
+        "text": "Página da Petrobras no Bluesky",
+        "href": "https://bsky.app/profile/petrobrasoficial.bsky.social"
+      },
+      {
+        "text": "Página da Petrobras no You Tube",
+        "href": "https://www.youtube.com/petrobras"
+      },
+      {
+        "text": "imprensa@petrobras.com.br",
+        "href": "mailto:imprensa@petrobras.com.br"
+      },
+      {
+        "text": "Privacy and Personal Data",
+        "href": "https://petrobras.com.br/en/privacidade-protecao-de-dados"
+      },
+      {
+        "text": "Seleção de Jornalismo",
+        "href": "https://agencia.petrobras.com.br/en/selecao"
+      },
+      {
+        "text": "For more information, visit our Privacy and Personal Data Protection page",
+        "href": "https://petrobras.com.br/privacidade-protecao-de-dados#:~:text=A%20Petrobras%20faz%20uso%20de,de%20p%C3%A1ginas%20ao%20seu%20perfil."
+      },
+      {
+        "text": "Visit our Privacy Policy",
+        "href": "https://petrobras.com.br/privacidade-protecao-de-dados#:~:text=A%20Petrobras%20faz%20uso%20de,de%20p%C3%A1ginas%20ao%20seu%20perfil."
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S12",
+    "name": "EIA Today in Energy",
+    "url": "https://www.eia.gov/rss/todayinenergy.xml",
+    "method": "rss",
+    "checked_at": "2026-10-07T13:14:40.846Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.eia.gov/rss/todayinenergy.xml",
+        "elapsed_ms": 548,
+        "type": "text/xml"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 9129,
+    "feed_items": 14,
+    "newest_item": {
+      "source_id": "S12",
+      "source": "EIA Today in Energy",
+      "title": "Mixed outlook for energy expenditures this winter",
+      "published": "Wed, 07 Oct 2026 09:00:00 EST",
+      "url": "https://www.eia.gov/todayinenergy/detail.php?id=68264",
+      "collected_at": "2026-10-07T13:14:40.846Z"
+    },
+    "oldest_date": "Tue, 01 Sep 2026 09:00:00 EST"
+  },
+  {
+    "id": "S13",
+    "name": "EIA Open Data",
+    "url": "https://www.eia.gov/opendata/documentation.php",
+    "method": "api",
+    "checked_at": "2026-10-07T13:14:40.847Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.eia.gov/opendata/documentation.php",
+        "elapsed_ms": 769,
+        "type": "text/html; charset=UTF-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 128731,
+    "title": "EIA's API Technical Documentation - U.S. Energy Information Administration (EIA)",
+    "links": [
+      {
+        "text": "Skip to sub-navigation",
+        "href": "#page-sub-nav"
+      },
+      {
+        "text": "U.S. Energy Information Administration - EIA - Independent Statistics and Analysis",
+        "href": "/"
+      },
+      {
+        "text": "https://www.eia.gov/opendata/",
+        "href": "https://www.eia.gov/opendata/"
+      },
+      {
+        "text": "API Terms of Service Agreement",
+        "href": "terms-of-service.php"
+      },
+      {
+        "text": "Copyrights and Reuse Policy",
+        "href": "/about/copyrights_reuse.php"
+      },
+      {
+        "text": "Examples in this guide",
+        "href": "#Examplesinthisguide"
+      },
+      {
+        "text": "Submitting request to our RESTful API",
+        "href": "#Submittingrequesttoour"
+      },
+      {
+        "text": "Supporting multiple versions of our API",
+        "href": "#Supportingmultipleversi"
+      },
+      {
+        "text": "Generating an API call",
+        "href": "#GeneratinganAPIcall"
+      },
+      {
+        "text": "Choosing between parameter locations",
+        "href": "#Choosingbetweenparamete"
+      },
+      {
+        "text": "Understanding returned error codes",
+        "href": "#Understandingreturneder"
+      },
+      {
+        "text": "Debugging information",
+        "href": "#Debugginginformation"
+      },
+      {
+        "text": "Iterating through the API's tree and its metadata",
+        "href": "#IteratingthroughtheAPI"
+      },
+      {
+        "text": "Examining a metadata request",
+        "href": "#Examiningametadatarequ"
+      },
+      {
+        "text": "Facets and their available values",
+        "href": "#Facetsandtheiravailabl"
+      },
+      {
+        "text": "Returning metadata vs. specific data values",
+        "href": "#Returningmetadatavssp"
+      },
+      {
+        "text": "Examples in this guide",
+        "href": "#Examplesinthisguide"
+      },
+      {
+        "text": "Submitting request to our RESTful API",
+        "href": "#Submittingrequesttoour"
+      },
+      {
+        "text": "Supporting multiple versions of our API",
+        "href": "#Supportingmultipleversi"
+      },
+      {
+        "text": "Generating an API call",
+        "href": "#GeneratinganAPIcall"
+      },
+      {
+        "text": "Choosing between parameter locations",
+        "href": "#Choosingbetweenparamete"
+      },
+      {
+        "text": "Understanding returned error codes",
+        "href": "#Understandingreturneder"
+      },
+      {
+        "text": "Debugging information",
+        "href": "#Debugginginformation"
+      },
+      {
+        "text": "Iterating through the API's tree and its metadata",
+        "href": "#IteratingthroughtheAPI"
+      },
+      {
+        "text": "Examining a metadata request",
+        "href": "#Examiningametadatarequ"
+      },
+      {
+        "text": "Facets and their available values",
+        "href": "#Facetsandtheiravailabl"
+      },
+      {
+        "text": "Returning metadata vs. specific data values",
+        "href": "#Returningmetadatavssp"
+      },
+      {
+        "text": "Freedom of Information Act (FOIA)",
+        "href": "/about/foia.php"
+      },
+      {
+        "text": "U.S. Department of Energy",
+        "href": "https://www.energy.gov/"
+      },
+      {
+        "text": "Petroleum & Other Liquids",
+        "href": "/petroleum/"
+      },
+      {
+        "text": "Renewable & Alternative Fuels",
+        "href": "/renewable/"
+      },
+      {
+        "text": "Monthly Energy Review",
+        "href": "/totalenergy/data/monthly/"
+      },
+      {
+        "text": "Consumption & Efficiency",
+        "href": "/consumption/"
+      },
+      {
+        "text": "Residential Energy Consumption Survey (RECS)",
+        "href": "/consumption/residential/"
+      },
+      {
+        "text": "Commercial Buildings Energy Consumption Survey (CBECS)",
+        "href": "/consumption/commercial/"
+      },
+      {
+        "text": "Manufacturing Energy Consumption Survey (MECS)",
+        "href": "/consumption/manufacturing/"
+      },
+      {
+        "text": "U.S. Energy-Related Carbon Dioxide Emissions",
+        "href": "/environment/emissions/carbon/"
+      },
+      {
+        "text": "Energy-Related Carbon Dioxide Emissions at the State Level",
+        "href": "/environment/emissions/state/"
+      },
+      {
+        "text": "Analysis and Projections",
+        "href": "/analysis/"
+      },
+      {
+        "text": "Short-Term Energy Outlook",
+        "href": "/outlooks/steo/"
+      },
+      {
+        "text": "Annual Energy Outlook",
+        "href": "/outlooks/aeo/"
+      },
+      {
+        "text": "EIA-112 Residential Utility Disconnections",
+        "href": "/analysis/requests/residential/utility/"
+      },
+      {
+        "text": "Energy & Financial Markets: What Drives Crude Oil Prices?",
+        "href": "/finance/markets/crudeoil/"
+      },
+      {
+        "text": "Regional Analysis Briefs",
+        "href": "/international/analysis/world"
+      },
+      {
+        "text": "Country Analysis Briefs",
+        "href": "/international/analysis/world"
+      },
+      {
+        "text": "World Oil Transit Chokepoints",
+        "href": "/international/analysis/special-topics/World_Oil_Transit_Chokepoints"
+      },
+      {
+        "text": "Global Energy Security Data",
+        "href": "/outlooks/steo/report/energysecurity/article.php"
+      },
+      {
+        "text": "Data Tools, Apps, & Maps",
+        "href": "/tools/"
+      },
+      {
+        "text": "All Reports & Products",
+        "href": "/reports/"
+      },
+      {
+        "text": "Hydrocarbon Gas Liquids",
+        "href": "/energyexplained/hydrocarbon-gas-liquids/"
+      },
+      {
+        "text": "Conversion & Equivalents",
+        "href": "/tools/faqs/#conversion equivalents"
+      },
+      {
+        "text": "Short-Term Energy Outlook",
+        "href": "/outlooks/steo/"
+      },
+      {
+        "text": "Petroleum Marketing Monthly",
+        "href": "/petroleum/marketing/monthly/"
+      },
+      {
+        "text": "Quarterly Coal Report—Second Quarter 2026",
+        "href": "/coal/production/quarterly/"
+      },
+      {
+        "text": "Congressional Testimony",
+        "href": "/pressroom/testimony.php"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S14",
+    "name": "Offshore Energy",
+    "url": "https://www.offshore-energy.biz/feed/",
+    "method": "rss",
+    "checked_at": "2026-10-07T13:14:40.847Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.offshore-energy.biz/feed",
+        "elapsed_ms": 1524,
+        "type": "application/rss+xml; charset=utf-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 63046,
+    "feed_items": 50,
+    "newest_item": {
+      "source_id": "S14",
+      "source": "Offshore Energy",
+      "title": "Coastal gridlock: California’s infrastructure ban and Gulf pushbacks trigger an energy tug-of-war",
+      "published": "Wed, 07 Oct 2026 10:57:09 GMT",
+      "url": "https://offshore-energy.biz/2026/10/07/coastal-gridlock-californias-infrastructure-ban-and-gulf-pushbacks-trigger-an-energy-tug-of-war",
+      "collected_at": "2026-10-07T13:14:40.847Z"
+    },
+    "oldest_date": "Tue, 29 Sep 2026 14:06:20 GMT"
+  },
+  {
+    "id": "S15",
+    "name": "OffshoreWIND.biz",
+    "url": "https://www.offshorewind.biz/feed/",
+    "method": "rss",
+    "checked_at": "2026-10-07T13:14:40.847Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.offshorewind.biz/feed",
+        "elapsed_ms": 2734,
+        "type": "application/rss+xml; charset=utf-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 55311,
+    "feed_items": 50,
+    "newest_item": {
+      "source_id": "S15",
+      "source": "OffshoreWIND.biz",
+      "title": "Vestas Partners with Deepwater Wind Technology Developer",
+      "published": "Wed, 07 Oct 2026 10:43:12 GMT",
+      "url": "https://offshorewind.biz/2026/10/07/vestas-partners-with-deepwater-wind-technology-developer",
+      "collected_at": "2026-10-07T13:14:40.847Z"
+    },
+    "oldest_date": "Mon, 21 Sep 2026 09:52:20 GMT"
+  },
+  {
+    "id": "S16",
+    "name": "Norwegian Offshore Directorate",
+    "url": "https://factmaps.sodir.no/api/rest/services/DataService/Data/FeatureServer?f=pjson",
+    "method": "api",
+    "checked_at": "2026-10-07T13:14:43.589Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "error": "apiRequestContext.get: Timeout 14000ms exceeded.",
+        "elapsed_ms": 14009
+      },
+      {
+        "route": "local-proxy-10808",
+        "status": 200,
+        "final_url": "https://factmaps.sodir.no/api/rest/services/DataService/Data/FeatureServer?f=pjson",
+        "elapsed_ms": 1019,
+        "type": "text/plain; charset=UTF-8"
+      }
+    ],
+    "status": 200,
+    "route": "local-proxy-10808",
+    "bytes": 24390,
+    "json_keys": [
+      "currentVersion",
+      "cimVersion",
+      "serviceDescription",
+      "hasVersionedData",
+      "hasArchivedData",
+      "hasBranchVersionedData",
+      "supportsDisconnectedEditing",
+      "supportsDatumTransformation",
+      "supportsReturnServiceEditsOption",
+      "returnServiceEditsHaveSR",
+      "supportsQueryDataElements",
+      "datesInUnknownTimezone",
+      "supportsRelationshipsResource",
+      "syncEnabled",
+      "syncCapabilities"
+    ],
+    "layers": [
+      {
+        "id": 1001,
+        "name": "block"
+      },
+      {
+        "id": 1002,
+        "name": "quadrant"
+      },
+      {
+        "id": 1003,
+        "name": "sub_area"
+      },
+      {
+        "id": 1004,
+        "name": "sbm_block"
+      },
+      {
+        "id": 1005,
+        "name": "sbm_quadrant"
+      },
+      {
+        "id": 1100,
+        "name": "areastatus"
+      },
+      {
+        "id": 2000,
+        "name": "str_structuralelements"
+      },
+      {
+        "id": 2001,
+        "name": "str_domes"
+      },
+      {
+        "id": 2002,
+        "name": "str_faultsandboundaries"
+      },
+      {
+        "id": 2004,
+        "name": "str_sedimentboundaries"
+      },
+      {
+        "id": 3000,
+        "name": "licence"
+      },
+      {
+        "id": 3002,
+        "name": "licence_area_poly_hst"
+      },
+      {
+        "id": 3006,
+        "name": "licence_document_area_poly"
+      },
+      {
+        "id": 3011,
+        "name": "licence_area_licenced_count"
+      },
+      {
+        "id": 3102,
+        "name": "licensing_activity_apa_gross"
+      },
+      {
+        "id": 3103,
+        "name": "licensing_activity_apa_open"
+      },
+      {
+        "id": 3104,
+        "name": "licensing_activity_announced_blocks_hst"
+      },
+      {
+        "id": 3106,
+        "name": "licencing_activity_announced_hst"
+      },
+      {
+        "id": 3107,
+        "name": "licensing_activity_apa_gross_hst"
+      },
+      {
+        "id": 3200,
+        "name": "afex_area"
+      },
+      {
+        "id": 3201,
+        "name": "afex_area_area_poly_hst"
+      },
+      {
+        "id": 3300,
+        "name": "bsns_arr_area"
+      },
+      {
+        "id": 3301,
+        "name": "bsns_arr_area_area_poly_hst"
+      },
+      {
+        "id": 4000,
+        "name": "seis_acquisition"
+      },
+      {
+        "id": 4008,
+        "name": "seis_acquisition_poly_total"
+      },
+      {
+        "id": 4501,
+        "name": "sbm_sample_point"
+      },
+      {
+        "id": 4502,
+        "name": "sbm_survey_area"
+      },
+      {
+        "id": 4503,
+        "name": "sbm_survey_line"
+      },
+      {
+        "id": 4504,
+        "name": "sbm_survey_sub_area"
+      },
+      {
+        "id": 5000,
+        "name": "wellbore"
+      },
+      {
+        "id": 6000,
+        "name": "facility"
+      },
+      {
+        "id": 6100,
+        "name": "pipeline"
+      },
+      {
+        "id": 7000,
+        "name": "discovery"
+      },
+      {
+        "id": 7004,
+        "name": "discovery_map_reference"
+      },
+      {
+        "id": 7005,
+        "name": "discovery_poly_hst"
+      },
+      {
+        "id": 7100,
+        "name": "field"
+      },
+      {
+        "id": 7800,
+        "name": "play_current_public"
+      },
+      {
+        "id": 8001,
+        "name": "sbm_occurence"
+      },
+      {
+        "id": 8002,
+        "name": "sbm_play_resource_estimate_area"
+      }
+    ]
+  },
+  {
+    "id": "S17",
+    "name": "EMODnet Human Activities",
+    "url": "https://emodnet.ec.europa.eu/geonetwork/srv/api/records/8201070b-4b0b-4d54-8910-abcea5dce57f",
+    "method": "api",
+    "checked_at": "2026-10-07T13:14:43.589Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://emodnet.ec.europa.eu/geonetwork/srv/api/records/8201070b-4b0b-4d54-8910-abcea5dce57f",
+        "elapsed_ms": 4354,
+        "type": "text/html;charset=UTF-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 122805,
+    "title": "EMODnet Human Activities, Energy, Wind Farms",
+    "links": [
+      {
+        "text": "EMODnet product catalogue",
+        "href": "https://emodnet.ec.europa.eu/geonetwork/srv/"
+      },
+      {
+        "text": "https://emodnet.ec.europa.eu/en/human-activities",
+        "href": "https://emodnet.ec.europa.eu/en/human-activities"
+      },
+      {
+        "text": "socioeconomia@cetmar.org",
+        "href": "mailto:socioeconomia@cetmar.org"
+      },
+      {
+        "text": "secretariat@ospar.org",
+        "href": "mailto:secretariat@ospar.org"
+      },
+      {
+        "text": "michael.pierrot@thewindpower.net",
+        "href": "mailto:michael.pierrot@thewindpower.net"
+      },
+      {
+        "text": "marcel.bommele@rws.nl",
+        "href": "mailto:marcel.bommele@rws.nl"
+      },
+      {
+        "text": "janna.smith@globalenergymonitor.org",
+        "href": "mailto:janna.smith@globalenergymonitor.org"
+      },
+      {
+        "text": "geocell@naturalsciences.be",
+        "href": "mailto:geocell@naturalsciences.be"
+      },
+      {
+        "text": "offshore.info@economie.fgov.be",
+        "href": "mailto:offshore.info@economie.fgov.be"
+      },
+      {
+        "text": "mari.pohja-mykra@varsinais-suomi.fi",
+        "href": "mailto:mari.pohja-mykra@varsinais-suomi.fi"
+      },
+      {
+        "text": "stefan.husa@regeringen.ax",
+        "href": "mailto:stefan.husa@regeringen.ax"
+      },
+      {
+        "text": "mikael.wennstrom@regeringen.ax",
+        "href": "mailto:mikael.wennstrom@regeringen.ax"
+      },
+      {
+        "text": "adl.dtecrem@cerema.fr",
+        "href": "mailto:adl.dtecrem@cerema.fr"
+      },
+      {
+        "text": "Dgec@developpement-durable.gouv.fr",
+        "href": "mailto:Dgec@developpement-durable.gouv.fr"
+      },
+      {
+        "text": "geolittoral.mel.dlab.dternc.cerema@cerema.fr",
+        "href": "mailto:geolittoral.mel.dlab.dternc.cerema@cerema.fr"
+      },
+      {
+        "text": "info@owf-deutsche-bucht.de",
+        "href": "mailto:info@owf-deutsche-bucht.de"
+      },
+      {
+        "text": "datarequests@marine.ie",
+        "href": "mailto:datarequests@marine.ie"
+      },
+      {
+        "text": "kristine.kedo@varam.gov.lv",
+        "href": "mailto:kristine.kedo@varam.gov.lv"
+      },
+      {
+        "text": "martins.grels@varam.gov.lv",
+        "href": "mailto:martins.grels@varam.gov.lv"
+      },
+      {
+        "text": "offshorewind@epsog.lt",
+        "href": "mailto:offshorewind@epsog.lt"
+      },
+      {
+        "text": "info@informatiehuismarien.nl",
+        "href": "mailto:info@informatiehuismarien.nl"
+      },
+      {
+        "text": "barbara.schoute@rws.nl",
+        "href": "mailto:barbara.schoute@rws.nl"
+      },
+      {
+        "text": "servicedesk-data@rws.nl",
+        "href": "mailto:servicedesk-data@rws.nl"
+      },
+      {
+        "text": "ajuda.bmar@dgrm.mm.gov.pt",
+        "href": "mailto:ajuda.bmar@dgrm.mm.gov.pt"
+      },
+      {
+        "text": "enquiries@thecrownestate.co.uk",
+        "href": "mailto:enquiries@thecrownestate.co.uk"
+      },
+      {
+        "text": "enquiries@windsorgreatpark.co.uk",
+        "href": "mailto:enquiries@windsorgreatpark.co.uk"
+      },
+      {
+        "text": "marine@crownestatescotland.com",
+        "href": "mailto:marine@crownestatescotland.com"
+      },
+      {
+        "text": "per.olsson@havochvatten.se",
+        "href": "mailto:per.olsson@havochvatten.se"
+      },
+      {
+        "text": "joacim.johannesson@havochvatten.se",
+        "href": "mailto:joacim.johannesson@havochvatten.se"
+      },
+      {
+        "text": "havochvatten@havochvatten.se",
+        "href": "mailto:havochvatten@havochvatten.se"
+      },
+      {
+        "text": "geodata@lansstyrelsen.se",
+        "href": "mailto:geodata@lansstyrelsen.se"
+      },
+      {
+        "text": "fo-miljoskydd@lansstyrelsen.se",
+        "href": "mailto:fo-miljoskydd@lansstyrelsen.se"
+      },
+      {
+        "text": "No limitations on public access",
+        "href": "https://inspire.ec.europa.eu/metadata-codelist/LimitationsOnPublicAccess/noLimitations"
+      },
+      {
+        "text": "https://creativecommons.org/licenses/by/4.0/",
+        "href": "https://creativecommons.org/licenses/by/4.0/"
+      },
+      {
+        "text": "https://emodnet.ec.europa.eu/en/",
+        "href": "https://emodnet.ec.europa.eu/en/"
+      },
+      {
+        "text": "https://emodnet.ec.europa.eu/en/human-activities",
+        "href": "https://emodnet.ec.europa.eu/en/human-activities"
+      },
+      {
+        "text": "https://ows.emodnet-humanactivities.eu/wms?",
+        "href": "https://ows.emodnet-humanactivities.eu/wms?"
+      },
+      {
+        "text": "https://ows.emodnet-humanactivities.eu/wms?",
+        "href": "https://ows.emodnet-humanactivities.eu/wms?"
+      },
+      {
+        "text": "https://ows.emodnet-humanactivities.eu/wfs?",
+        "href": "https://ows.emodnet-humanactivities.eu/wfs?"
+      },
+      {
+        "text": "https://ows.emodnet-humanactivities.eu/wfs?",
+        "href": "https://ows.emodnet-humanactivities.eu/wfs?"
+      },
+      {
+        "text": "https://ows.emodnet-humanactivities.eu/geonetwork/srv/api/records/8201070b-4b0b-4d54-8910-abcea5dce57f/attachments/EMODnet_HA_Energy_WindFarms_20260710.zip",
+        "href": "https://ows.emodnet-humanactivities.eu/geonetwork/srv/api/records/8201070b-4b0b-4d54-8910-abcea5dce57f/attachments/EMODnet_HA_Energy_WindFarms_20260710.zip"
+      },
+      {
+        "text": "socioeconomia@cetmar.org",
+        "href": "mailto:socioeconomia@cetmar.org"
+      },
+      {
+        "text": "Access to the catalogue",
+        "href": "https://emodnet.ec.europa.eu/geonetwork/srv/eng/catalog.search#/metadata/8201070b-4b0b-4d54-8910-abcea5dce57f"
+      }
+    ],
+    "detected_feed_links": [
+      "https://emodnet.ec.europa.eu/geonetwork/srv/eng/rss.search?sortBy=changeDate"
+    ]
+  },
+  {
+    "id": "S18",
+    "name": "IRENASTAT",
+    "url": "https://pxweb.irena.org/pxweb/en/",
+    "method": "download",
+    "checked_at": "2026-10-07T13:14:43.589Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "error": "apiRequestContext.get: unable to get local issuer certificate",
+        "elapsed_ms": 4541
+      },
+      {
+        "route": "local-proxy-10808",
+        "error": "apiRequestContext.get: unable to get local issuer certificate",
+        "elapsed_ms": 1052
+      }
+    ],
+    "status": null,
+    "route": "local-proxy-10808",
+    "error": "apiRequestContext.get: unable to get local issuer certificate",
+    "bytes": 0
+  },
+  {
+    "id": "S19",
+    "name": "IEA OES",
+    "url": "https://www.ocean-energy-systems.org/publications/",
+    "method": "download",
+    "checked_at": "2026-10-07T13:14:43.589Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.ocean-energy-systems.org/publications/",
+        "elapsed_ms": 2655,
+        "type": "text/html; charset=UTF-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 28612,
+    "title": "OES | Publications",
+    "links": [
+      {
+        "text": "International Vision for Ocean Energy",
+        "href": "/ocean-energy/international-vision-for-ocean-energy/"
+      },
+      {
+        "text": "Ocean energy in the World",
+        "href": "/ocean-energy/ocean-energy-in-the-world/"
+      },
+      {
+        "text": "OES Annual Reports (25)",
+        "href": "/publications/oes-annual-reports/"
+      },
+      {
+        "text": "OES Strategic Plans (2)",
+        "href": "/publications/oes-strategic-plans-/"
+      },
+      {
+        "text": "Selected Reports from OES Members (11)",
+        "href": "/publications/selected-reports-from-oes-members/"
+      },
+      {
+        "text": "ICOE conference (899)",
+        "href": "/publications/icoe-conference/"
+      },
+      {
+        "text": "International WaTERS: Summary of Findings and Lessons Learned",
+        "href": "/documents/60764-international-waters-report-f.pdf/"
+      },
+      {
+        "text": "Technology Push, Market Pull - What to consider and what to avoid",
+        "href": "/documents/44314-oes-technology-push-market-pull.pdf/"
+      },
+      {
+        "text": "Ocean Energy: Perspectives on Progress",
+        "href": "/documents/73482-oes-2025-interviews-report.pdf/"
+      },
+      {
+        "text": "ICOE 2024 Key Takeaways Report",
+        "href": "/documents/92423-oes-icoe2024-key-takeaways.pdf/"
+      },
+      {
+        "text": "Self-Sustained Desalination Technologies Powered by Ocean Energy",
+        "href": "/documents/67540-oes-desalination-study.pdf/"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S20",
+    "name": "国家能源局",
+    "url": "https://www.nea.gov.cn/",
+    "method": "web",
+    "checked_at": "2026-10-07T13:14:43.589Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.nea.gov.cn/",
+        "elapsed_ms": 1598,
+        "type": "text/html"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 108996,
+    "title": "国家能源局",
+    "links": [
+      {
+        "text": "国家能源局举行升国旗仪式 庆祝中华人民共和国成立77周年",
+        "href": "20260930/9ca69805239243efad85690747000ff9/c.html"
+      },
+      {
+        "text": "国家能源局主要负责同志赴吉林调研能源投资及迎峰度冬能源保供等工作",
+        "href": "20260923/b9ebeea1a41544218fa928389cccb0cf/c.html"
+      },
+      {
+        "text": "国家能源局负责人出席2026年二十国集团能源富足部长会议",
+        "href": "20260918/a69f161c5ed6448b9207d0e3d694fee6/c.html"
+      },
+      {
+        "text": "习近平的文化足迹丨“有文化自信的民族，才能立得住、站得稳、行得远”",
+        "href": "https://www.news.cn/politics/leaders/20261006/49b87671faf14b45abaaa6735766b14e/c.html"
+      },
+      {
+        "text": "《习近平谈治国理政》第五卷西文版读书交流会在马德里举行",
+        "href": "https://www.news.cn/world/20261006/69a93c92c5a044fb888c9211ad79b453/c.html"
+      },
+      {
+        "text": "全国铁路10月7日预计发送旅客2415万人次",
+        "href": "https://www.news.cn/politics/20261007/0b55a7a12c914f3891cc821595577aa8/c.html"
+      },
+      {
+        "text": "国家能源局发布2026年8月全国可再生能源绿色电力证书核发及交易数据",
+        "href": "20260930/8cee035ddfd7417fbea02b55cc386469/c.html"
+      },
+      {
+        "text": "国新办就“促进能源绿色转型与供应保障”举行中外记者见面会",
+        "href": "20260923/b1cae34ab102400686c9ad357aff07aa/c.html"
+      },
+      {
+        "text": "2026年8月全国电动汽车充电设施数据情况",
+        "href": "20260923/e63286a4c4174cf69bc13a772ae72d5f/c.html"
+      },
+      {
+        "text": "2026年1—8月全国电力市场交易电量同比增长19.2%",
+        "href": "20260922/b73b5b9624074b51a21f2d32e19b47e1/c.html"
+      },
+      {
+        "text": "8月份全社会用电量再破万亿，负荷创历史新高",
+        "href": "20260920/bd277235282140f4b43e9e0f5f0af3d9/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于公开征求《电力并网运行管理规定》（征求意见稿）意见的通知",
+        "href": "20260930/43fede537ca048b1a6a51fe0970fb205/c.html"
+      },
+      {
+        "text": "关于披露中国能源传媒集团有限公司负责人2025年度薪酬情况的通知",
+        "href": "http://www.nea.gov.cn/20260928/ccc0e6f629384053b0bf50cc3f018187/c.html"
+      },
+      {
+        "text": "关于2026年8月全国新增建档立卡新能源发电（不含户用光伏）项目情况的公告",
+        "href": "http://www.nea.gov.cn/20260923/aaadb598d4cc4c0a92585bfd26c8728e/c.html"
+      },
+      {
+        "text": "国家能源局东北监管局、西北监管局、甘肃监管办公室电力安全监管典型执法案例",
+        "href": "http://www.nea.gov.cn/20260923/ad4e328a364b4134b9b97ca9b6eda76c/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于下达2026年能源领域行业标准制修订计划及外文版翻译计划的通知",
+        "href": "20260922/80504e4223fe473195bf7e2eac21dede/c.html"
+      },
+      {
+        "text": "国家能源局关于印发《油气管网设施公平开放信息公开与报送办法》的通知",
+        "href": "http://www.nea.gov.cn/20260909/22d62e1a042a420c846f7598589136e2/c.html"
+      },
+      {
+        "text": "《电力安全事故应急处置和调查处理条例》全文",
+        "href": "20260904/2165aeebb935486cb20e8b560414bed0/c.html"
+      },
+      {
+        "text": "关于2026年7月全国新增建档立卡新能源发电（不含户用光伏）项目情况的公告",
+        "href": "http://www.nea.gov.cn/20260904/324fdc3e4908431392b82d19ab10de6b/c.html"
+      },
+      {
+        "text": "关于披露中国能源传媒集团有限公司负责人2025年度薪酬情况的通知",
+        "href": "http://www.nea.gov.cn/20260928/ccc0e6f629384053b0bf50cc3f018187/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于下达2026年能源领域行业标准制修订计划及外文版翻译计划的通知",
+        "href": "20260922/80504e4223fe473195bf7e2eac21dede/c.html"
+      },
+      {
+        "text": "国家能源局关于印发《油气管网设施公平开放信息公开与报送办法》的通知",
+        "href": "http://www.nea.gov.cn/20260909/22d62e1a042a420c846f7598589136e2/c.html"
+      },
+      {
+        "text": "《电力安全事故应急处置和调查处理条例》全文",
+        "href": "20260904/2165aeebb935486cb20e8b560414bed0/c.html"
+      },
+      {
+        "text": "关于公开征求《供电企业信息公开实施办法》（修订稿）意见的通知",
+        "href": "http://www.nea.gov.cn/20260831/c1aa140dcdbe40e481ded09e4e6fda98/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于建立“一带一路”能源合作伙伴关系合作网络“人工智能+能源”工作组的通知",
+        "href": "http://www.nea.gov.cn/20260824/84450f00d9d34b5ca163f4655059ec43/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于公开征求《承装（修、试）电力设施许可证注销管理办法（征求意见稿）》意见的通知",
+        "href": "http://www.nea.gov.cn/20260824/cf1f38e65b204c70a537d5872ea53006/c.html"
+      },
+      {
+        "text": "国家发展改革委 国家能源局关于印发《煤炭工业发展“十五五”规划》的通知",
+        "href": "20260810/78279aaa5a884a5fbdcf771fccbdf417/c.html"
+      },
+      {
+        "text": "国家能源局关于印发《电力安全生产“十五五”行动计划》的通知",
+        "href": "20260807/f098081c878044999a75f7ed82688e7f/c.html"
+      },
+      {
+        "text": "关于2026年8月全国新增建档立卡新能源发电（不含户用光伏）项目情况的公告",
+        "href": "http://www.nea.gov.cn/20260923/aaadb598d4cc4c0a92585bfd26c8728e/c.html"
+      },
+      {
+        "text": "关于2026年7月全国新增建档立卡新能源发电（不含户用光伏）项目情况的公告",
+        "href": "http://www.nea.gov.cn/20260904/324fdc3e4908431392b82d19ab10de6b/c.html"
+      },
+      {
+        "text": "关于中国—国际可再生能源署（IRENA）合作专项工作组换届及扩容结果的公告",
+        "href": "https://www.nea.gov.cn/20260724/aabe4bec49d141daaa36901c276997c9/c.html"
+      },
+      {
+        "text": "关于2026年6月全国新增建档立卡新能源发电（不含户用光伏）项目情况的公告",
+        "href": "https://www.nea.gov.cn/20260720/f978dbe5fcbc4d8085a3909410b9366e/c.html"
+      },
+      {
+        "text": "国家能源局关于印发《能源领域节能降碳行动计划（2026—2028年）》的通知",
+        "href": "20260710/4acf5873e20149cdbc52c709b16b30ff/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于同意清原上库坝等25座水电站大坝安全注册登记的复函",
+        "href": "http://www.nea.gov.cn/20260915/0c59fdb7c1fb4ef0ae9566ac1d315cb2/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于同意注销浙江百丈漈一级水电站大坝安全注册登记证的复函",
+        "href": "http://www.nea.gov.cn/20260708/f3cc166ee6e243eea21713f3fa3ed2db/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于同意水布垭等28座水电站大坝安全注册登记的复函",
+        "href": "http://www.nea.gov.cn/20260630/2f61bf681e244bb9aae3ef3143b3c60a/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于同意注销云南六郎洞水电站大坝安全注册登记证的复函",
+        "href": "http://www.nea.gov.cn/20260327/2a148a9117a9471a8a15a2474ad08ca8/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于同意宜兴上库坝等43座水电站大坝安全注册登记的复函",
+        "href": "http://www.nea.gov.cn/20260326/5ec157e289f349d6978ae8a8f26cd94d/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于同意仙游上库坝等26座水电站大坝安全注册登记的复函",
+        "href": "http://www.nea.gov.cn/20251225/8ec07ade8b9249bbbafb8f12c466ecf6/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于同意文登上库坝等19座水电站大坝安全注册登记的复函",
+        "href": "http://www.nea.gov.cn/20251020/1bbc80f4856849078dc8b3506142227c/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于同意黛溪等38座水电站大坝安全注册登记的复函",
+        "href": "http://www.nea.gov.cn/20250826/9b7231db53eb491fb5a47aad28640664/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于同意响水涧上库坝等21座水电站大坝安全注册登记的复函",
+        "href": "http://www.nea.gov.cn/20250530/e94e1be1a17041b9afc3cd15c5bd0321/c.html"
+      },
+      {
+        "text": "《油气管网设施公平开放信息公开与报送办法》政策解读",
+        "href": "20260909/732c6c6f0b77483ba008ca979b49234d/c.html"
+      },
+      {
+        "text": "司法部、国家发展改革委、国家能源局负责人就《电力安全事故应急处置和调查处理条例》修订答记者问",
+        "href": "20260904/47055259a93d4534a0eb8a14534c4022/c.html"
+      },
+      {
+        "text": "国家发展改革委 国家能源局有关负责同志就《煤炭工业发展“十五五”规划》答记者问",
+        "href": "20260810/c509d87dc997466bbdaeebbe70a3777d/c.html"
+      },
+      {
+        "text": "国家能源局东北监管局、西北监管局、甘肃监管办公室电力安全监管典型执法案例",
+        "href": "http://www.nea.gov.cn/20260923/ad4e328a364b4134b9b97ca9b6eda76c/c.html"
+      },
+      {
+        "text": "关于公开征求《供电企业信息公开实施办法》（修订稿）意见的通知",
+        "href": "20260831/c1aa140dcdbe40e481ded09e4e6fda98/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于公开征求《GB26164.1-2010 电力安全工作规程 热力和机械部分（征求意见稿）》等2项国家强制性标准意见的通知",
+        "href": "20260717/ec48a28e7dee4c29abaaa28e7a79848f/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于内蒙古电力交易中心开展绿色电力证书交易请示的复函",
+        "href": "20260625/5d6aff8953ba4cb6b104dfdea6c0fbae/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于组织开展第六批能源领域首台（套）重大技术装备申报工作的通知",
+        "href": "20260209/852658bf1dab460bacbedb630493bc9c/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于印发煤矿智能化技术升级应用试点项目名单的通知",
+        "href": "20260209/ea5b9bede4764590bff3c62244f6f57c/c.html"
+      },
+      {
+        "text": "国家能源局关于印发《能源行业公共信用信息管理办法》的通知",
+        "href": "20260107/7b3c26b1527d4283a7736680a3755a43/c.html"
+      },
+      {
+        "text": "国家能源局关于印发《可再生能源绿色电力证书管理实施细则（试行）》的通知",
+        "href": "20260107/9a905f263a8b4aa4a06e1a96855cc8eb/c.html"
+      },
+      {
+        "text": "国家能源局关于推进煤炭与新能源融合发展的指导意见",
+        "href": "20251107/8b990f43dc774fc88c643614205e383d/c.html"
+      },
+      {
+        "text": "国务院安委办、应急管理部调度假期安全防范工作",
+        "href": "https://www.news.cn/politics/20261005/d97862179d114bf99803dd489c60932d/c.html"
+      },
+      {
+        "text": "国庆假期消费市场观察：出行热 体验丰 门市旺",
+        "href": "https://www.news.cn/fortune/20261005/4e37812f8fd74f40b2aa226a34141aa8/c.html"
+      },
+      {
+        "text": "学习手记丨在旅游中感悟中华文化、增强文化自信",
+        "href": "https://www.news.cn/politics/leaders/20261005/79171171eb06473ba2eeea2f4780ba79/c.html"
+      },
+      {
+        "text": "国庆假期首日高速公路充电量同比增长60.4%",
+        "href": "20261002/6cc9b8aed9db4bef91a5e89401def900/c.html"
+      },
+      {
+        "text": "国家能源局召开党组会议 学习贯彻全国安全生产视频会议精神 部署做好能源电力安全生产工作",
+        "href": "20260930/d3e6bcf98d93436c89c62204f4eb0a58/c.html"
+      },
+      {
+        "text": "超危大工程方案论证专家的选择上，企业应该优先执行《危险性较大的分部分项工程安全管理规定》的要求还是优先执行《电力建设工程施工安全管理导则》的要求？",
+        "href": "20260930/599507cdb20640bd95a2fdb71dafd7a4/c.html"
+      },
+      {
+        "text": "超危大工程方案组织召开专家审查论证会时，施工单位本部分管安全的负责人、技术负责人能否授权专业人员代其参加专家审查论证会？",
+        "href": "20260930/5ddb605ffa6f4bbf87c1876da13323ee/c.html"
+      },
+      {
+        "text": "《电力建设工程施工安全管理导则》要求项目参建各方的人员不得以专家身份参加审查论证会的适用边界问题？",
+        "href": "20260930/2007620ccca04030ab11ffb60f16b1b1/c.html"
+      },
+      {
+        "text": "国家能源局举行升国旗仪式 庆祝中华人民共和国成立77周年",
+        "href": "20260930/9ca69805239243efad85690747000ff9/c.html"
+      },
+      {
+        "text": "中国石油西南油气田2026年油气当量突破3000万吨",
+        "href": "20260930/34991f76a76d433f896869ebef0dec23/c.html"
+      },
+      {
+        "text": "国庆假期首日高速公路充电量同比增长60.4%",
+        "href": "20261002/6cc9b8aed9db4bef91a5e89401def900/c.html"
+      },
+      {
+        "text": "国家能源局召开党组会议 学习贯彻全国安全生产视频会议精神 部署做好能源电力安全生产工作",
+        "href": "20260930/d3e6bcf98d93436c89c62204f4eb0a58/c.html"
+      },
+      {
+        "text": "国家能源局举行升国旗仪式 庆祝中华人民共和国成立77周年",
+        "href": "20260930/9ca69805239243efad85690747000ff9/c.html"
+      },
+      {
+        "text": "国家能源局组织召开2026—2027年采暖季天然气保供形势研判专题会议",
+        "href": "20260928/6a94f3db6d674083b9191be6d3169620/c.html"
+      },
+      {
+        "text": "国家能源局举办助力乡村振兴基层干部能力提升专题培训班",
+        "href": "20260924/c8826a6605d94defb1637803b4255d2d/c.html"
+      },
+      {
+        "text": "国家能源局主要负责同志赴吉林调研能源投资及迎峰度冬能源保供等工作",
+        "href": "20260923/b9ebeea1a41544218fa928389cccb0cf/c.html"
+      },
+      {
+        "text": "国家能源局负责人出席2026年二十国集团能源富足部长会议",
+        "href": "20260918/a69f161c5ed6448b9207d0e3d694fee6/c.html"
+      },
+      {
+        "text": "华北能源监管局督导雄安新区安全生产与电力保供",
+        "href": "20260929/adf5bbe4590b42d5b4d1476a5fbd8672/c.html"
+      },
+      {
+        "text": "华中能源监管局积极推进2026年典型电网工程建设及投资成效监管",
+        "href": "20260929/92d98b5d8d874ddfb7db7c4178243056/c.html"
+      },
+      {
+        "text": "南方能源监管局圆满完成第23届中国—东盟“两会”保供电工作",
+        "href": "20260929/2e9479c63f4b4fe0a99c1e3bb4c49379/c.html"
+      },
+      {
+        "text": "山西能源监管办深学细悟“十五五”规划部署 主动扛起监管使命担当",
+        "href": "20260929/423d792227bf485e9707799e8cb2128a/c.html"
+      },
+      {
+        "text": "山东能源监管办强化承装(修、试)电力设施许可监管",
+        "href": "20260929/cca842affb5447dcac6d0fd10b25b843/c.html"
+      },
+      {
+        "text": "浙江能源监管办对浙江金七门核电工程开展“四不两直”安全质量检查",
+        "href": "20260929/c7faafb12b3446a692d5d1197666bbc6/c.html"
+      },
+      {
+        "text": "湖南能源监管办坚持监管与服务并重助力企业信用修复“轻装前行”",
+        "href": "20260929/529b9fd3bf234b2eb5471b10ae969286/c.html"
+      },
+      {
+        "text": "四川能源监管办持续推进“临代正”小区整治工作",
+        "href": "20260929/dd0881224c5f49f1a5c08f2154521872/c.html"
+      },
+      {
+        "text": "云南能源监管办组织召开云南电力行业信用成果展示交流会",
+        "href": "20260929/0afcdbfcae9849f69d852a1fe86ffa48/c.html"
+      },
+      {
+        "text": "中国石油西南油气田2026年油气当量突破3000万吨",
+        "href": "20260930/34991f76a76d433f896869ebef0dec23/c.html"
+      },
+      {
+        "text": "29.5%！我国电气化率高于欧美主要发达经济体",
+        "href": "20260924/a31cea9d29aa4ac69c551f36c5a54d36/c.html"
+      },
+      {
+        "text": "国家能源局综合司关于公开征求《电力并网运行管理规定》（征求意见稿）意见的通知",
+        "href": "20260930/43fede537ca048b1a6a51fe0970fb205/c.html"
+      },
+      {
+        "text": "国家能源局2026年第三季度政府网站和政务新媒体抽查情况",
+        "href": "20260930/62eede84053d4220892a8fdb742ee87f/c.html"
+      },
+      {
+        "text": "关于2026年8月全国新增建档立卡新能源发电（不含户用光伏）项目情况的公告",
+        "href": "http://www.nea.gov.cn/20260923/aaadb598d4cc4c0a92585bfd26c8728e/c.html"
+      },
+      {
+        "text": "关于2026年7月全国新增建档立卡新能源发电（不含户用光伏）项目情况的公告",
+        "href": "http://www.nea.gov.cn/20260904/324fdc3e4908431392b82d19ab10de6b/c.html"
+      },
+      {
+        "text": "关于公开征求《供电企业信息公开实施办法》（修订稿）意见的通知",
+        "href": "http://www.nea.gov.cn/20260831/c1aa140dcdbe40e481ded09e4e6fda98/c.html"
+      },
+      {
+        "text": "超危大工程方案论证专家的选择上，企业应该优先执行《危险性较大的分部分项工程安全管理规定》的要求还是优先执行《电力建设工程施工安全管理导则》的要求？",
+        "href": "20260930/599507cdb20640bd95a2fdb71dafd7a4/c.html"
+      },
+      {
+        "text": "超危大工程方案组织召开专家审查论证会时，施工单位本部分管安全的负责人、技术负责人能否授权专业人员代其参加专家审查论证会？",
+        "href": "20260930/5ddb605ffa6f4bbf87c1876da13323ee/c.html"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S21",
+    "name": "自然资源部",
+    "url": "https://www.mnr.gov.cn/",
+    "method": "web",
+    "checked_at": "2026-10-07T13:14:58.618Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "error": "apiRequestContext.get: getaddrinfo ENOTFOUND www.mnr.gov.cn",
+        "elapsed_ms": 124
+      },
+      {
+        "route": "local-proxy-10808",
+        "status": 200,
+        "final_url": "https://www.mnr.gov.cn/",
+        "elapsed_ms": 72,
+        "type": "text/html"
+      }
+    ],
+    "status": 200,
+    "route": "local-proxy-10808",
+    "bytes": 118591,
+    "title": "自然资源部门户网站",
+    "links": [
+      {
+        "text": "庆祝中华人民共和国成立77周年招待会在京举行 习近平发表重要讲话",
+        "href": "https://www.gov.cn/yaowen/liebiao/202609/content_7082504.htm"
+      },
+      {
+        "text": "习近平等党和国家领导人出席庆祝中华人民共和国成立77周年招待会",
+        "href": "https://www.gov.cn/home/toutu/202609/content_7082512.htm"
+      },
+      {
+        "text": "习近平等党和国家领导人出席烈士纪念日向人民英雄敬献花篮仪式",
+        "href": "https://www.gov.cn/home/toutu/202609/content_7082489.htm"
+      },
+      {
+        "text": "【“十五五”开好局起好步】安全高效永续利用自然资源",
+        "href": "http://vod.mnr.gov.cn/spxw/202609/t20260923_2939025.htm"
+      },
+      {
+        "text": "9月22日10时！国新办新闻发布会介绍促进自然资源安全高效永续利用有关情况",
+        "href": "./dt/tpxw/zrzytp/202609/t20260921_2938788.html"
+      },
+      {
+        "text": "没有网络安全就没有国家安全 | 2026年国家网络安全宣传周",
+        "href": "./dt/tpxw/zrzytp/202609/t20260918_2938667.html"
+      },
+      {
+        "text": "习近平：在庆祝中华人民共和国成立77周年...",
+        "href": "https://www.gov.cn/yaowen/liebiao/202609/content_7082507.htm"
+      },
+      {
+        "text": "新华社评论员：坚定信心启新程 锚定目标谱...",
+        "href": "https://www.gov.cn/yaowen/liebiao/202610/content_7082600.htm"
+      },
+      {
+        "text": "习近平：加强普惠性、基础性、兜底性民生建设",
+        "href": "https://www.gov.cn/yaowen/liebiao/202609/content_7082479.htm"
+      },
+      {
+        "text": "《求是》杂志发表习近平总书记重要文章《...",
+        "href": "https://www.gov.cn/yaowen/liebiao/202609/content_7082467.htm"
+      },
+      {
+        "text": "习近平同文莱苏丹哈桑纳尔就中文建交35周...",
+        "href": "https://www.gov.cn/yaowen/liebiao/202609/content_7082465.htm"
+      },
+      {
+        "text": "烈士纪念日向人民英雄敬献花篮仪式在京隆...",
+        "href": "https://www.gov.cn/yaowen/liebiao/202609/content_7082444.htm"
+      },
+      {
+        "text": "烈士纪念日向人民英雄敬献花篮仪式9月30日...",
+        "href": "https://www.gov.cn/yaowen/liebiao/202609/content_7082275.htm"
+      },
+      {
+        "text": "国庆打卡平陆运河，你知道它背后的“地质...",
+        "href": "./dt/ywbb/202610/t20261002_2939532.html"
+      },
+      {
+        "text": "自然资源部对重庆贵州启动地质灾害防御IV...",
+        "href": "./dt/ywbb/202610/t20261002_2939533.html"
+      },
+      {
+        "text": "“雪龙”号、“雪龙2”号顺利返航 中国第1...",
+        "href": "./dt/ywbb/202609/t20260930_2939480.html"
+      },
+      {
+        "text": "共谋海洋善治——第四届海上丝路国家海洋...",
+        "href": "./dt/ywbb/202609/t20260930_2939468.html"
+      },
+      {
+        "text": "自然资源部召开党组会议 传达全国安全生产...",
+        "href": "./dt/ywbb/202609/t20260930_2939467.html"
+      },
+      {
+        "text": "自然资源部、国家林业和草原局联合印发通...",
+        "href": "./dt/ywbb/202609/t20260930_2939466.html"
+      },
+      {
+        "text": "守护红色根脉——全国烈士陵园不动产登记...",
+        "href": "./dt/ywbb/202609/t20260928_2939366.html"
+      },
+      {
+        "text": "北极超慢速扩张洋中脊增生机制研究取得新突破",
+        "href": "./dt/ywbb/202609/t20260929_2939416.html"
+      },
+      {
+        "text": "自然资源部国土整治中心（自然资源部土地科技创新中心）2026年度公开招收博士后人员拟录... 09-30",
+        "href": "http://gi.mnr.gov.cn/202609/t20260930_2939497.html"
+      },
+      {
+        "text": "关于公开征求《自然资源部关于进一步推进海域分层立体利用工作的通知（公开征求意见稿）... 09-29",
+        "href": "./gk/tzgg/202609/t20260929_2939427.html"
+      },
+      {
+        "text": "自然资源部 国家林业和草原局关于支持服务业优质高效发展的通知 09-29",
+        "href": "http://gi.mnr.gov.cn/202609/t20260929_2939425.html"
+      },
+      {
+        "text": "自然资源部关于2026年第四批注册测绘师注册审批结果的公告 09-24",
+        "href": "http://gi.mnr.gov.cn/202609/t20260924_2939266.html"
+      },
+      {
+        "text": "自然资源部办公厅关于通报表扬2026年1—7月地质灾害成功避险案例的通知 09-24",
+        "href": "http://gi.mnr.gov.cn/202609/t20260924_2939265.html"
+      },
+      {
+        "text": "关于取消中国大洋矿产资源研究开发协会（中国大洋事务管理局）专业技术岗2招聘计划的公告 09-24",
+        "href": "http://gi.mnr.gov.cn/202609/t20260924_2939261.html"
+      },
+      {
+        "text": "自然资源部关于将彭泽县丰岭矿区建筑石料用灰岩矿移出国家级绿色矿山名录的公告 09-23",
+        "href": "http://gi.mnr.gov.cn/202609/t20260923_2939031.html"
+      },
+      {
+        "text": "中共中央办公厅 国务院办公厅印发《文化遗产保护传承“十五五”规划》 2026-09-30",
+        "href": "https://f.mnr.gov.cn/202610/t20261001_2939505.html"
+      },
+      {
+        "text": "国务院办公厅关于印发《“高效办成一件事”2026年度第二批重点事项清单》的通知 2026-09-23",
+        "href": "https://f.mnr.gov.cn/202609/t20260924_2939239.html"
+      },
+      {
+        "text": "中共中央办公厅 国务院办公厅印发《党政领导干部生态环境损害责任追究办法》 2026-08-25",
+        "href": "https://f.mnr.gov.cn/202609/t20260901_2937355.html"
+      },
+      {
+        "text": "国务院关于修改和废止部分行政法规的决定 2026-08-13",
+        "href": "https://f.mnr.gov.cn/202608/t20260814_2936270.html"
+      },
+      {
+        "text": "国务院办公厅关于重点林区“十五五”期间森林年采伐限额的复函 2026-08-11",
+        "href": "https://f.mnr.gov.cn/202608/t20260812_2936147.html"
+      },
+      {
+        "text": "自然资源部 国家林业和草原局 中国海警局 海南省人民政府关于印发《黄岩岛国家级自... 2026-08-01",
+        "href": "https://gk.mnr.gov.cn/zc/zxgfxwj/202608/t20260801_2935562.html"
+      },
+      {
+        "text": "自然资源部关于印发《临时用海管理办法》的通知 2026-07-30",
+        "href": "https://gk.mnr.gov.cn/zc/zxgfxwj/202607/t20260729_2935342.html"
+      },
+      {
+        "text": "自然资源部：推动发展动力从“土地财政”转向“时空经济”",
+        "href": "http://vod.mnr.gov.cn/spxw/202609/t20260924_2939263.htm"
+      },
+      {
+        "text": "【“十五五”开好局起好步】安全高效永续利用自然资源",
+        "href": "http://vod.mnr.gov.cn/spxw/202609/t20260923_2939025.htm"
+      },
+      {
+        "text": "自然资源部副部长庄少勤：三个维度绘好用好国土空间规...",
+        "href": "http://vod.mnr.gov.cn/spxw/202609/t20260923_2939024.htm"
+      },
+      {
+        "text": "自然资源部相关司局负责人解读《自然资源部关于加强地质资...",
+        "href": "http://gi.mnr.gov.cn/202501/t20250121_2880133.html"
+      },
+      {
+        "text": "我国地质灾害隐患识别精度如何？防灾减灾效果如何？| 中国...",
+        "href": "./dt/ft/202409/t20240915_2858915.html"
+      },
+      {
+        "text": "自然资源部相关司局负责人解读《关于进一步加强绿色矿山建...",
+        "href": "http://gi.mnr.gov.cn/202404/t20240416_2842577.html"
+      },
+      {
+        "text": "京公网安备 11010202007799号",
+        "href": "http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010202007799"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S22",
+    "name": "生态环境部",
+    "url": "https://www.mee.gov.cn/",
+    "method": "web",
+    "checked_at": "2026-10-07T13:14:58.618Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.mee.gov.cn/",
+        "elapsed_ms": 614,
+        "type": "text/html"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 203094,
+    "title": "中华人民共和国生态环境部",
+    "links": [
+      {
+        "text": "生态环境部发布10月上半月全国空气质量预报会商结果",
+        "href": "./ywdt/xwfb/202609/t20260930_1175612.shtml"
+      },
+      {
+        "text": "“守正创新，全面实施固体废物与新污染物治理行动”有关情况",
+        "href": "./ywdt/xwfb/202609/t20260922_1170497.shtml"
+      },
+      {
+        "text": "生态环境部公布2026年8月全国环境空气质量状况",
+        "href": "./ywdt/xwfb/202609/t20260921_1168954.shtml"
+      },
+      {
+        "text": "生态环境部发布9月下半月全国空气质量预报会商结果",
+        "href": "./ywdt/xwfb/202609/t20260916_1166543.shtml"
+      },
+      {
+        "text": "生态环境部发布9月上半月全国空气质量预报会商结果",
+        "href": "./ywdt/xwfb/202609/t20260906_1165222.shtml"
+      },
+      {
+        "text": "生态环境部公布2026年7月全国环境空气质量状况",
+        "href": "./ywdt/xwfb/202608/t20260827_1164599.shtml"
+      },
+      {
+        "text": "生态环境部环评司有关负责人就《排污许可证申请与核发技术规范 火电》等六项国家生态环境标准修订答记者问",
+        "href": "./ywdt/zbft/202609/t20260903_1165073.shtml"
+      },
+      {
+        "text": "生态环境部科技与财务司有关负责人就《关于推动生态环境领域科技创新多元化投入的指导意见》答记者问",
+        "href": "./ywdt/zbft/202608/t20260827_1164597.shtml"
+      },
+      {
+        "text": "生态环境部辐射源安全监管司有关负责人就《生态环境影响评价技术导则 核技术利用项目退役》（HJ 1479-2026）相关问题答记者问",
+        "href": "./ywdt/zbft/202608/t20260823_1164368.shtml"
+      },
+      {
+        "text": "生态环境部水生态环境司有关负责同志就《关于进一步加强工业等污水污染风险防范 保障农业灌溉用水安全的通知》答记者问",
+        "href": "./ywdt/zbft/202608/t20260817_1164116.shtml"
+      },
+      {
+        "text": "生态环境部法规与标准司、最高人民法院环境资源审判庭、最高人民检察院公益诉讼检察厅负责同志就发布“推动生态环境损害赔偿制度改革进程的十大案例”答记者问",
+        "href": "./ywdt/zbft/202608/t20260814_1164046.shtml"
+      },
+      {
+        "text": "全文实录｜生态环境部出席国新办“开局起步‘十五五’”系列主题新闻发布会并答记者问",
+        "href": "./ywdt/zbft/202608/t20260813_1164026.shtml"
+      },
+      {
+        "text": "生态环境部关于2026年9月28日—2026年9月30日海洋工程建设项目生态环境影响评价文件受理情况的公示",
+        "href": "./ywdt/gsgg/gongshi/gsq/202609/t20260930_1175512.shtml"
+      },
+      {
+        "text": "生态环境部关于2026年9月29日建设项目环境影响评价文件受理情况的公示（核与辐射）",
+        "href": "./ywdt/gsgg/gongshi/gsq/202609/t20260930_1175511.shtml"
+      },
+      {
+        "text": "关于2026年第17批新化学物质环境管理简易登记证申请审查情况的公示",
+        "href": "./ywgz/gtfwyhxpgl/hxphjgl/xhxwz/202609/t20260929_1175442.shtml"
+      },
+      {
+        "text": "关于2026年第17批新化学物质环境管理登记证变更申请审查情况的公示",
+        "href": "./ywgz/gtfwyhxpgl/hxphjgl/xhxwz/202609/t20260929_1175441.shtml"
+      },
+      {
+        "text": "关于内蒙古永和氟化工有限公司等19家企业2026年度氢氟碳化物生产配额调整情况的公示",
+        "href": "./ywgz/dqhjbh/xhcycwzhjgl/202609/t20260924_1174812.shtml"
+      },
+      {
+        "text": "关于颁发2026年第三批民用核设施操纵人员执照的通知",
+        "href": "./ywdt/gsgg/tz/202609/t20260924_1174808.shtml"
+      },
+      {
+        "text": "生态环境部关于2026年9月20日—2026年9月24日海洋工程建设项目生态环境影响评价文件受理情况的公示",
+        "href": "./ywdt/gsgg/gongshi/gsq/202609/t20260924_1174782.shtml"
+      },
+      {
+        "text": "中共中央办公厅 国务院办公厅 中央军委办公厅印发《退役军人服务和保障“十五五”规划》",
+        "href": "./zcwj/zyygwj/202609/t20260918_1166753.shtml"
+      },
+      {
+        "text": "中共中央办公厅 国务院办公厅印发《党政领导干部生态环境损害责任追究办法》",
+        "href": "./zcwj/zyygwj/202608/t20260825_1164514.shtml"
+      },
+      {
+        "text": "中共中央 国务院转发《中央宣传部、司法部关于开展法治宣传教育的第九个五年规划（2026－2030年）》",
+        "href": "./zcwj/zyygwj/202607/t20260730_1163132.shtml"
+      },
+      {
+        "text": "中共中央 国务院印发《关于加强新时代社会工作的意见》",
+        "href": "./zcwj/zyygwj/202607/t20260730_1163128.shtml"
+      },
+      {
+        "text": "中共中央办公厅 国务院办公厅关于完善自然资源资产管理制度体系的意见",
+        "href": "./zcwj/zyygwj/202607/t20260714_1161683.shtml"
+      },
+      {
+        "text": "中共中央办公厅、国务院办公厅印发《关于用好乡镇（街道）履行职责事项清单的具体措施》",
+        "href": "./zcwj/zyygwj/202605/t20260520_1154785.shtml"
+      },
+      {
+        "text": "中华人民共和国审计法实施条例（中华人民共和国国务院令 第847号）",
+        "href": "./zcwj/gwywj/202609/t20260929_1175434.shtml"
+      },
+      {
+        "text": "国务院办公厅转发文化和旅游部等部门《关于促进房车消费的若干措施》的通知",
+        "href": "./zcwj/gwywj/202609/t20260920_1166834.shtml"
+      },
+      {
+        "text": "国务院办公厅关于进一步加强烟花爆竹全链条安全监管的意见",
+        "href": "./zcwj/gwywj/202609/t20260918_1166754.shtml"
+      },
+      {
+        "text": "市场监督管理所条例（中华人民共和国国务院令 第846号）",
+        "href": "./zcwj/gwywj/202609/t20260911_1165970.shtml"
+      },
+      {
+        "text": "国务院办公厅关于加强中小企业回款难问题治理有关工作的通知",
+        "href": "./zcwj/gwywj/202609/t20260910_1165789.shtml"
+      },
+      {
+        "text": "电力安全事故应急处置和调查处理条例（中华人民共和国国务院令 第845号）",
+        "href": "./zcwj/gwywj/202609/t20260907_1165234.shtml"
+      },
+      {
+        "text": "关于禁止生产以一氯二氟甲烷（HCFC-22）为制冷剂的多联式空调（热泵）机组产品的公告",
+        "href": "./xxgk2018/xxgk/xxgk01/202609/t20260904_1165084.html"
+      },
+      {
+        "text": "关于发布《环境空气和废气挥发性有机物便携式气相色谱仪技术要求》等10项国家生态环境标准的公告",
+        "href": "./xxgk2018/xxgk/xxgk01/202608/t20260831_1164716.html"
+      },
+      {
+        "text": "关于发布国家生态环境标准《海洋倾倒区选划技术导则》的公告",
+        "href": "./xxgk2018/xxgk/xxgk01/202608/t20260807_1163728.html"
+      },
+      {
+        "text": "关于增补和变更《中国现有化学物质名录》的公告",
+        "href": "./xxgk2018/xxgk/xxgk01/202608/t20260806_1163640.html"
+      },
+      {
+        "text": "关于推进机动车排放检验机构监管改革提升排放检验质量的意见",
+        "href": "./xxgk2018/xxgk/xxgk03/202609/t20260918_1166789.html"
+      },
+      {
+        "text": "关于印发《全国碳排放权交易市场2025、2026年度发电行业以及2026年度钢铁、水泥、铝冶炼行业配额总量和分配方案》的通知",
+        "href": "./xxgk2018/xxgk/xxgk03/202609/t20260903_1165029.html"
+      },
+      {
+        "text": "关于推动生态环境领域科技创新多元化投入的指导意见",
+        "href": "./xxgk2018/xxgk/xxgk03/202608/t20260827_1164595.html"
+      },
+      {
+        "text": "关于印发《国家应对气候变化“十五五”规划》的通知",
+        "href": "./xxgk2018/xxgk/xxgk03/202607/t20260729_1163021.html"
+      },
+      {
+        "text": "关于发布生态环境部重点实验室2025年度评估结果的函",
+        "href": "./xxgk2018/xxgk/xxgk04/202604/t20260410_1148612.html"
+      },
+      {
+        "text": "关于同意生态环境部放射性污染防治工程技术中心等3家工程技术中心通过验收的通知",
+        "href": "./xxgk2018/xxgk/xxgk04/202512/t20251231_1139519.html"
+      },
+      {
+        "text": "关于同意建设生态环境部滨海城市水土环境演化重点实验室的函",
+        "href": "./xxgk2018/xxgk/xxgk04/202512/t20251209_1137425.html"
+      },
+      {
+        "text": "关于同意建设生态环境部高速铁路与城轨交通噪声振动重点实验室的函",
+        "href": "./xxgk2018/xxgk/xxgk04/202510/t20251013_1129249.html"
+      },
+      {
+        "text": "关于进一步加强工业等污水污染风险防范 保障农业灌溉用水安全的通知",
+        "href": "./xxgk2018/xxgk/xxgk05/202608/t20260805_1163609.html"
+      },
+      {
+        "text": "关于加强重点行业大气环境绩效分级管理的指导意见",
+        "href": "./xxgk2018/xxgk/xxgk05/202601/t20260119_1140965.html"
+      },
+      {
+        "text": "关于印发《省级温室气体清单编制指南（2025年版）》的通知",
+        "href": "./xxgk2018/xxgk/xxgk05/202601/t20260104_1139798.html"
+      },
+      {
+        "text": "关于核发2026年度消耗臭氧层物质和氢氟碳化物生产、使用和进口配额的通知",
+        "href": "./xxgk2018/xxgk/xxgk05/202512/t20251230_1139340.html"
+      },
+      {
+        "text": "关于2026年上半年环评信用管理对象列入“黑名单”情况的通报",
+        "href": "./xxgk2018/xxgk/xxgk06/202609/t20260907_1165269.html"
+      },
+      {
+        "text": "关于同意对安捷伦科技（上海）有限公司8860B、8890B型气相色谱仪最终用户使用活动实行豁免管理的复函",
+        "href": "./xxgk2018/xxgk/xxgk06/202608/t20260813_1164028.html"
+      },
+      {
+        "text": "关于开展生态文明建设示范区（生态工业园区）达标复核的通知",
+        "href": "./xxgk2018/xxgk/xxgk06/202608/t20260805_1163610.html"
+      },
+      {
+        "text": "关于新疆中核天山铀业有限公司七三五厂生产提升改造项目生态环境影响报告表的批复",
+        "href": "./xxgk2018/xxgk/xxgk11/202609/t20260924_1174820.html"
+      },
+      {
+        "text": "关于文昌10—3气田Ⅱ期开发项目环境影响报告书的批复",
+        "href": "./xxgk2018/xxgk/xxgk11/202609/t20260917_1166662.html"
+      },
+      {
+        "text": "关于惠州27—5油田开发项目环境影响报告书的批复",
+        "href": "./xxgk2018/xxgk/xxgk11/202609/t20260917_1166663.html"
+      },
+      {
+        "text": "关于流花油田群调整井项目环境影响报告表的批复",
+        "href": "./xxgk2018/xxgk/xxgk11/202609/t20260910_1165688.html"
+      },
+      {
+        "text": "关于番禺3－1/西江34－3油田开发项目环境影响报告书的批复",
+        "href": "./xxgk2018/xxgk/xxgk11/202609/t20260910_1165758.html"
+      },
+      {
+        "text": "关于渤中19-4油田平台改造及调整井项目环境影响报告表的批复",
+        "href": "./xxgk2018/xxgk/xxgk11/202609/t20260910_1165681.html"
+      },
+      {
+        "text": "关于批准《海南昌江核电厂3、4号机组质量保证大纲（建造阶段）（D1版）》的通知",
+        "href": "./xxgk2018/xxgk/xxgk09/202609/t20260924_1174822.html"
+      },
+      {
+        "text": "关于批准延续中核苏阀科技实业股份有限公司等18家单位民用核安全设备许可证的通知",
+        "href": "./xxgk2018/xxgk/xxgk09/202609/t20260922_1170491.html"
+      },
+      {
+        "text": "关于批准《中广核广东太平岭核电厂一期工程质量保证大纲（运行阶段）（第2版）》的通知",
+        "href": "./xxgk2018/xxgk/xxgk09/202609/t20260911_1165829.html"
+      },
+      {
+        "text": "关于批准《中广核广东太平岭核电厂二期工程质量保证大纲（建造阶段）（第2版）》的通知",
+        "href": "./xxgk2018/xxgk/xxgk09/202609/t20260911_1165831.html"
+      },
+      {
+        "text": "关于同意山东北辰机电设备股份有限公司等3家单位民用核安全设备许可证信息变更的通知",
+        "href": "./xxgk2018/xxgk/xxgk07/202609/t20260924_1174821.html"
+      },
+      {
+        "text": "关于印发核安全法规技术文件《磁约束聚变装置生态环境影响评价工作指南 》的函",
+        "href": "./xxgk2018/xxgk/xxgk07/202609/t20260918_1166781.html"
+      },
+      {
+        "text": "关于同意天水长城开关厂集团有限公司等10家单位民用核安全设备许可证和美国Curtiss-Wright Flow Control Corporation等3家境外单位注册登记确认书信息变更的通知",
+        "href": "./xxgk2018/xxgk/xxgk07/202609/t20260903_1164984.html"
+      },
+      {
+        "text": "关于印发《山东海阳核电厂5号机组核岛基础浇筑第一罐混凝土前准备情况核安全检查报告》的函",
+        "href": "./xxgk2018/xxgk/xxgk07/202609/t20260903_1164985.html"
+      },
+      {
+        "text": "财政部 税务总局 生态环境部关于印发《征收挥发性有机物环境保护税试点实施办法》的通知",
+        "href": "./xxgk2018/xxgk/xxgk10/202607/t20260724_1162734.html"
+      },
+      {
+        "text": "关于同意山东澳帆新材料有限公司等20家企业2026年度含氢氯氟烃和氢氟碳化物生产配额调整的复函",
+        "href": "./xxgk2018/xxgk/sthjbsh/202607/t20260703_1160904.html"
+      },
+      {
+        "text": "关于开展2026年度环境保护科学技术奖提名工作的通知",
+        "href": "./xxgk2018/xxgk/sthjbsh/202603/t20260323_1147505.html"
+      },
+      {
+        "text": "市场监管总局 生态环境部关于印发《检验检测机构资质认定生态环境监测机构评审补充要求（2025年）》的通知",
+        "href": "./xxgk2018/xxgk/xxgk10/202512/t20251223_1138494.html"
+      },
+      {
+        "text": "市场监管总局办公厅 生态环境部办公厅关于印发《机动车检验机构排放检验设备和人员能力现场评审指导书》的通知",
+        "href": "./xxgk2018/xxgk/xxgk10/202512/t20251222_1138294.html"
+      },
+      {
+        "text": "关于同意淄博澳帆化工有限公司等20家企业2025年度氢氟碳化物生产配额调整的复函",
+        "href": "./xxgk2018/xxgk/sthjbsh/202510/t20251016_1129702.html"
+      },
+      {
+        "text": "一图读懂 | 关于推进机动车排放检验机构监管改革 提升排放检验质量的意见",
+        "href": "./zcwj/zcjd/202609/t20260920_1166862.shtml"
+      },
+      {
+        "text": "一图读懂 | 持续深入打好蓝天保卫战 持之以恒改善空气质量",
+        "href": "./zcwj/zcjd/202609/t20260916_1166551.shtml"
+      },
+      {
+        "text": "一图读懂 | 火电、锅炉、造纸、钢铁、石化和汽车制造六项排污许可证申请与核发技术规范修订",
+        "href": "./zcwj/zcjd/202609/t20260904_1165125.shtml"
+      },
+      {
+        "text": "一图读懂 |《关于推动生态环境领域科技创新多元化投入的指导意见》",
+        "href": "./zcwj/zcjd/202608/t20260827_1164598.shtml"
+      },
+      {
+        "text": "向失职失责“亮剑” 为美丽中国“护航”——中央组织部负责人就修订颁布《党政领导干部生态环境损害责任追究办法》答记者问",
+        "href": "./zcwj/zcjd/202608/t20260826_1164524.shtml"
+      },
+      {
+        "text": "生态环境部1名党员、1名党务工作者、3个基层党组织获中央和国家机关“两优一先”表彰",
+        "href": "./djgz/jgdj/202607/t20260726_1162787.shtml"
+      },
+      {
+        "text": "var content='习近平：在全国生态环境保护大会上的讲话'; if (content==\"\") { document.write('<span style=\"display: none;\"></span>'); } else { document.write('<span><i>习近平：在全国生态环境保护大会上的讲话</i></span>'); }",
+        "href": "./ywdt/szyw/202507/t20250731_1124681.shtml"
+      },
+      {
+        "text": "var content='习近平等党和国家领导人出席庆祝中华人民共和国成立77周年招待会'; if (content==\"\") { document.write('<span style=\"display: none;\"></span>'); } else { document.write('<span><i>习近平等党和国家领导人出席庆祝中华人民共和国成立77周年招待会</i></span>'); }",
+        "href": "./ywdt/tpxw/202609/t20260930_1175614.shtml"
+      },
+      {
+        "text": "var content=''; if (content==\"\") { document.write('<span style=\"display: none;\"></span>'); } else { document.write('<span><i></i></span>'); }",
+        "href": "http://www.gov.cn/hudong/index.htm"
+      },
+      {
+        "text": "var content=''; if (content==\"\") { document.write('<span style=\"display: none;\"></span>'); } else { document.write('<span><i></i></span>'); }",
+        "href": "./ywdt/hjywnews/202609/t20260930_1175611.shtml"
+      },
+      {
+        "text": "var content=''; if (content==\"\") { document.write('<span style=\"display: none;\"></span>'); } else { document.write('<span><i></i></span>'); }",
+        "href": "./ywdt/hjywnews/202609/t20260930_1175608.shtml"
+      },
+      {
+        "text": "var content=''; if (content==\"\") { document.write('<span style=\"display: none;\"></span>'); } else { document.write('<span><i></i></span>'); }",
+        "href": "./ywdt/hjywnews/202609/t20260925_1174919.shtml"
+      },
+      {
+        "text": "var content=''; if (content==\"\") { document.write('<span style=\"display: none;\"></span>'); } else { document.write('<span><i></i></span>'); }",
+        "href": "./ywdt/hjywnews/202609/t20260924_1174777.shtml"
+      },
+      {
+        "text": "var content='生态环境部党组书记孙金龙赴吉林省调研生态环境保护工作'; if (content==\"\") { document.write('<span style=\"display: none;\"></span>'); } else { document.write('<span><i>生态环境部党组书记孙金龙赴吉林省调研生态环境保护工作</i></span>'); }",
+        "href": "./ywdt/hjywnews/202609/t20260923_1174311.shtml"
+      },
+      {
+        "text": "2026-09-30庆祝中华人民共和国成立77周年招待会在京举行 习近平发表重要讲话",
+        "href": "./ywdt/szyw/202609/t20260930_1175613.shtml"
+      },
+      {
+        "text": "2026-09-29习近平给四川大学全体师生回信",
+        "href": "./ywdt/szyw/202609/t20260929_1175502.shtml"
+      },
+      {
+        "text": "2026-09-28习近平就建设更高水平平安中国作出重要指示",
+        "href": "./ywdt/szyw/202609/t20260928_1175385.shtml"
+      },
+      {
+        "text": "2026-09-28大国正确相处的新路，就在脚下——习近平主席对美国进行国事访问纪实",
+        "href": "./ywdt/szyw/202609/t20260928_1174971.shtml"
+      },
+      {
+        "text": "2026-09-26习近平结束对美国的国事访问回到北京",
+        "href": "./ywdt/szyw/202609/t20260926_1174926.shtml"
+      },
+      {
+        "text": "2026-09-26习近平圆满结束对美国的国事访问",
+        "href": "./ywdt/szyw/202609/t20260926_1174924.shtml"
+      },
+      {
+        "text": "2026-09-25习近平和彭丽媛出席特朗普总统夫妇举行的欢迎国宴",
+        "href": "./ywdt/szyw/202609/t20260925_1174921.shtml"
+      },
+      {
+        "text": "2026-09-25习近平在美国总统特朗普举行的欢迎宴会上的祝酒辞（全文）",
+        "href": "./ywdt/szyw/202609/t20260925_1174920.shtml"
+      },
+      {
+        "text": "2026-09-24习近平抵达华盛顿对美国进行国事访问",
+        "href": "./ywdt/szyw/202609/t20260924_1174813.shtml"
+      },
+      {
+        "text": "2026-09-22习近平向全国广大农民和工作在“三农”战线上的同志们致以节日祝贺和诚挚问候",
+        "href": "./ywdt/szyw/202609/t20260922_1174301.shtml"
+      },
+      {
+        "text": "2026-10-04生态环境部一周要闻（9.27—10.3）",
+        "href": "./ywdt/hjywnews/202610/t20261004_1175625.shtml"
+      },
+      {
+        "text": "2026-09-30生态环境部召开安全生产工作领导小组2026年第四次全体（扩大）会议",
+        "href": "./ywdt/hjywnews/202609/t20260930_1175611.shtml"
+      },
+      {
+        "text": "2026-09-30生态环境部党组召开会议",
+        "href": "./ywdt/hjywnews/202609/t20260930_1175608.shtml"
+      },
+      {
+        "text": "2026-09-30生态环境部部长黄润秋会见中国环境与发展国际合作委员会外方执行副主席、...",
+        "href": "./ywdt/hjywnews/202609/t20260930_1175516.shtml"
+      },
+      {
+        "text": "2026-09-28黄润秋出席中国环境与发展国际合作委员会2026年年会主题论坛并会见国合会...",
+        "href": "./ywdt/hjywnews/202609/t20260929_1175440.shtml"
+      },
+      {
+        "text": "2026-09-28中国环境与发展国际合作委员会2026年年会在京开幕",
+        "href": "./ywdt/hjywnews/202609/t20260928_1174960.shtml"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S23",
+    "name": "中国政府网政策库",
+    "url": "https://www.gov.cn/zhengce/",
+    "method": "web",
+    "checked_at": "2026-10-07T13:14:58.618Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "error": "apiRequestContext.get: getaddrinfo ENOTFOUND www.gov.cn",
+        "elapsed_ms": 97
+      },
+      {
+        "route": "local-proxy-10808",
+        "status": 200,
+        "final_url": "https://www.gov.cn/zhengce/",
+        "elapsed_ms": 203,
+        "type": "text/html"
+      }
+    ],
+    "status": 200,
+    "route": "local-proxy-10808",
+    "bytes": 40181,
+    "title": "政策_中国政府网",
+    "links": [
+      {
+        "text": "国务院办公厅关于发展体育赛事激发消费活力的意见",
+        "href": "https://www.gov.cn/zhengce/content/202609/content_7082492.htm"
+      },
+      {
+        "text": "国务院关于《医疗康复护理扩容提升工程实施方案》的批复",
+        "href": "https://www.gov.cn/zhengce/content/202609/content_7082378.htm"
+      },
+      {
+        "text": "中共中央办公厅 国务院办公厅印发《文化遗产保护传承“十五五”规划》",
+        "href": "./202609/content_7082364.htm"
+      },
+      {
+        "text": "国务院办公厅关于印发《“高效办成一件事”2026年度第二批重点事项清单》的通知",
+        "href": "https://www.gov.cn/zhengce/content/202609/content_7081880.htm"
+      },
+      {
+        "text": "中共中央办公厅 国务院办公厅印发《关于分类推进高校改革的意见》",
+        "href": "./202609/content_7081587.htm"
+      },
+      {
+        "text": "国务院办公厅转发文化和旅游部等部门《关于促进房车消费的若干措施》的通知",
+        "href": "https://www.gov.cn/zhengce/content/202609/content_7081441.htm"
+      },
+      {
+        "text": "国务院办公厅关于进一步加强烟花爆竹全链条安全监管的意见",
+        "href": "https://www.gov.cn/zhengce/content/202609/content_7081356.htm"
+      },
+      {
+        "text": "商务部美大司负责人解读第八轮中美经贸磋商成果",
+        "href": "./202609/content_7082257.htm"
+      },
+      {
+        "text": "9月20日至23日，中美经贸团队在美国纽约和华盛顿举行经贸磋商，取得积极共识，为两国元首会晤贡献了经贸领域的成果。商务部美大司负责人就有关经贸磋商成果进行解读。",
+        "href": "./202609/content_7082257.htm"
+      },
+      {
+        "text": "9月23日，国务院新闻办举行“开局起步‘十五五’”系列主题新闻发布会，介绍“十五五”时期推进民政事业高质量发展有关情况。",
+        "href": "./202609/content_7081959.htm"
+      },
+      {
+        "text": "国家新闻出版署有关负责同志就《出版业发展“十五五”规划》答记者问",
+        "href": "./202609/content_7081651.htm"
+      },
+      {
+        "text": "近日，国家新闻出版署印发《出版业发展“十五五”规划》。国家新闻出版署有关负责同志就规划有关情况回答了记者提问。",
+        "href": "./202609/content_7081651.htm"
+      },
+      {
+        "text": "打通堵点释放潜力 十部门推出促进房车消费若干措施",
+        "href": "./202609/content_7081497.htm"
+      },
+      {
+        "text": "若干措施坚持问题导向，着力打通房车（包括旅居车、旅居挂车、宿营车）消费堵点，释放房车消费潜力，更好满足人民日益增长的美好生活需要。",
+        "href": "./202609/content_7081497.htm"
+      },
+      {
+        "text": "国务院常务会议解读 | 国务院常务会议部署实施医疗康复护理扩容提升工程",
+        "href": "./202609/content_7081473.htm"
+      },
+      {
+        "text": "会议部署实施医疗康复护理扩容提升工程，指出要以基层为重点建强医疗康复护理服务体系，推动康复护理资源向社区、家庭延伸，增强城乡居民康复护理服务可及性。",
+        "href": "./202609/content_7081473.htm"
+      },
+      {
+        "text": "国家统计局新闻发言人就2026年8月份国民经济运行情况答记者问",
+        "href": "./202609/content_7081277.htm"
+      },
+      {
+        "text": "从8月份主要指标来看，经济运行主要呈现“三稳两快”的特点。“三稳”表现在生产稳、就业稳、物价稳。",
+        "href": "./202609/content_7081277.htm"
+      },
+      {
+        "text": "图表：2026年9月末我国外汇储备为34003亿美元",
+        "href": "./jiedu/tujie/202610/content_7082673.htm"
+      },
+      {
+        "text": "图表：今年2500亿元超长期特别国债支持消费品以旧换新资金已全部下达",
+        "href": "./jiedu/tujie/202609/content_7082546.htm"
+      },
+      {
+        "text": "图表：2026年9月份我国制造业采购经理指数（PMI）为50.1%",
+        "href": "./jiedu/tujie/202609/content_7082543.htm"
+      },
+      {
+        "text": "图表：2026年9月末我国外汇储备为34003亿美元",
+        "href": "./jiedu/tujie/202610/content_7082673.htm"
+      },
+      {
+        "text": "图表：今年2500亿元超长期特别国债支持消费品以旧换新资金已全部下达",
+        "href": "./jiedu/tujie/202609/content_7082546.htm"
+      },
+      {
+        "text": "图表：2026年9月份我国制造业采购经理指数（PMI）为50.1%",
+        "href": "./jiedu/tujie/202609/content_7082543.htm"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S24",
+    "name": "国家统计局",
+    "url": "https://www.stats.gov.cn/",
+    "method": "download",
+    "checked_at": "2026-10-07T13:14:58.618Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.stats.gov.cn/",
+        "elapsed_ms": 758,
+        "type": "text/html"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 141526,
+    "title": "国家统计局",
+    "links": [
+      {
+        "text": "庆祝中华人民共和国成立77周年招待会在京举行 ... 庆祝中华人民共和国成立77周年招待会在京举... 庆祝中华人民共和国成立77周年招待会在京举行 习近平发表重要...",
+        "href": "http://www.news.cn/politics/leaders/20260930/ec72199373a4403c914db52deeb0f4d8/c.html"
+      },
+      {
+        "text": "烈士纪念日向人民英雄敬献花篮仪式在京隆重举... 烈士纪念日向人民英雄敬献花篮仪式在京隆重... 烈士纪念日向人民英雄敬献花篮仪式在京隆重举行 习近平等党和...",
+        "href": "http://www.news.cn/politics/leaders/20260930/b5c59131743340cfac4894d9029a68d0/c.html"
+      },
+      {
+        "text": "习近平和彭丽媛同美国总统特朗普夫妇茶叙 习近平和彭丽媛同美国总统特朗普夫妇茶叙 习近平和彭丽媛同美国总统特朗普夫妇茶叙",
+        "href": "http://www.news.cn/politics/leaders/20260926/ad9273a6cd2446b3b94f584fb1a15cc7/c.html"
+      },
+      {
+        "text": "习近平和彭丽媛出席特朗普总统夫妇举行的欢迎国宴 习近平和彭丽媛出席特朗普总统夫妇举行的欢... 习近平和彭丽媛出席特朗普总统夫妇举行的欢迎国宴",
+        "href": "http://www.news.cn/politics/leaders/20260925/c59121f4090d4f8ca3ff85ed311984fd/c.html"
+      },
+      {
+        "text": "习近平出席美国总统特朗普在白宫举行的欢迎仪式 习近平出席美国总统特朗普在白宫举行的欢迎仪式 习近平出席美国总统特朗普在白宫举行的欢迎仪式",
+        "href": "http://www.news.cn/politics/leaders/20260925/7530ec142ab14437a0e078b0745a5b0b/c.html"
+      },
+      {
+        "text": "庆祝中华人民共和国成立77周年招待会在京举行 习近平发表重要讲话",
+        "href": "http://www.news.cn/politics/leaders/20260930/ec72199373a4403c914db52deeb0f4d8/c.html"
+      },
+      {
+        "text": "庆祝中华人民共和国成立77周年招待会... 庆祝中华人民共和国成立77周年招待会... 庆祝中华人民共和国成立77周年招待会在京举行 ... 2026-09-30",
+        "href": "http://www.news.cn/politics/leaders/20260930/ec72199373a4403c914db52deeb0f4d8/c.html"
+      },
+      {
+        "text": "习近平：在庆祝中华人民共和国成立77... 习近平：在庆祝中华人民共和国成立77... 习近平：在庆祝中华人民共和国成立77周年招待... 2026-09-30",
+        "href": "http://www.news.cn/politics/leaders/20260930/2a30e5d28b1f46fe8aec014c460c1610/c.html"
+      },
+      {
+        "text": "《求是》杂志发表习近平总书记重要文... 《求是》杂志发表习近平总书记重要文... 《求是》杂志发表习近平总书记重要文章《加强... 2026-09-30",
+        "href": "http://www.news.cn/politics/leaders/20260930/0419290ff6d94fc69d147c06d0e312fe/c.html"
+      },
+      {
+        "text": "习近平同文莱苏丹哈桑纳尔就中文建交3... 习近平同文莱苏丹哈桑纳尔就中文建交3... 习近平同文莱苏丹哈桑纳尔就中文建交35周年互... 2026-09-30",
+        "href": "http://www.news.cn/politics/leaders/20260930/c4a6fb373b974fb9906fdcbc49b3eb94/c.html"
+      },
+      {
+        "text": "烈士纪念日向人民英雄敬献花篮仪式在... 烈士纪念日向人民英雄敬献花篮仪式在... 烈士纪念日向人民英雄敬献花篮仪式在京隆重举... 2026-09-30",
+        "href": "http://www.news.cn/politics/leaders/20260930/b5c59131743340cfac4894d9029a68d0/c.html"
+      },
+      {
+        "text": "习近平给四川大学全体师生回信 习近平给四川大学全体师生回信 习近平给四川大学全体师生回信 2026-09-29",
+        "href": "https://www.news.cn/politics/leaders/20260929/2cc39a0de43a4feb8ed338d1fce71cf0/c.html"
+      },
+      {
+        "text": "习近平就建设更高水平平安中国作出重... 习近平就建设更高水平平安中国作出重... 习近平就建设更高水平平安中国作出重要指示 2026-09-28",
+        "href": "https://www.news.cn/politics/leaders/20260928/553a16f104d646afae52c55173871c12/c.html"
+      },
+      {
+        "text": "国务院关于《医疗康复护理扩容提升工... 国务院关于《医疗康复护理扩容提升工... 国务院关于《医疗康复护理扩容提升工程实施方... 2026-09-30",
+        "href": "https://www.gov.cn/zhengce/content/202609/content_7082378.htm"
+      },
+      {
+        "text": "中共中央办公厅 国务院办公厅印发《文... 中共中央办公厅 国务院办公厅印发《文... 中共中央办公厅 国务院办公厅印发《文化遗产保... 2026-09-30",
+        "href": "https://www.gov.cn/yaowen/liebiao/202609/content_7082362.htm"
+      },
+      {
+        "text": "李强在全国安全生产视频会议上强调 抓... 李强在全国安全生产视频会议上强调 抓... 李强在全国安全生产视频会议上强调 抓实抓细安... 2026-09-28",
+        "href": "https://www.gov.cn/yaowen/liebiao/202609/content_7082279.htm"
+      },
+      {
+        "text": "李强主持召开国务院常务会议 研究宏观... 李强主持召开国务院常务会议 研究宏观... 李强主持召开国务院常务会议 研究宏观政策发力... 2026-09-28",
+        "href": "https://www.gov.cn/yaowen/liebiao/202609/content_7082280.htm"
+      },
+      {
+        "text": "李强出席第五届全球数字贸易博览会启... 李强出席第五届全球数字贸易博览会启... 李强出席第五届全球数字贸易博览会启动仪式并致辞 2026-09-24",
+        "href": "https://www.gov.cn/yaowen/liebiao/202609/content_7081968.htm"
+      },
+      {
+        "text": "非凡 \"十四五\" 奋进新征程—— \"十四五\" 经济社会发展成就报告",
+        "href": "https://www.stats.gov.cn/zt_18555/ztfx/sswjjshfzcjbg/index.html"
+      },
+      {
+        "text": "康义赴黑龙江出席第十七届中国统计开放日活动并调研",
+        "href": "./xw/tjxw/tjdt/202609/t20260922_1965399.html"
+      },
+      {
+        "text": "康义会见澳门特别行政区政府统计暨普查局代表团",
+        "href": "./xw/tjxw/tjdt/202607/t20260717_1964164.html"
+      },
+      {
+        "text": "国家统计局举办庆祝中国共产党成立105周年活动",
+        "href": "./xw/tjxw/tjdt/202607/t20260703_1964061.html"
+      },
+      {
+        "text": "《国民经济行业分类》专家技术审查会在京召开 《国民经济行业分类》专家技术审查会在京召开 《国民经济行业分类》专家技术审查会在京召开 2026-09-30",
+        "href": "./xw/tjxw/tjdt/202609/t20260930_1965457.html"
+      },
+      {
+        "text": "国家统计局党组传达学习9月21日中央政治局会议... 国家统计局党组传达学习9月21日中央政治局会议精神和... 国家统计局党组传达学习9月21日中央政治局会议精神和二十届中... 2026-09-29",
+        "href": "./xw/tjxw/tjdt/202609/t20260929_1965448.html"
+      },
+      {
+        "text": "康义赴黑龙江出席第十七届中国统计开放日活动... 康义赴黑龙江出席第十七届中国统计开放日活动并调研 康义赴黑龙江出席第十七届中国统计开放日活动并调研 2026-09-23",
+        "href": "./xw/tjxw/tjdt/202609/t20260922_1965399.html"
+      },
+      {
+        "text": "康义会见国际能源署署长并签署谅解备忘录 康义会见国际能源署署长并签署谅解备忘录 康义会见国际能源署署长并签署谅解备忘录 2026-09-10",
+        "href": "./xw/tjxw/tjdt/202609/t20260910_1965286.html"
+      },
+      {
+        "text": "康义会见联合国统计司代理司长 康义会见联合国统计司代理司长 康义会见联合国统计司代理司长 2026-09-07",
+        "href": "./xw/tjxw/tjdt/202609/t20260907_1965231.html"
+      },
+      {
+        "text": "国家统计局党组传达学习习近平总书记重要指示... 国家统计局党组传达学习习近平总书记重要指示精神 总... 国家统计局党组传达学习习近平总书记重要指示精神 总结国家统... 2026-08-28",
+        "href": "./xw/tjxw/tjdt/202608/t20260828_1965142.html"
+      },
+      {
+        "text": "国家统计局党组理论学习中心组开展2026年第8次... 国家统计局党组理论学习中心组开展2026年第8次集体学习 国家统计局党组理论学习中心组开展2026年第8次集体学习 2026-08-28",
+        "href": "./xw/tjxw/tjdt/202608/t20260828_1965141.html"
+      },
+      {
+        "text": "关于2026年第三季度政府网站与政务新媒体检查... 关于2026年第三季度政府网站与政务新媒体检查情况的通报 关于2026年第三季度政府网站与政务新媒体检查情况的通报 2026-09-29",
+        "href": "./xw/tjxw/tzgg/202609/t20260929_1965446.html"
+      },
+      {
+        "text": "2026年度国家统计局重大统计专项立项公告 2026年度国家统计局重大统计专项立项公告 2026年度国家统计局重大统计专项立项公告 2026-09-21",
+        "href": "./xw/tjxw/tzgg/202609/t20260921_1965384.html"
+      },
+      {
+        "text": "统计改革发展“十五五”规划 统计改革发展“十五五”规划 统计改革发展“十五五”规划 2026-09-16",
+        "href": "./xw/tjxw/tzgg/202609/t20260916_1965340.html"
+      },
+      {
+        "text": "2026年度全国统计科学研究项目立项公告 2026年度全国统计科学研究项目立项公告 2026年度全国统计科学研究项目立项公告 2026-09-08",
+        "href": "./xw/tjxw/tzgg/202609/t20260908_1965235.html"
+      },
+      {
+        "text": "2026年度全国统计科学研究项目立项公示 2026年度全国统计科学研究项目立项公示 2026年度全国统计科学研究项目立项公示 2026-08-31",
+        "href": "./xw/tjxw/tzgg/202608/t20260831_1965157.html"
+      },
+      {
+        "text": "2026年度国家统计局重大统计专项立项公示 2026年度国家统计局重大统计专项立项公示 2026年度国家统计局重大统计专项立项公示 2026-08-31",
+        "href": "./xw/tjxw/tzgg/202608/t20260831_1965158.html"
+      },
+      {
+        "text": "关于开通2026年度统计专业技术资格考试成绩查... 关于开通2026年度统计专业技术资格考试成绩查询系统... 关于开通2026年度统计专业技术资格考试成绩查询系统的通知 2026-08-21",
+        "href": "./xw/tjxw/tzgg/202608/t20260821_1965089.html"
+      },
+      {
+        "text": "国家统计局所监管企业2025年度工资总额信息披露 国家统计局所监管企业2025年度工资总额信息披露 国家统计局所监管企业2025年度工资总额信息披露 2026-07-31",
+        "href": "./xw/tjxw/tzgg/202607/t20260731_1964258.html"
+      },
+      {
+        "text": "国家统计局所监管企业2025年负责人薪酬信息披露 国家统计局所监管企业2025年负责人薪酬信息披露 国家统计局所监管企业2025年负责人薪酬信息披露 2026-07-31",
+        "href": "./xw/tjxw/tzgg/202607/t20260731_1964259.html"
+      },
+      {
+        "text": "国家统计局所属单位2026年度公开招聘第三批拟... 国家统计局所属单位2026年度公开招聘第三批拟聘用人... 国家统计局所属单位2026年度公开招聘第三批拟聘用人员公示 2026-07-21",
+        "href": "https://www.mohrss.gov.cn/SYrlzyhshbzb/fwyd/SYkaoshizhaopin/zyhgjjgsydwgkzp/nprygs/202607/t20260717_580395.html"
+      },
+      {
+        "text": "国家统计局任免一批司厅级干部 国家统计局任免一批司厅级干部 国家统计局任免一批司厅级干部 2026-07-03",
+        "href": "./xw/tjxw/tzgg/202607/t20260703_1964059.html"
+      },
+      {
+        "text": "关于2026年第二季度政府网站与政务新媒体检查... 关于2026年第二季度政府网站与政务新媒体检查情况的通报 关于2026年第二季度政府网站与政务新媒体检查情况的通报 2026-07-01",
+        "href": "./xw/tjxw/tzgg/202607/t20260701_1964049.html"
+      },
+      {
+        "text": "国家统计局所属单位2026年度公开招聘第二批拟... 国家统计局所属单位2026年度公开招聘第二批拟聘用人... 国家统计局所属单位2026年度公开招聘第二批拟聘用人员公示 2026-06-24",
+        "href": "https://www.mohrss.gov.cn/SYrlzyhshbzb/fwyd/SYkaoshizhaopin/zyhgjjgsydwgkzp/nprygs/202606/t20260623_578833.html"
+      },
+      {
+        "text": "关于做好2026年度全国统计专业技术资格考试工... 关于做好2026年度全国统计专业技术资格考试工作的通知 关于做好2026年度全国统计专业技术资格考试工作的通知 2026-06-22",
+        "href": "./xw/tjxw/tzgg/202606/t20260622_1963987.html"
+      },
+      {
+        "text": "国家统计局统计资料管理中心2026年公开招聘拟... 国家统计局统计资料管理中心2026年公开招聘拟聘用人... 国家统计局统计资料管理中心2026年公开招聘拟聘用人员公示 2026-06-08",
+        "href": "./xw/tjxw/tzgg/202606/t20260608_1963905.html"
+      },
+      {
+        "text": "中国信息报社2026年公开招聘拟聘用人员公示 中国信息报社2026年公开招聘拟聘用人员公示 中国信息报社2026年公开招聘拟聘用人员公示 2026-06-08",
+        "href": "./xw/tjxw/tzgg/202606/t20260608_1963906.html"
+      },
+      {
+        "text": "国家统计局统计教育培训中心（中国国际统计培... 国家统计局统计教育培训中心（中国国际统计培训中心... 国家统计局统计教育培训中心（中国国际统计培训中心）2026年... 2026-06-08",
+        "href": "./xw/tjxw/tzgg/202606/t20260608_1963903.html"
+      },
+      {
+        "text": "30 2026-09 2026年9月中国采购经理指数运行情况 2026年9月中国采购经理指数运行情况",
+        "href": "./sj/zxfbhjd/202609/t20260930_1965449.html"
+      },
+      {
+        "text": "30 2026-09 国家统计局服务业调查中心首席统计师霍丽慧解读2026年9月中国采购经理指数 国家统计局服务业调查中心首席统计师霍丽慧解读2026年9月中国采购经理指数",
+        "href": "./sj/zxfbhjd/202609/t20260930_1965450.html"
+      },
+      {
+        "text": "28 2026-09 2026年1—8月份全国规模以上工业企业利润增长15.7% 2026年1—8月份全国规模以上工业企业利润增长15.7%",
+        "href": "./sj/zxfbhjd/202609/t20260928_1965425.html"
+      },
+      {
+        "text": "28 2026-09 国家统计局工业司首席统计师于卫宁解读2026年1—8月份工业企业利润数据 国家统计局工业司首席统计师于卫宁解读2026年1—8月份工业企业利润数据",
+        "href": "./sj/zxfbhjd/202609/t20260928_1965426.html"
+      },
+      {
+        "text": "24 2026-09 2026年9月中旬流通领域重要生产资料市场价格变动情况 2026年9月中旬流通领域重要生产资料市场价格变动情况",
+        "href": "./sj/zxfbhjd/202609/t20260923_1965403.html"
+      },
+      {
+        "text": "15 2026-09 国家统计局新闻发言人就2026年8月份国民经济运行情况答记者问 国家统计局新闻发言人就2026年8月份国民经济运行情况答记者问",
+        "href": "./sj/zxfbhjd/202609/t20260915_1965332.html"
+      },
+      {
+        "text": "15 2026-09 国家统计局工业司首席统计师孙晓解读2026年8月份工业生产数据 国家统计局工业司首席统计师孙晓解读2026年8月份工业生产数据",
+        "href": "./sj/zxfbhjd/202609/t20260915_1965330.html"
+      },
+      {
+        "text": "15 2026-09 国家统计局投资司张刚解读2026年1—8月份投资数据 国家统计局投资司张刚解读2026年1—8月份投资数据",
+        "href": "./sj/zxfbhjd/202609/t20260915_1965329.html"
+      },
+      {
+        "text": "15 2026-09 国家统计局贸经司首席统计师袁彦解读1—8月份消费市场数据 国家统计局贸经司首席统计师袁彦解读1—8月份消费市场数据",
+        "href": "./sj/zxfbhjd/202609/t20260915_1965328.html"
+      },
+      {
+        "text": "15 2026-09 8月份国民经济运行平稳、发展向新向优 8月份国民经济运行平稳、发展向新向优",
+        "href": "./sj/zxfbhjd/202609/t20260915_1965307.html"
+      },
+      {
+        "text": "15 2026-09 2026年8月份规模以上工业增加值增长5.2% 2026年8月份规模以上工业增加值增长5.2%",
+        "href": "./sj/zxfbhjd/202609/t20260915_1965308.html"
+      },
+      {
+        "text": "15 2026-09 2026年1—8月份全国固定资产投资基本情况 2026年1—8月份全国固定资产投资基本情况",
+        "href": "./sj/zxfbhjd/202609/t20260915_1965309.html"
+      },
+      {
+        "text": "京公网安备 11040102700142号",
+        "href": "http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11040102700142"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S25",
+    "name": "中国海油等海洋能源企业",
+    "url": "https://www.cnooc.com.cn/",
+    "method": "web",
+    "checked_at": "2026-10-07T13:14:58.618Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.cnooc.com.cn/",
+        "elapsed_ms": 233,
+        "type": "text/html; charset=UTF-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 345,
+    "title": "",
+    "links": [],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S27",
+    "name": "微信公众号",
+    "url": "https://developers.weixin.qq.com/doc/subscription/api/public/api_freepublish_batchget.html",
+    "method": "manual",
+    "checked_at": "2026-10-07T13:14:59.397Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "error": "apiRequestContext.get: getaddrinfo ENOTFOUND developers.weixin.qq.com",
+        "elapsed_ms": 33
+      },
+      {
+        "route": "local-proxy-10808",
+        "status": 200,
+        "final_url": "https://developers.weixin.qq.com/doc/subscription/api/public/api_freepublish_batchget.html",
+        "elapsed_ms": 137,
+        "type": "text/html; charset=utf-8"
+      }
+    ],
+    "status": 200,
+    "route": "local-proxy-10808",
+    "bytes": 79049,
+    "title": "获取已发布的消息列表 | 微信公众号文档",
+    "links": [
+      {
+        "text": "authorizer_access_token",
+        "href": "https://developers.weixin.qq.com/doc/oplatform/developers/dev/AuthorizerAccessToken"
+      },
+      {
+        "text": "authorizer_access_token",
+        "href": "https://developers.weixin.qq.com/doc/oplatform/openApi/ticket-token/api_getauthorizeraccesstoken"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S28",
+    "name": "X 官方账号",
+    "url": "https://docs.x.com/x-api/getting-started/pricing",
+    "method": "api",
+    "checked_at": "2026-10-07T13:14:59.398Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "error": "apiRequestContext.get: read ECONNRESET",
+        "elapsed_ms": 203
+      },
+      {
+        "route": "local-proxy-10808",
+        "status": 200,
+        "final_url": "https://docs.x.com/x-api/getting-started/pricing",
+        "elapsed_ms": 775,
+        "type": "text/html; charset=utf-8"
+      }
+    ],
+    "status": 200,
+    "route": "local-proxy-10808",
+    "bytes": 806464,
+    "title": "X API pay-per-usage pricing and credits - X",
+    "links": [
+      {
+        "text": "Make Your First Request",
+        "href": "/make-your-first-request"
+      },
+      {
+        "text": "See free credit incentives",
+        "href": "/x-api/getting-started/free-credits"
+      },
+      {
+        "text": "developer.x.com pricing page",
+        "href": "https://developer.x.com/#pricing"
+      },
+      {
+        "text": "Free credit incentives",
+        "href": "/x-api/getting-started/free-credits#when-it-is-granted"
+      },
+      {
+        "text": "xAI billing documentation",
+        "href": "https://docs.x.ai/docs/key-information/billing"
+      },
+      {
+        "text": "Free credit incentives for X API pay-per-use accountsNext",
+        "href": "/x-api/getting-started/free-credits"
+      },
+      {
+        "text": "Credit consumption details",
+        "href": "#credit-consumption-details"
+      },
+      {
+        "text": "When the trigger fires",
+        "href": "#when-the-trigger-fires"
+      },
+      {
+        "text": "Auto-recharge safeguards",
+        "href": "#auto-recharge-safeguards"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S29",
+    "name": "LinkedIn 官方机构页",
+    "url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management/community-management-overview",
+    "method": "manual",
+    "checked_at": "2026-10-07T13:14:59.398Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management/community-management-overview?view=li-lms-2026-09",
+        "elapsed_ms": 1067,
+        "type": "text/html"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 58198,
+    "title": "Community Management - Overview - LinkedIn | Microsoft Learn",
+    "links": [
+      {
+        "text": "Skip to Ask Learn chat experience",
+        "href": "#"
+      },
+      {
+        "text": "Download Microsoft Edge",
+        "href": "https://go.microsoft.com/fwlink/p/?LinkID=2092881 "
+      },
+      {
+        "text": "More info about Internet Explorer and Microsoft Edge",
+        "href": "https://learn.microsoft.com/en-us/lifecycle/faq/internet-explorer-microsoft-edge"
+      },
+      {
+        "text": "LinkedIn Developer Support Portal",
+        "href": "https://www.linkedin.com/help/linkedin/ask/dsapi"
+      },
+      {
+        "text": "Organization lookup APIs",
+        "href": "organizations/organization-lookup-api?view=li-lms-2026-09"
+      },
+      {
+        "text": "Organization Social Actions Notifications",
+        "href": "organizations/organization-social-action-notifications?view=li-lms-2026-09"
+      },
+      {
+        "text": "authentication documentation",
+        "href": "../../shared/authentication/authentication?view=li-lms-2026-09"
+      },
+      {
+        "text": "versioning documentation",
+        "href": "../versioning?view=li-lms-2026-09"
+      },
+      {
+        "text": "Integration Requirements",
+        "href": "integration-requirements-community-management?view=li-lms-2026-09"
+      },
+      {
+        "text": "Consumer Health Privacy",
+        "href": "https://go.microsoft.com/fwlink/?linkid=2259814"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S30",
+    "name": "NewsAPI",
+    "url": "https://newsapi.org/docs/endpoints/everything",
+    "method": "api",
+    "checked_at": "2026-10-07T13:14:59.398Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "error": "apiRequestContext.get: Timeout 14000ms exceeded.",
+        "elapsed_ms": 14013
+      },
+      {
+        "route": "local-proxy-10808",
+        "status": 200,
+        "final_url": "https://newsapi.org/docs/endpoints/everything",
+        "elapsed_ms": 687,
+        "type": "text/html; charset=utf-8"
+      }
+    ],
+    "status": 200,
+    "route": "local-proxy-10808",
+    "bytes": 33330,
+    "title": "Everything - Documentation - News API",
+    "links": [
+      {
+        "text": "Searching for news articles",
+        "href": "/docs/get-started#search"
+      },
+      {
+        "text": "Get curated breaking news headlines",
+        "href": "/docs/get-started#top-headlines"
+      },
+      {
+        "text": "Endpoint arrow_right Top Headlinesarrow_forward",
+        "href": "/docs/endpoints/top-headlines"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S31",
+    "name": "Equinor",
+    "url": "https://www.equinor.com/news",
+    "method": "web",
+    "checked_at": "2026-10-07T13:14:59.398Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://www.equinor.com/news",
+        "elapsed_ms": 3644,
+        "type": "text/html; charset=utf-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 778195,
+    "title": "",
+    "links": [
+      {
+        "text": "Accessibility statement",
+        "href": "/about-us/accessibility-statement"
+      },
+      {
+        "text": "Subscribe to corporate news and other content here",
+        "href": "/news-and-media/subscription"
+      },
+      {
+        "text": "Equinor local news in the United Kingdom",
+        "href": "/where-we-are/uk-news"
+      },
+      {
+        "text": "Equinor local news in the United States",
+        "href": "/where-we-are/us-news"
+      },
+      {
+        "text": "7 October 2026|07:30 (CEST)Quarterly update prior to financial reporting",
+        "href": "/news/20261007-invitation-to-consensus-3q-2026"
+      },
+      {
+        "text": "3 September 2026|08:00 (CEST)Equinor brings its largest energy storage project online in the US",
+        "href": "/news/20260903-citrus-flatts-energy-center"
+      },
+      {
+        "text": "27 August 2026|12:00 (CEST)Change in the board of directors",
+        "href": "/news/20260827-change-in-the-board-of-directors"
+      },
+      {
+        "text": "25 August 2026|10:00 (CEST)Fewer countries, higher output from reshaped international portfolio",
+        "href": "/news/20260825-fewer-countries-higher-output"
+      },
+      {
+        "text": "25 August 2026|08:00 (CEST)More gas for 30-year-old Troll A",
+        "href": "/news/20260825-more-gas-for-30-year-old-troll-a"
+      },
+      {
+        "text": "24 August 2026|13:30 (CEST)Equinor, Aker BP and Vår Energi join forces to search for Norway’s next major discoveries",
+        "href": "/news/20260824-equinor-aker-bp-and-var-energi-join-forces"
+      },
+      {
+        "text": "24 August 2026|08:15 (CEST)Equinor and Uniper sign 15-year gas sales agreement for supplies to Germany",
+        "href": "/news/20260824-equinor-and-uniper-sign-15-year-gas-sales-agreement"
+      },
+      {
+        "text": "20 August 2026|10:00 (CEST)Equinor and ORLEN strengthen energy partnership with crude oil agreement",
+        "href": "/news/20260820-equinor-and-orlen-strengthen-energy-partnership"
+      },
+      {
+        "text": "20 August 2026|07:50 (CEST)Announcement of cash dividend of NOK 3.6882 per share for first quarter 2026",
+        "href": "/news/20260820-cash-dividend-first-quarter-2026"
+      },
+      {
+        "text": "18 August 2026|17:02 (CEST)Equinor joins Chevron in Namibia exploration licence",
+        "href": "/news/20260818-equinor-chevron-namibia-exploration-licence"
+      },
+      {
+        "text": "17 August 2026|16:00 (CEST)Equinor strengthens position in US power market",
+        "href": "/news/20260817-strengthens-position-us-power-market"
+      },
+      {
+        "text": "13 August 2026|07:51 (CEST)Ex. dividend first quarter 2026",
+        "href": "/news/20260813-ex-dividend-first-quarter-2026"
+      },
+      {
+        "text": "22 July 2026|06:48 (CEST)Equinor second quarter 2026 results",
+        "href": "/news/equinor-second-quarter-2026-results"
+      },
+      {
+        "text": "22 July 2026|06:46 (CEST)Equinor to commence third tranche of the 2026 share buy-back programme",
+        "href": "/news/20260722-third-tranche-2026-share-buy-back-programme"
+      },
+      {
+        "text": "22 July 2026|06:46 (CEST)Key information relating to cash dividend for second quarter 2026",
+        "href": "/news/20260722-key-information-cash-dividend-second-quarter-2026"
+      },
+      {
+        "text": "10 July 2026|08:00 (CEST)Equinor’s second quarter 2026 safety results",
+        "href": "/news/20260710-second-quarter-2026-safety-results"
+      },
+      {
+        "text": "8 July 2026|07:31 (CEST)Invitation to send estimates for second quarter financial results",
+        "href": "/news/20260708-invitation-consensus-estimates-2q2026"
+      },
+      {
+        "text": "7 July 2026|08:00 (CEST)Contract awards for four development projects on the Norwegian continental shelf",
+        "href": "/news/20260707-contract-awards-four-development-projects-ncs"
+      },
+      {
+        "text": "6 July 2026|12:30 (CEST)Equinor acquires bp’s interest in Bay du Nord project",
+        "href": "/news/equinor-bp-bay-du-nord-project"
+      },
+      {
+        "text": "3 July 2026|09:00 (CEST)Equinor extends helicopter contract worth NOK 1.7 billion",
+        "href": "/news/equinor-extends-helicopter-contract"
+      },
+      {
+        "text": "2 July 2026|23:25 (CEST)Completed share capital reduction",
+        "href": "/news/20260702-completed-share-capital-reduction"
+      },
+      {
+        "text": "1 July 2026|08:00 (CEST)Securing rig capacity for high production on the Norwegian continental shelf",
+        "href": "/news/equinor-transocean-norwegian-continental-shelf"
+      },
+      {
+        "text": "30 June 2026|08:00 (CEST)Equinor and Vår Energi agree asset swap in Troll and Gjøa areas",
+        "href": "/news/20260630-equinor-and-var-energi-asset-swap"
+      },
+      {
+        "text": "25 June 2026|14:00 (CEST)Proposal for environmental impact assessment programme for Wisting submitted for public consultation",
+        "href": "/news/20260625-wisting-proposal-environmental-impact-assessment-programme"
+      },
+      {
+        "text": "23 June 2026|10:00 (CEST)High Equinor activity creates value and jobs across Norway",
+        "href": "/news/20260623-ripple-effects-report-2025"
+      },
+      {
+        "text": "19 June 2026|09:00 (CEST)Expanding Troll: more gas to Europe",
+        "href": "/news/20260619-expanding-troll-more-gas-to-europe"
+      },
+      {
+        "text": "18 June 2026|09:00 (CEST)Agreement on concept for Ringvei Vest – combining several discoveries in one project",
+        "href": "/news/20260618-ringvei-vest"
+      },
+      {
+        "text": "16 June 2026|12:01 (CEST)Equinor’s Capital Markets Day 2026",
+        "href": "/news/20260616-equinor-capital-markets-day-2026"
+      },
+      {
+        "text": "15 June 2026|08:00 (CEST)Further development of Johan Sverdrup",
+        "href": "/news/20260615-further-development-johan-sverdrup"
+      },
+      {
+        "text": "11 June 2026|08:00 (CEST)Energy Perspectives 2026 presents diverging pathways for global developments to 2050",
+        "href": "/news/20260611-energy-perspectives-2026"
+      },
+      {
+        "text": "8 June 2026|17:17 (CEST)Election of shareholder representatives to the board of directors of Equinor ASA",
+        "href": "/news/20260608-election-shareholder-representatives-board-directors"
+      },
+      {
+        "text": "1 June 2026|08:02 (CEST)Recommendation from the nomination committee of Equinor ASA",
+        "href": "/news/20260601-recommendation-from-the-nomination-committee"
+      },
+      {
+        "text": "21 May 2026|10:17 (CEST)Equinor aims to continue growing after 50 years in Northern Norway",
+        "href": "/news/20260521-equinor-aims-to-continue-growing-after-50-years-in-northern-norway"
+      },
+      {
+        "text": "21 May 2026|07:55 (CEST)Announcement of cash dividend of 3.6041 NOK per share for fourth quarter 2025",
+        "href": "/news/20260521-cash-dividend-fourth-quarter-2025"
+      },
+      {
+        "text": "21 May 2026|07:04 (CEST)Equinor and Aker BP to unlock more value on the Norwegian Continental Shelf",
+        "href": "/news/20260521-equinor-and-aker-bp-unlock-more-value-ncs"
+      },
+      {
+        "text": "20 May 2026|08:58 (CEST)Notifiable trading",
+        "href": "/news/20260520-notifiable-trading"
+      },
+      {
+        "text": "19 May 2026|13:29 (CEST)The annual GHG numbers have been updated on our crude oil assays page",
+        "href": "/news/crude-oil-assay-update-19-05-2026"
+      },
+      {
+        "text": "19 May 2026|09:00 (CEST)Equinor signs 5-year agreement for supplies to Germany",
+        "href": "/news/20260519-five-year-agreement-supplies-germany"
+      },
+      {
+        "text": "13 May 2026|14:36 (CEST)Minutes from the Annual General Meeting 2026",
+        "href": "/news/20260513-minutes-annual-general-meeting-2026"
+      },
+      {
+        "text": "13 May 2026|07:51 (CEST)Ex. dividend fourth quarter 2025",
+        "href": "/news/20260513-ex-dividend-fourth-quarter-2025"
+      },
+      {
+        "text": "12 May 2026|23:31 (CEST)Annual general meeting 2026",
+        "href": "/news/20260512-annual-general-meeting-2026"
+      },
+      {
+        "text": "12 May 2026|08:00 (CEST)5,000 oil cargoes from Gullfaks",
+        "href": "/news/20260512-5000-oil-cargoes-from-gullfaks"
+      },
+      {
+        "text": "6 May 2026|06:50 (CEST)Equinor first quarter 2026 results",
+        "href": "/news/equinor-first-quarter-2026-results"
+      },
+      {
+        "text": "6 May 2026|06:47 (CEST)Equinor to commence second tranche of the 2026 share buy-back programme",
+        "href": "/news/20260506-second-tranche-2026-share-buy-back-programme"
+      },
+      {
+        "text": "6 May 2026|06:47 (CEST)Key information relating to cash dividend for first quarter 2026",
+        "href": "/news/20260506-key-information-cash-dividend-first-quarter-2026"
+      },
+      {
+        "text": "5 May 2026|09:00 (CEST)The Eirin field in production - more gas to Europe",
+        "href": "/news/20260505-eirin-field-production"
+      },
+      {
+        "text": "4 May 2026|08:30 (CEST)NOK 17 billion for continued drilling on the Norwegian continental shelf",
+        "href": "/news/20260504-nok-17-billion-continued-drilling-ncs"
+      },
+      {
+        "text": "30 April 2026|08:00 (CEST)Equinor’s first quarter 2026 safety results",
+        "href": "/news/20260430-first-quarter-2026-safety-results"
+      },
+      {
+        "text": "20 April 2026|12:00 (CEST)Notice of annual general meeting 12 May 2026",
+        "href": "/news/20260420-notice-annual-general-meeting-12-may-2026"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S32",
+    "name": "Transocean",
+    "url": "https://investor.deepwater.com/",
+    "method": "web",
+    "checked_at": "2026-10-07T13:15:14.107Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 200,
+        "final_url": "https://investor.deepwater.com/",
+        "elapsed_ms": 467,
+        "type": "text/html; charset=UTF-8"
+      }
+    ],
+    "status": 200,
+    "route": "direct",
+    "bytes": 40579,
+    "title": "Investor Relations | Transocean Ltd.",
+    "links": [
+      {
+        "text": "Skip to main navigation",
+        "href": "#main-menu"
+      },
+      {
+        "text": "Sustainability, Health, Safety and Environment",
+        "href": "https://www.deepwater.com/about/sustainability-health-safety-and-environment"
+      },
+      {
+        "text": "Share-Based Compensation Awards",
+        "href": "/summary"
+      },
+      {
+        "text": "Frequently Asked Questions",
+        "href": "/investor-faqs"
+      },
+      {
+        "text": "Global Marine Financial Info",
+        "href": "https://www.deepwater.com/investors/shareholder-info/global-marine-financial-info"
+      },
+      {
+        "text": "Annual and Quarterly Reports",
+        "href": "/annual-reports"
+      },
+      {
+        "text": "Non-GAAP Financial Measures",
+        "href": "/non-gaap-financial-measures-and-reconciliations"
+      },
+      {
+        "text": "Historical Price Lookup",
+        "href": "/historical-price-lookup"
+      },
+      {
+        "text": "Transocean Ltd. Announces $80 Million Contract For Ultra-Deepwater Drillship",
+        "href": "/news-releases/news-release-details/transocean-ltd-announces-80-million-contract-ultra-deepwater"
+      },
+      {
+        "text": "Transocean Ltd. Announces $300 Million Contract For Ultra-Deepwater Drillship",
+        "href": "/news-releases/news-release-details/transocean-ltd-announces-300-million-contract-ultra-deepwater"
+      },
+      {
+        "text": "Transocean Ltd. Reports Second Quarter 2026 Results",
+        "href": "/news-releases/news-release-details/transocean-ltd-reports-second-quarter-2026-results"
+      },
+      {
+        "text": "Pareto Conference Presentation - September 2026",
+        "href": "/static-files/bcd2d197-49bc-40fb-b296-e7c79f60b7e3"
+      },
+      {
+        "text": "Investor Presentation – June 2026",
+        "href": "/static-files/15cfcde0-7aea-49d1-b9c7-b7ab81aec665"
+      },
+      {
+        "text": "Stronger Together-Transocean to Acquire Valaris",
+        "href": "/static-files/3e3eb569-c035-4a4b-8f1c-79e4c3911bf3"
+      },
+      {
+        "text": "See All Presentations",
+        "href": "/presentations"
+      },
+      {
+        "text": "Q2 2026 Transocean Ltd. Earnings Conference Call",
+        "href": "/events/event-details/q2-2026-transocean-ltd-earnings-conference-call"
+      },
+      {
+        "text": "Q1 2026 Transocean Ltd. Earnings Conference Call",
+        "href": "/events/event-details/q1-2026-transocean-ltd-earnings-conference-call"
+      },
+      {
+        "text": "Q4 2025 Transocean Ltd. Earnings Conference Call",
+        "href": "/events/event-details/q4-2025-transocean-ltd-earnings-conference-call"
+      },
+      {
+        "text": "IR and Media Contacts",
+        "href": "/contact-ir"
+      }
+    ],
+    "detected_feed_links": []
+  },
+  {
+    "id": "S33",
+    "name": "Northern Lights",
+    "url": "https://norlights.com/news/",
+    "method": "web",
+    "checked_at": "2026-10-07T13:15:14.107Z",
+    "attempts": [
+      {
+        "route": "direct",
+        "status": 404,
+        "final_url": "https://norlights.com/news/",
+        "elapsed_ms": 1608,
+        "type": "text/html; charset=UTF-8"
+      }
+    ],
+    "status": 404,
+    "route": "direct",
+    "bytes": 40855
+  }
+]

@@ -1,0 +1,13 @@
+[Unit]
+Description=Update ocean intelligence EIA monthly series
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+UMask=0077
+ExecStart=/bin/bash /opt/ocean-intelligence/eia-daily.sh
+TimeoutStartSec=240
+StandardOutput=journal
+StandardError=journal

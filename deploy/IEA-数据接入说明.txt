@@ -1,0 +1,44 @@
+IEA 数据集与 IAEA 补充源接入说明
+2026-10-11
+
+入口：主站 → 量化分析 → IEA 数据集。
+本页上方计数随当前工作簿和顶部筛选变化，单位为指标或登记记录，不是项目数。
+默认只显示通过原六领域规则的记录。候选/背景、排除单独查看，不进入业务统计。
+图形：柱状对比、对象点图、数值热力图；有年份的数据可切换情景趋势。
+每组图最多展示前120条，并明确标注；CSV导出包含当前指标下所有筛选记录。采集没有120条限制。
+原表、单元格、原始引用、许可、版本指纹均保留，可下载原始Excel。
+
+已支持产品（每产品有专用结构校验，不是所有IEA工作簿的通用解析器）：
+1. Critical Minerals Dataset：需求情景与采矿/精炼供应表。
+2. CCUS Projects Database：项目公布能力、IEA估计能力与无数值的登记记录。
+3. Hydrogen Production and Infrastructure Projects Database：生产与基础设施两个工作簿。
+注：矿产或总风电数据没有海上专属维度，当前全部保留为候选背景。
+氢能MWel是电解装置容量，不是风电装机；年能力不等于实际产量。
+字段与常见情景/状态中文化，原始项目名保留，未生成未经校验的名称翻译。
+
+更新：接入原采集调度器，调度每6小时运行；IEA产品每7天检查一次，失败6小时后重试。
+这是经用户授权的网页登录下载方式，不是IEA企业Release API。
+会话文件：/opt/ocean-intelligence/data/iea/session.json，权限600，目录700。
+账号密码未写入代码或配置。会话失效后需要用户重新登录并更新此会话文件。
+源文件与解析结果存放在同目录archive中，按SHA-256保存，旧版本不覆盖。
+相同文件不新增版本；新文件记录新增/修订/移除数量；项目表头变化暂停替换、等待适配。
+下载/解析失败保留最后成功数据。候选/许可变更或浏览器失败可在版本状态查看。
+
+手动下载兜底（运维操作，必须在维护锁下操作暂存快照，不能直接改线上snapshot）：
+准备：设置INTEL_DATA_DIR为线上数据目录，IEA_STAGE_DIR为独立暂存目录，
+执行 intelligence/publish-iea.mjs --prepare（使用既有服务数据库环境）。
+暂存导入：将INTEL_DATA_DIR改为暂存目录，IEA_DATA_HOME保持线上iea归档目录，
+执行 node intelligence/iea-import.mjs --file 原始.xlsx --product 产品slug --release 原版日期说明
+产品slug见 intelligence/iea-datasets.mjs 的 products。
+发布：维护锁下暂时停止ocean-intelligence，INTEL_DATA_DIR恢复线上目录，
+执行 intelligence/publish-iea.mjs，再重启服务。不要打印.env或会话内容。
+
+IAEA：与IEA为不同机构。接入topnews和publications官方RSS，每6小时检查，近90天正文范围。
+本次RSS各返回15条。正文详情受Cloudflare 403限制，未宣称获取到全文或PDF数据。
+保留标题、日期、原文地址、正文不可用或日期范围外状态，后续定期重试。
+只有正文可获取并通过原六领域规则，才进入原有翻译/提取流程。
+只有RSS元数据的条目不构成可用于量化分析的数值证据。
+
+回退：部署备份位于 /opt/ocean-intelligence/iea-backups/。
+发布前数据备份为 data/before-iea-时间戳.json；数据库为正式数据来源，不能仅覆盖磁盘快照。
+本次没有修改原知识库服务、Nginx位置或其他渠道定时器。

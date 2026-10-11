@@ -1,0 +1,4 @@
+import {execFileSync} from 'node:child_process';import fs from 'node:fs';
+const procs=JSON.parse(execFileSync('pm2',['jlist'],{encoding:'utf8'}));console.log(JSON.stringify(procs.filter(p=>['knowledge-base','ocean-intelligence'].includes(p.name)).map(p=>({name:p.name,id:p.pm_id,cwd:p.pm2_env.pm_cwd,script:p.pm2_env.pm_exec_path,nodeArgs:p.pm2_env.node_args,hasDatabase:!!p.pm2_env.DATABASE_URL,hasMp2:!!p.pm2_env.MP2_RSS_LINK})),null,2));
+let cron='';try{cron=execFileSync('crontab',['-l'],{encoding:'utf8',stdio:['ignore','pipe','ignore']});}catch{}
+console.log(JSON.stringify({wechatCronLines:cron.split('\n').filter(l=>/wechat|weixin|we-mp/i.test(l)).map(l=>({comment:l.startsWith('#'),scripts:l.match(/\/[\w./-]+\.(?:sh|py|mjs)/g)})),oceanFiles:fs.readdirSync('/opt/ocean-intelligence').filter(x=>/wechat|mp|sync/.test(x)),knowledgeFiles:fs.readdirSync('/opt/knowledge-base').filter(x=>/wechat|mp|sync/.test(x))}));

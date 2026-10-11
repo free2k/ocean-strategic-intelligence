@@ -1,0 +1,2 @@
+import {status,pool} from '../server/integrations/mp2rss-store.mjs';
+try{const d=await status();console.log(JSON.stringify({configured:d.configured,bridge:d.bridge,subscriptions:d.list.length,counts:d.list.map(s=>({name:s.payload.name,count:s.count,ready:s.ready,status:s.status,posts:s.posts})),jobs:d.jobs.slice(0,2),classification:(await pool.query("SELECT classification->>'status' status,count(*)::int count FROM mp2rss.items GROUP BY 1")).rows},null,2));}catch{console.log('Audit failed');process.exitCode=1;}finally{await pool.end();}

@@ -1,0 +1,1 @@
+ALTER TABLE "scrape_sources" ADD COLUMN "channel" varchar(128) DEFAULT '默认' NOT NULL;

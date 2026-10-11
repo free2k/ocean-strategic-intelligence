@@ -1,0 +1,28 @@
+EIA资讯定期接入
+
+入口：Today in Energy官方RSS + Press Releases官方RSS。
+与统计API分开；API Key不提供全站文章、事件或全文报告接口。
+筛选：LNG、海上油气、海底能源、能源航道、海运、潮汐/波浪能。
+增量：根据原文URL去重，每轮遍历两个RSS返回的全部条目，无文章篇数上限；已有文章不重复调用模型。RSS近期窗口不等于全部历史归档。
+正文：保留英文正文、原始URL、发布日期、采集时间、原件版本。
+百炼：生成中文标题与摘要、提取事件/实体/关系/指标，验证引用逐字存在于原文。
+所有提取结果为候选，不能自动成为已核验事实；不确定的事件发生日留空。
+模型失败保留英文和规则候选，不制造中文翻译或指标。
+当前不自动同步历史全部文章、PDF全文、图片图表数据、已有文章修订或整篇中文翻译。
+当前资料可用于现有关键词检索；本采集脚本未新增embedding调用。
+
+服务器：49.233.77.111
+调度：ocean-eia-news.timer，每天Asia/Shanghai 07:25，Persistent=true。
+统计序列仍由ocean-eia-daily.timer每天07:10更新。
+两任务共用/opt/ocean-intelligence/eia-daily.lock，防止重叠。
+采集期间智库保持在线，成功后停止智库进程，从数据库最新状态合并新增资料，再启动并检查健康。
+原站knowledge-base不重启。
+失败写systemd journal，尚无邮件告警。单轮最长2小时，属于异常挂起保护，不是文章篇数限额。
+未来应用内部若新增采集调度，必须协调同一锁及发布流程，避免同时运行全量导入。
+
+执行：systemctl start ocean-eia-news.service
+日志：journalctl -u ocean-eia-news.service -n 50
+状态：systemctl list-timers ocean-eia-news.timer
+停用：systemctl disable --now ocean-eia-news.timer
+发布新current目录时必须携带eia-news.mjs、collect-eia-news.mjs、publish-eia-news.mjs。
+测试：node --test intelligence/tests/eia-news.test.mjs

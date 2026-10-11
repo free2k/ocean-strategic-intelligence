@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {marineRelevant,eiaArticleUrl,mergeNews} from '../eia-news.mjs';
+test('EIA resolves relative news URLs and rejects external hosts',()=>{assert.equal(eiaArticleUrl('/pressroom/releases/a.php','https://www.eia.gov/rss/a.xml'),'https://www.eia.gov/pressroom/releases/a.php');assert.throws(()=>eiaArticleUrl('https://evil.example/a','https://www.eia.gov'));});
+test('Marine filter excludes unrelated household energy',()=>{assert.equal(marineRelevant('Winter home heating costs'),false);assert.equal(marineRelevant('Corpus Christi LNG expansion'),true);});
+test('Merge is idempotent and preserves reviews and numeric series',()=>{const live={documents:[{id:'d',manual:true}],events:[{id:'e',status:'verified'}],entities:[],series:[{id:'eia'}]};const incoming={documents:[{id:'n'},{id:'d'}],events:[{id:'e',status:'candidate'}],entities:[],sources:[]};const once=mergeNews(live,incoming),twice=mergeNews(once,incoming);assert.equal(twice.documents.length,2);assert.equal(twice.events[0].status,'verified');assert.deepEqual(twice.series,live.series);assert.equal(twice.documents[0].manual,true);});

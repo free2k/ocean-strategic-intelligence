@@ -1,0 +1,12 @@
+[Unit]
+Description=OilPrice articles and chart evidence collection
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/knowledge-base/mp2rss-current
+EnvironmentFile=/opt/knowledge-base/mp2rss.env
+ExecStart=/usr/bin/node --env-file=/opt/knowledge-base/.env /opt/knowledge-base/mp2rss-current/scripts/oilprice-worker.mjs
+TimeoutStartSec=30min
+UMask=0077

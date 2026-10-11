@@ -1,0 +1,50 @@
+[
+  {
+    "url": "https://norlights.com/feed/",
+    "checkedAt": "2026-10-09T03:56:56.501Z",
+    "status": 200,
+    "proxy": false,
+    "items": 10,
+    "latest": "Thu, 01 Oct 2026 05:55:48 +0000"
+  },
+  {
+    "url": "https://www.offshore-energy.biz/feed/",
+    "checkedAt": "2026-10-09T03:56:56.515Z",
+    "status": 200,
+    "proxy": false,
+    "items": 50,
+    "latest": "Thu, 08 Oct 2026 15:02:14 GMT"
+  },
+  {
+    "url": "https://www.offshorewind.biz/feed/",
+    "checkedAt": "2026-10-09T03:56:56.516Z",
+    "status": 200,
+    "proxy": false,
+    "items": 50,
+    "latest": "Thu, 08 Oct 2026 12:25:16 GMT"
+  },
+  {
+    "url": "https://oilprice.com/rss/main",
+    "checkedAt": "2026-10-09T03:56:56.517Z",
+    "status": 200,
+    "proxy": false,
+    "items": 15,
+    "latest": "Thu, 08 Oct 2026 19:00:00 -0500"
+  },
+  {
+    "url": "https://blogs.shell.com/feed/",
+    "checkedAt": "2026-10-09T03:56:56.517Z",
+    "status": 200,
+    "proxy": false,
+    "items": 10,
+    "latest": "Thu, 09 Jul 2026 13:20:48 +0000"
+  },
+  {
+    "url": "https://investor.exxonmobil.com/company-information/press-releases/rss",
+    "checkedAt": "2026-10-09T03:56:56.518Z",
+    "status": 200,
+    "proxy": false,
+    "items": 10,
+    "latest": "Tue, 15 Sep 26 09:00:00 -0400"
+  }
+]

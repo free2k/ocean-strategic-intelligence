@@ -1,0 +1,1 @@
+import {mountQuant} from './app.js';mountQuant(document,location.search);
