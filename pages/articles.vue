@@ -91,7 +91,9 @@ const filterStatusOptions = [
 
 const sourceTypeOptions = [
   { label: '全部渠道', value: '' },
-  { label: '微信公众号', value: 'wechat' },
+  { label: '历史微信公众号', value: 'wechat' },
+  { label: 'Mp2RSS 公众号', value: 'mp2rss_mp' },
+  { label: 'Mp2RSS X', value: 'mp2rss_x' },
   { label: 'RSS', value: 'rss' },
   // { label: '网页', value: 'web' },
   // { label: '手动录入', value: 'manual' },

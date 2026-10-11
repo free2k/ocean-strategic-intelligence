@@ -1,0 +1,12 @@
+import fs from 'node:fs/promises';
+import {pool,status,refresh,enqueue,update} from '../server/integrations/mp2rss-store.mjs';
+import {client} from '../server/integrations/mp2rss-client.mjs';
+try{
+ if(process.argv.includes('--start')){await refresh(client());const before=await status();await fs.writeFile('/opt/knowledge-base/mp2rss-refresh-before.json',JSON.stringify({at:new Date().toISOString(),ids:(await pool.query('SELECT id FROM mp2rss.items')).rows.map(r=>r.id),subscriptions:before.list.map(s=>({id:s.id,name:s.payload.name,enabled:s.enabled,posts:s.posts})),bridge:before.bridge}),{mode:0o600});const enabled=[];for(const s of before.list.filter(s=>s.enabled&&s.present&&s.payload.platform==='x'&&!s.posts)){await update(s.id,{posts:true});enabled.push(s.payload.name);}console.log(JSON.stringify({enabledPosts:enabled,job:await enqueue('sync')}));}
+ const d=await status();let before={ids:[]};try{before=JSON.parse(await fs.readFile('/opt/knowledge-base/mp2rss-refresh-before.json','utf8'));}catch{}
+ const added=(await pool.query("SELECT id,subscription_id,payload->>'title' title,payload->>'kind' kind,classification->>'status' status,classification->>'primary' topic FROM mp2rss.items WHERE NOT(id=ANY($1::text[]))",[before.ids])).rows;
+ const links=(await pool.query("SELECT url,status,payload->>'url' final_url,payload->>'httpStatus' http_status,payload->>'title' title,origins FROM mp2rss.evidence_links WHERE kind='link'")).rows;
+ const evidence=(await pool.query("SELECT url,payload->>'title' title,payload->>'status' status,classification->>'status' classification,classification->>'primary' topic,length(payload->>'content') body_length,length(payload->>'contentZh') translated_length,updated_at FROM mp2rss.evidence_documents")).rows;
+ const result={at:new Date().toISOString(),bridge:d.bridge,accounts:d.list.map(s=>({id:s.id,name:s.payload.name,platform:s.payload.platform,enabled:s.enabled,posts:s.posts,count:s.count,status:s.status,lastSync:s.last_sync})),jobs:d.jobs.slice(0,2),added,links,evidence,evidenceState:(await pool.query("SELECT payload FROM mp2rss.state WHERE id='x-evidence'")).rows[0]?.payload};
+ await fs.writeFile('/opt/knowledge-base/mp2rss-refresh-audit.json',JSON.stringify(result,null,2),{mode:0o600});console.log(JSON.stringify({accounts:result.accounts.length,bridge:result.bridge,added:added.length,jobs:result.jobs.map(j=>({id:j.id,status:j.status,inserted:j.result?.inserted,failed:j.result?.failed})),evidenceState:result.evidenceState}));
+}finally{await pool.end();}

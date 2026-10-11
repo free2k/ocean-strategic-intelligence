@@ -48,6 +48,30 @@ node --test intelligence/tests/*.test.mjs
 地图边界：Natural Earth公开数据，使用此前示例站公开静态资源中的同投影路径。仅作研究资料分布展示，国家点为代表位置，非精确项目点或航迹。
 # 交互升级（2026-10-09）
 
+## EIA API 接入（2026-10-09）
+
+新增 `import-eia.mjs`，使用服务端 `.env` 中的 `EIA_API_KEY`。原 `import-series.mjs` 网页采集脚本保留用于人工排查，不要与 API 任务交替调度。
+
+```powershell
+# 本地网络需要代理时设置；服务器不能直接使用开发机的回环地址
+$env:DOWNLOAD_PROXY='http://127.0.0.1:10808'
+node --env-file=.env intelligence/import-eia.mjs
+```
+
+默认采集序列 `PET.MCRFP3FM2.M`：美国对应联邦海域海湾原油月度日均产量，单位千桶/日。API 返回历史数据，本地按 `EIA_START`（默认2024-01）过滤。该序列547条记录可一次完整取得；如果将来返回截断，脚本拒绝覆盖旧数据，需增加分页。
+
+采集只更新本地快照中的目标序列和来源记录，保留其他资料。缺失值不补零，单位不符、重复月份及不完整响应均拒绝导入。`.data/intelligence/eia-history/` 保存本次响应数据与上次序列，便于审计历史修订；不保存API回显的请求密钥。采集时间与指标月份分开，API未给出的发布日期不推测。
+
+生产采用PostgreSQL时，需要在同一部署目录依次执行采集、`node --env-file=.env intelligence/run.mjs --import`，再重启智库独立进程（核对实际PM2名称，不能重启原站代替）。文件模式也需要重启智库进程读取新快照。
+
+生产部署（2026-10-09）：49.233.77.111 已启用 `ocean-eia-daily.timer`，每天 Asia/Shanghai 07:10运行，Persistent=true，关机错过任务将在恢复后补执行。独立密钥文件 `/opt/ocean-intelligence/eia.env` 权限600。服务器直连EIA成功，不依赖开发机代理。
+
+`deploy/eia-daily.sh` 先采集到 `/opt/ocean-intelligence/eia-stage`，成功后短暂停止 `ocean-intelligence`，`publish-eia.mjs` 从PostgreSQL读取最新状态，仅合并EIA来源与序列，再启动智库并检查健康。原站 `knowledge-base` 不重启。发布前完整快照保存在生产数据目录 `eia-publish-backups`，API历史在暂存目录 `eia-history`。密钥不写日志或API返回。失败记录在systemd journal，尚未配置邮件告警。
+
+任务用flock避免自身重叠，发布期间停止智库防止人工编辑冲突；其他运维导入脚本仍需串行执行，不可同时全量导入。未来更换current发布目录时需要包含eia.mjs、import-eia.mjs和publish-eia.mjs。手动执行：`systemctl start ocean-eia-daily.service`；查看：`journalctl -u ocean-eia-daily.service -n 50`；停用：`systemctl disable --now ocean-eia-daily.timer`。不要再创建重复调度。
+
+验证：`node --test intelligence/tests/eia.test.mjs`。2026-10-09真实API调用成功，本地保留2024-01至2026-07共31个月值；最新2043千桶/日。该模块不调用大模型，不消耗百炼余额。
+
 - 关键词检索先约束主体、国家及短关键词，再排序；包含中国海油/CNOOC、巴西/Brazil等别名。不调用外部模型，词典不代表完整语义理解。
 - 实体关系按多个主体分组展开/收起；对象节点悬停或键盘聚焦显示来源，点击查看证据。国家选项仅保留当前领域/日期下有关系数据的国家。
 - 量化分析新增官方月度序列热力矩阵和环比/同比散点图，附公式、数值、来源。国家选项仅显示有可用时间序列的国家；不把不同口径的零散指标拼成趋势。

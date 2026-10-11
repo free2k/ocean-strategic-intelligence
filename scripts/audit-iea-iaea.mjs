@@ -1,0 +1,8 @@
+import {fetch,ProxyAgent} from 'undici';
+const base='http://127.0.0.1:3101';
+const login=await fetch(base+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:process.env.SITE_PASSWORD})});if(!login.ok)throw Error('Login failed');
+const cookie=login.headers.get('set-cookie').split(';')[0];
+const data=await (await fetch(base+'/quant/api/iea-data',{headers:{cookie}})).json();
+console.log(JSON.stringify({datasets:Object.values(data.datasets||{}).map(d=>({name:d.filename,records:d.records.length,counts:d.counts,checkedAt:d.checkedAt})),sources:data.feedSources,candidates:(data.feedCandidates||[]).reduce((a,r)=>(a[r.status]=(a[r.status]||0)+1,a),{})}));
+const urls=['https://api.iea.org/v3/policies?csv=true','https://www.iaea.org/feeds/topnews','https://www.iaea.org/feeds/publications',...(data.feedCandidates||[]).filter(r=>r.status==='body-unavailable').filter((r,i,a)=>a.findIndex(x=>x.sourceId===r.sourceId)===i).map(r=>r.url)];
+for(const url of urls){for(const proxy of [false,true]){const dispatcher=proxy?new ProxyAgent('http://127.0.0.1:10808'):null;try{const r=await fetch(url,{headers:{'User-Agent':'OceanEnergyResearch/1.0'},signal:AbortSignal.timeout(15000),...(dispatcher?{dispatcher}:{})});const text=await r.text();console.log(JSON.stringify({url,proxy,status:r.status,type:r.headers.get('content-type'),bytes:text.length,challenge:/Just a moment|cf-chl|challenge-platform/i.test(text),csvHeader:url.includes('csv=true')?text.split('\n')[0].slice(0,400):undefined}));}catch(e){console.log(JSON.stringify({url,proxy,error:e.name}));}finally{await dispatcher?.close();}}}

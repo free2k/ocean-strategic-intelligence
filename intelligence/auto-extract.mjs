@@ -7,6 +7,7 @@ export function isComplete(d){return d.autoExtraction?.versionId===d.versionId&&
 export function processingSummary(data){const docs=data.documents.filter(d=>!d.manual);return {total:docs.length,completed:docs.filter(isComplete).length,retry:docs.filter(d=>!isComplete(d)&&d.autoExtraction?.status==='failed').length,pending:docs.filter(d=>!isComplete(d)&&d.autoExtraction?.status!=='failed').length};}
 export function canAdopt(d){return !d.inputTruncated&&!d.autoExtraction&&d.extractionStatus==='extracted'&&['evidence-v1','eia-evidence-v1'].includes(d.extractionVersion)&&d.extraction&&['entities','events','relations','observations','evidence'].every(k=>Array.isArray(d.extraction[k]));}
 export function applyExtraction(data,doc,result,now){
+ if(doc.industry?.status==='accepted'&&topics.includes(doc.industry.primary))result.events=result.events.map(e=>({...e,topic:doc.industry.primary}));
  for(const key of structured){const rows=new Map((data[key]||[]).filter(r=>r.documentId!==doc.id||protectedRow(r)).map(r=>[r.id,r]));for(const row of result[key])if(!protectedRow(rows.get(row.id)||{}))rows.set(row.id,row);data[key]=[...rows.values()];}
  const proofs=new Map((data.evidence||[]).map(e=>[e.id,e]));for(const e of result.evidence)proofs.set(e.id,{...e,...proofs.get(e.id)});data.evidence=[...proofs.values()];
  data.entities=mergeRecords([...(data.entities||[]),...result.entities]);

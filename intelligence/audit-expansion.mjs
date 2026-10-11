@@ -1,0 +1,11 @@
+import fs from 'node:fs/promises';
+import {profiles} from './expanded-sources.mjs';
+const base='http://127.0.0.1:3101';
+const login=await fetch(base+'/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:process.env.SITE_PASSWORD})});
+if(!login.ok)throw Error('Normal site login failed');
+const cookie=login.headers.get('set-cookie')?.split(';')[0];
+const response=await fetch(base+'/api/data',{headers:{cookie}});
+if(!response.ok)throw Error('Authenticated read failed');
+const data=await response.json();
+const disk=JSON.parse(await fs.readFile('/opt/ocean-intelligence/data/snapshot.json','utf8'));
+console.log(JSON.stringify({health:await(await fetch(base+'/api/health')).json(),collection:data.collection,sources:profiles.map(p=>{const docs=disk.documents.filter(d=>d.sourceId===p.id);return{id:p.id,count:docs.length,status:data.sources.find(s=>s.id===p.id)?.status,latest:docs.map(d=>d.publishedAt).filter(Boolean).sort().at(-1),translated:docs.filter(d=>d.translationVersion===d.versionId).length,embedded:docs.filter(d=>d.embedding).length,unknownDate:docs.filter(d=>!d.publishedAt).length,traceable:docs.filter(d=>d.url).length};}),registry:disk.assetRegistries,apiDocuments:data.documents.length,errors:disk.errors.filter(e=>profiles.some(p=>p.id===e.sourceId))},null,2));

@@ -22,3 +22,14 @@ export function markdown(text){
  return out.join('');
 }
 export function groupResearch(records){const groups=new Map();for(const r of records){const key=r.question.trim().replace(/\s+/g,' ').toLowerCase();if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);}return [...groups.values()].map(rs=>rs.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)));}
+
+// Display timestamps in one explicit timezone; never reinterpret monthly/quarterly periods.
+export function formatDisplayDate(value,fallback='未提供'){
+ if(value===null||value===undefined||value==='')return fallback;
+ const text=String(value);
+ if(!/^\d{4}-\d{2}-\d{2}T/.test(text))return text;
+ if(!/(Z|[+-]\d{2}:?\d{2})$/i.test(text))return text.replace('T',' ').replace(/:\d{2}(?:\.\d+)?$/,'')+'（时区未注明）';
+ const date=new Date(text);if(!Number.isFinite(date.getTime()))return '日期待核对';
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(date).map(p=>[p.type,p.value]));
+ return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`;
+}

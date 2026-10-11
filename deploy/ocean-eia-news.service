@@ -1,0 +1,13 @@
+[Unit]
+Description=Collect marine energy articles from official EIA RSS feeds
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+UMask=0077
+ExecStart=/bin/bash /opt/ocean-intelligence/eia-news-daily.sh
+TimeoutStartSec=7200
+StandardOutput=journal
+StandardError=journal

@@ -48,10 +48,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const feedUrl = source.alias;
-  const maxArticles = body.maxArticles || 50;
+  if (source.fakeid?.startsWith('oilprice-')) {
+    throw createError({statusCode:409,message:'OilPrice 由文章与图表专用流程自动同步，避免将 RSS 摘要误作全文。请在订阅管理的外部文章与图表证据面板查看进度。'});
+  }
+  const maxArticles = body.maxArticles ?? 50;
+  if (!Number.isInteger(maxArticles) || maxArticles < 0) throw createError({statusCode:400,message:'文章数量须为非负整数，0 表示不限'});
   const sinceDateTs = body.sinceDate ? new Date(body.sinceDate).getTime() : 0;
 
-  console.log(`[RSS Sync] 开始同步 sourceId=${source.id}, name=${source.name}, maxArticles=${maxArticles}, url=${feedUrl}`);
+  console.log(`[RSS Sync] 开始同步 sourceId=${source.id}, maxArticles=${maxArticles}`);
 
   // Fetch RSS feed
   let xmlContent: string;
@@ -71,8 +75,8 @@ export default defineEventHandler(async (event) => {
     }
     xmlContent = await response.text();
   } catch (err: any) {
-    console.error(`[RSS Sync] sourceId=${source.id} 获取失败: ${err.message}`);
-    throw createError({ statusCode: 502, statusMessage: `无法获取 RSS 源: ${err.message}` });
+    console.error(`[RSS Sync] sourceId=${source.id} 获取失败`);
+    throw createError({ statusCode: 502, statusMessage: '无法获取 RSS 源，请检查地址和网络' });
   }
 
   // Parse RSS

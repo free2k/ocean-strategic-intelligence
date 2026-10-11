@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily EIA articles at 07:25 Asia/Shanghai
+
+[Timer]
+OnCalendar=*-*-* 07:25:00 Asia/Shanghai
+Persistent=true
+Unit=ocean-eia-news.service
+
+[Install]
+WantedBy=timers.target

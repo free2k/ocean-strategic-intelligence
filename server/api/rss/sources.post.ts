@@ -18,6 +18,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = useDB();
+  if (body.url.includes('mp2rss.bugcode.dev')) throw createError({statusCode:400,message:'Mp2RSS 请通过专用订阅管理接入，勿将带密钥链接保存为普通 RSS'});
   const fakeid = `rss_${body.url.replace(/[^a-z0-9]/gi, '_').substring(0, 60)}`;
 
   // Check duplicate

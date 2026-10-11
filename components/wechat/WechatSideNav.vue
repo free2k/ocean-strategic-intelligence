@@ -3,10 +3,9 @@ const route = useRoute();
 const isMobileMenuOpen = ref(false);
 
 const navItems = [
-  { label: '公众号管理', icon: 'i-heroicons-user-group', to: '/wechat/accounts' },
-  { label: '公众号文章下载', icon: 'i-heroicons-document-arrow-down', to: '/wechat/articles' },
+  { label: '公众号与 X 订阅', icon: 'i-heroicons-user-group', to: '/wechat/subscriptions' },
+  { label: '已入库文章', icon: 'i-heroicons-document-text', to: '/articles' },
   { label: 'RSS 订阅', icon: 'i-heroicons-rss', to: '/wechat/rss' },
-  { label: '代理配置', icon: 'i-heroicons-server-stack', to: '/wechat/proxy' },
 ];
 
 function isActive(to: string): boolean {

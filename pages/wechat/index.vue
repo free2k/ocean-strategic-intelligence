@@ -1,5 +1,5 @@
 <script setup>
-navigateTo('/wechat/accounts', { replace: true });
+navigateTo('/wechat/subscriptions', { replace: true });
 </script>
 
 <template>
