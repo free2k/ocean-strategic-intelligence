@@ -30,3 +30,5 @@ body.embedded aside{display:none}
 .constant-notice p{font-size:12px;color:var(--muted);margin:8px 0 0;line-height:1.8}.constant-notice button{flex-shrink:0}
 @media(max-width:1150px){.template-grid{grid-template-columns:1fr}.template-card{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 @media(max-width:600px){.template-card{grid-template-columns:1fr;padding:18px!important}.constant-notice{align-items:stretch;flex-direction:column}.nav-label{width:100%;margin-bottom:4px}.workspace-tabs{gap:14px}.workspace-tabs button{font-size:12px;padding:9px 10px}.demo-chart{height:230px}}
+
+.constant-charts{border-left:3px solid var(--accent);padding-left:14px;margin-bottom:24px;scroll-margin-top:20px}.constant-charts>p{color:var(--text);font-size:13px;line-height:1.8;padding:12px 0}.constant-charts .chart-card{border-color:var(--accent)}
