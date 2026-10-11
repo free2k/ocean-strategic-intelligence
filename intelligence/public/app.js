@@ -16,7 +16,17 @@ function seriesPanel(){return (data.series||[]).filter(s=>s.frequency==='月度'
 const status=s=>({candidate:'系统收录',extracted:'系统提取',verified:'人工确认',rejected:'已排除'}[s]||s);
 const source=id=>data.sources.find(s=>s.id===id)?.name||id,entity=id=>data.entities.find(e=>e.id===id),doc=id=>data.documents.find(d=>d.id===id),badge=s=>s==='rejected'?'<span class="badge">已排除</span>':'';
 function filters(){return{sourceId:$('#source').value,topic:$('#topic').value,country:$('#country').value,from:$('#from').value,to:$('#to').value};}
-async function api(p,body){const r=await fetch('api/'+p,{...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});const d=await r.json();if(r.status===401)$('#login').hidden=false;if(!r.ok)throw new Error(d.error||'请求失败');return d;}
+const readCache=new Map(),pendingReads=new Map();let cacheEpoch=0;
+async function api(p,body){
+ const cachedRead=!body&&/^(data|options)\?/.test(p),cached=readCache.get(p);
+ if(cachedRead&&cached&&Date.now()-cached.at<15000)return cached.value;
+ if(cachedRead&&pendingReads.has(p))return pendingReads.get(p);
+ if(body){cacheEpoch++;readCache.clear();pendingReads.clear();}
+ const epoch=cacheEpoch;
+ const task=(async()=>{const r=await fetch('api/'+p,{...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});const d=await r.json();if(r.status===401){readCache.clear();$('#login').hidden=false;}if(!r.ok)throw new Error(d.error||'请求失败');if(cachedRead&&epoch===cacheEpoch){if(readCache.size>=12)readCache.delete(readCache.keys().next().value);readCache.set(p,{at:Date.now(),value:d});}return d;})();
+ if(cachedRead)pendingReads.set(p,task);
+ try{return await task;}finally{if(pendingReads.get(p)===task)pendingReads.delete(p);}
+}
 function panel(title,sub,body,extra=''){return `<section class="panel"><div class="panel-head"><div><small>${esc(sub)}</small><h2>${esc(title)}</h2></div>${extra}</div>${body}</section>`;}
 function eventCard(e,compact=false){const d=doc(e.documentId);return `<article class="${compact?'row':'list-card'}"><div class="meta"><span>${esc(e.topic)}</span><span>${esc(formatDisplayDate(e.publishedAt||'日期待核对'))}</span></div><h3><button class="link" data-document="${e.documentId}">${esc(e.title)}</button></h3>${e.originalTitle?`<p class="original-title">${esc(e.originalTitle)}</p>`:''}${compact?'':`<p>${esc(e.summary?.slice(0,230))}</p>`}<div class="meta">${sourceTag(d?.sourceId,source(d?.sourceId))}<span>${e.evidenceIds.length} 条原文证据</span><span>${e.countries.map(c=>data.countryOptions.find(x=>x.code===c)?.name||c).join(' / ')}</span></div>${compact?'':`<div class="card-actions"><button data-document="${e.documentId}">原文与证据 ↗</button></div>`}</article>`;}
 let mapMode=localStorage.getItem('ocean-map-mode')||'flat';

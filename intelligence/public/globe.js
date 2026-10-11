@@ -1,10 +1,11 @@
 import {connectionDirection} from './country-map.js';
 // Orthographic sphere, using the same Natural Earth country geometry as the flat map.
-let disposePrevious=()=>{};
+let disposePrevious=()=>{};const geometryCache=new WeakMap();
 export function setupGlobe(world,data,selected,onSelect){
  disposePrevious();const canvas=document.querySelector('#earth-canvas');if(!canvas)return;
  const ctx=canvas.getContext('2d'),abort=new AbortController(),motion=matchMedia('(prefers-reduced-motion: reduce)');
- const regions=world.map(c=>({...c,rings:(c.path.match(/M[^Z]+/g)||[]).map(r=>[...r.matchAll(/([\d.-]+),([\d.-]+)/g)].map(m=>[(+m[1]/2.5-180)*Math.PI/180,(85-+m[2]/2.5)*Math.PI/180]))}));
+ const regions=geometryCache.get(world)||world.map(c=>({...c,rings:(c.path.match(/M[^Z]+/g)||[]).map(r=>[...r.matchAll(/([\d.-]+),([\d.-]+)/g)].map(m=>[(+m[1]/2.5-180)*Math.PI/180,(85-+m[2]/2.5)*Math.PI/180]))}));
+ geometryCache.set(world,regions);let visible=true;const visibility=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;});visibility.observe(canvas);
  let lon=105*Math.PI/180,lat=.25,drag=null,frame,last=0,paths=[],arcPaths=[],paused=true;
  const center=data.countryOptions.find(c=>c.code===selected);if(center){lon=center.lon*Math.PI/180;lat=center.lat*Math.PI/180;}else{const ring=regions.find(c=>c.code===selected)?.rings.slice().sort((a,b)=>b.length-a.length)[0];if(ring?.length){lon=Math.atan2(ring.reduce((n,p)=>n+Math.sin(p[0]),0),ring.reduce((n,p)=>n+Math.cos(p[0]),0));lat=ring.reduce((n,p)=>n+p[1],0)/ring.length;}}
  const vector=(a,b)=>{const x=Math.cos(b)*Math.sin(a-lon),z=Math.cos(b)*Math.cos(a-lon),y=Math.sin(b);return [x,y*Math.cos(lat)-z*Math.sin(lat),y*Math.sin(lat)+z*Math.cos(lat)];};
@@ -12,7 +13,7 @@ export function setupGlobe(world,data,selected,onSelect){
  const arcs=data.connections.flatMap((link,index)=>{const direction=connectionDirection(link,data),from=data.countryOptions.find(c=>c.code===(direction?.from||link.from)),to=data.countryOptions.find(c=>c.code===(direction?.to||link.to));return from&&to?[{index,direction,a:coords(from),b:coords(to),label:from.name+(direction?' → ':' ↔ ')+to.name}]:[];});
  function arcPoint(arc,t){const dot=Math.max(-.999999,Math.min(.999999,arc.a.reduce((n,v,i)=>n+v*arc.b[i],0))),angle=Math.acos(dot),sin=Math.sin(angle);const p=arc.a.map((v,i)=>(Math.sin((1-t)*angle)*v+Math.sin(t*angle)*arc.b[i])/sin),length=Math.hypot(...p);return vector(Math.atan2(p[1],p[0]),Math.asin(p[2]/length)).map(v=>v*(1+.13*Math.sin(Math.PI*t)));}
  function openArc(index){const button=document.createElement('button');button.hidden=true;button.dataset.connection=index;document.body.append(button);button.click();button.remove();}
- function draw(now){if(!canvas.isConnected)return;if(document.hidden||now-last<32){frame=requestAnimationFrame(draw);return;}const width=canvas.clientWidth,height=canvas.clientHeight,dpr=Math.min(devicePixelRatio,2);if(canvas.width!==width*dpr||canvas.height!==height*dpr){canvas.width=width*dpr;canvas.height=height*dpr;}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);if(!paused&&!drag&&!motion.matches&&!document.hidden)lon+=(now-last)*.00004;last=now;
+ function draw(now){if(!canvas.isConnected)return;if(!visible||document.hidden||now-last<32){frame=requestAnimationFrame(draw);return;}const width=canvas.clientWidth,height=canvas.clientHeight,dpr=Math.min(devicePixelRatio,2);if(canvas.width!==width*dpr||canvas.height!==height*dpr){canvas.width=width*dpr;canvas.height=height*dpr;}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);if(!paused&&!drag&&!motion.matches&&!document.hidden)lon+=Math.min(now-last,64)*.00004;last=now;
  const r=Math.min(width*.43,height*.43),cx=width/2,cy=height/2,light=document.body.classList.contains('light'),project=v=>[cx+r*v[0],cy-r*v[1]];
  const glow=ctx.createRadialGradient(cx,cy,r*.95,cx,cy,r*1.12);glow.addColorStop(0,'#68d6df55');glow.addColorStop(1,'#68d6df00');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(cx,cy,r*1.12,0,7);ctx.fill();
  const ocean=ctx.createRadialGradient(cx-r*.35,cy-r*.4,10,cx,cy,r);ocean.addColorStop(0,light?'#c0e1e8':'#224b60');ocean.addColorStop(1,light?'#608b9f':'#07121f');ctx.fillStyle=ocean;ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();paths=[];
@@ -30,5 +31,5 @@ export function setupGlobe(world,data,selected,onSelect){
  listen('pointerup',e=>{if(drag&&Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)<5){const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)*Math.min(devicePixelRatio,2),y=(e.clientY-rect.top)*Math.min(devicePixelRatio,2);ctx.lineWidth=10;const arc=arcPaths.find(p=>ctx.isPointInStroke(p.path,x,y));if(arc)openArc(arc.index);else{const hit=paths.toReversed().find(p=>ctx.isPointInPath(p.path,x,y));if(hit)onSelect(hit.region.code);}}drag=null;});listen('pointercancel',()=>drag=null);
  listen('keydown',e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();lon+=(e.key==='ArrowRight'?.15:e.key==='ArrowLeft'?-.15:0);lat=Math.max(-1.3,Math.min(1.3,lat+(e.key==='ArrowUp'?.1:e.key==='ArrowDown'?-.1:0)));}});
  document.querySelector('#earth-spin').addEventListener('click',e=>{paused=!paused;e.target.textContent=paused?'自动旋转':'暂停旋转';e.target.setAttribute('aria-pressed',String(!paused));},{signal:abort.signal});
- document.querySelector('#earth-country').addEventListener('change',e=>onSelect(e.target.value),{signal:abort.signal});frame=requestAnimationFrame(draw);disposePrevious=()=>{cancelAnimationFrame(frame);abort.abort();};
+ document.querySelector('#earth-country').addEventListener('change',e=>onSelect(e.target.value),{signal:abort.signal});frame=requestAnimationFrame(draw);disposePrevious=()=>{cancelAnimationFrame(frame);visibility.disconnect();abort.abort();};
 }
