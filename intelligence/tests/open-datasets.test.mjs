@@ -26,7 +26,9 @@ test('registry topic, country, source and actual publication dates are filtered'
  assert.equal(selectRegistries(data,{from:'2026-01-01'})['uk-repd'],undefined);
 });
 test('quantitative industry filter uses dataset classification instead of stale stored topic',async()=>{
+ const {attachPublishedRules}=await import('../published-rules.mjs');
  const raw={documents:[],sources:[],entities:[],events:[],relations:[],observations:[],evidence:[],assetRegistries:{},series:[{id:'transocean-utilization',name:'全船队平均平台利用率',topic:'海洋油气',sourceId:'transocean',unit:'%',rows:[{period:'2026-Q1',value:85},{period:'2026-Q2',value:86}]}]};
+ attachPublishedRules(raw,{id:1,config:{rules:[{id:1,type:'include',topic:'海洋装备',content_keywords:['platform']}]}});
  async function catalog(topic){let text;await serveQuant({method:'GET'},{setHeader(){},end(s){text=s;},writeHead(){}},new URL('http://localhost/quant/api/catalog?'+new URLSearchParams({topic})),raw,fileURLToPath(new URL('../',import.meta.url)));return JSON.parse(text);}
  assert.equal((await catalog('海洋油气')).series.length,0);assert.equal((await catalog('海洋装备')).series.length,1);
 });

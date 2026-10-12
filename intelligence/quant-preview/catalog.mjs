@@ -1,3 +1,4 @@
+import {snapshotRules} from '../published-rules.mjs';
 ﻿import fs from 'node:fs/promises';
 import {classifySnapshot,industries,industryNames} from '../industry-classification.mjs';
 import {quoteIn,countries} from '../core.mjs';
@@ -35,4 +36,4 @@ export function buildCatalog(raw,config){
  const audit={version:data.industryRuleVersion,ruleOrigin:config.exportedAt,accepted:accepted.length,excluded:data.documents.filter(d=>d.industry.status==='excluded').length,unmatched:data.documents.filter(d=>d.industry.status==='unmatched').length,legacyIncludes:config.rules.filter(r=>r.enabled&&r.type==='include').length,legacyExcludes:config.rules.filter(r=>r.enabled&&r.type==='exclude').length};
  return{generatedAt:new Date().toISOString(),snapshotAt:raw.generatedAt,audit,industries:inventories,documents,observations,series,allSeries:data.series,cards,sources,reports:data.reportCatalog||[],registries:data.assetRegistries,totals:{articles:raw.documents.length,observations:raw.observations.length,series:raw.series.length,points:raw.series.reduce((n,s)=>n+s.rows.length,0),leases:registry?.rows.length||0},notes:{echarts:'https://echarts.apache.org/handbook/en/concepts/dataset/',transform:'https://echarts.apache.org/handbook/en/concepts/data-transform/'}};
 }
-export async function loadCatalog(snapshotPath,rulePath){const raw=JSON.parse(await fs.readFile(snapshotPath,'utf8'));const catalog=buildCatalog(raw,JSON.parse(await fs.readFile(rulePath,'utf8')));return {...catalog,...planTemplates(catalog),previewRefresh:raw.previewRefresh};}
+export async function loadCatalog(snapshotPath){const raw=JSON.parse(await fs.readFile(snapshotPath,'utf8'));const catalog=buildCatalog(raw,snapshotRules(raw));return {...catalog,...planTemplates(catalog),previewRefresh:raw.previewRefresh};}

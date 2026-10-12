@@ -1,10 +1,11 @@
+import {attachPublishedRules} from './published-rules.mjs';
 import {processSemanticQueue} from './semantic-classification.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import pg from 'pg';
 import {id,chunks} from './core.mjs';
-import {classifyRecord,compileRules} from './industry-classification.mjs';
-import {initClassification,applyClassificationJob,textBody,digest,decideArticle,currentRules} from './classification-jobs.mjs';
+import {classifyRecord} from './industry-classification.mjs';
+import {initClassification,applyClassificationJob,textBody,digest,decideArticle} from './classification-jobs.mjs';
 
 // Runs only inside the intelligence scheduler's isolated snapshot and publication lock.
 export function reconcileDocument(doc,decision){
@@ -21,9 +22,9 @@ export function reconcileDocument(doc,decision){
 export async function reconcileClassification(pool,data,semanticOptions={}){
  await initClassification(pool);await applyClassificationJob(pool);await processSemanticQueue(pool,semanticOptions);
  const jobs=(await pool.query("SELECT * FROM classification.jobs WHERE status IN ('processing','partial','completed') ORDER BY id DESC")).rows;
- if(!jobs.length)jobs.push({id:null,scope:{targeted:true},config:await currentRules(pool),status:'completed'});
+ if(!jobs.length)throw Error('数据库尚无已生效分类规则，请先发布规则版本后生成快照');
  // A saved draft rule is not silently applied to the published intelligence snapshot.
- const targeted=jobs[0].scope.targeted===true,config=jobs[0].config,compiled=compileRules(config);if(!targeted){data.industryRuleConfig=config;data.industryRuleVersion=compiled.version;}
+ const targeted=jobs[0].scope.targeted===true,config=jobs[0].config,compiled=attachPublishedRules(data,jobs[0]);
  const rows=(await pool.query(`SELECT c.*,a.title,a.link,a.published_at,a.source_id,a.manual_classify,a.classify_method,a.filter_status,a.matched_topic,a.reject_reason,s.name source_name,s.type source_kind,CASE WHEN i.id IS NOT NULL THEN jsonb_build_object('hash',i.content_hash,'language',i.payload->>'language','source',i.payload->'source') END mp_payload,i.subscription_id,i.classification mp_classification FROM classification.articles c JOIN public.articles a ON a.id=c.article_id LEFT JOIN public.sources s ON s.id=a.source_id LEFT JOIN mp2rss.items i ON i.article_id=a.id WHERE ($1::bigint IS NULL OR c.job_id=$1 OR c.job_id IS NULL) ORDER BY a.id`,[targeted?jobs[0].id:null])).rows;
  const byUrl=new Map(data.documents.map(d=>[d.url,d]));const idsByJob=new Map();
  for(const a of rows){let doc=byUrl.get(a.link);const p=a.mp_payload,decision=a.manual_classify||a.classify_method==='manual'?decideArticle(a,compiled).decision:p?a.mp_classification:a.classification;

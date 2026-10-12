@@ -1,3 +1,4 @@
+import {snapshotRules} from './published-rules.mjs';
 import fs from 'node:fs/promises';import path from 'node:path';
 import {products,parseWorkbook,commitVersion} from './iea-datasets.mjs';
 // Local/maintenance command. Accepts an original workbook, never account credentials.
@@ -5,7 +6,7 @@ const args=Object.fromEntries(process.argv.slice(2).map((s,i,a)=>s.startsWith('-
 if(!args.file||!args.product)throw Error('Usage: node intelligence/iea-import.mjs --file workbook.xlsx --product product-slug [--release original-release-label]');
 const product=products.find(p=>p.id===args.product);if(!product)throw Error('Unknown IEA product');
 const dir=process.env.INTEL_DATA_DIR||'.data/intelligence',home=process.env.IEA_DATA_HOME||path.join(dir,'iea'),file=path.join(dir,'snapshot.json');
-const data=JSON.parse(await fs.readFile(file,'utf8')),config=JSON.parse(await fs.readFile(new URL('./quant-preview/legacy-rules.json',import.meta.url),'utf8'));
+const data=JSON.parse(await fs.readFile(file,'utf8')),config=snapshotRules(data);
 const bytes=await fs.readFile(args.file);if(bytes.length>40*1024*1024)throw Error('Workbook exceeds 40 MB');
 const parsed=parseWorkbook(bytes,{product,filename:path.basename(args.file),release:args.release||null,config});parsed.archive=parsed.contentHash+'.xlsx';
 await fs.mkdir(path.join(home,'archive'),{recursive:true});await fs.writeFile(path.join(home,'archive',parsed.archive),bytes);await fs.writeFile(path.join(home,'archive',parsed.contentHash+'.json'),JSON.stringify(parsed));

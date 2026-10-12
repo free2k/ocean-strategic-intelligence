@@ -21,3 +21,12 @@ test('writes invalidate snapshots and failed reads never poison the cache',async
  const h=harness();await h.api('data?');await h.api('events',{});await h.api('data?');assert.equal(h.calls(),3);
  h.tick();h.fail(true);await assert.rejects(h.api('data?'));h.fail(false);await h.api('data?');assert.equal(h.calls(),5);
 });
+
+test('menu changes reset filters and pagination before the next data request',()=>{
+ const controls=Object.fromEntries(['topic','country','source','from','to'].map(id=>['#'+id,{value:'selected'}]));
+ const context=vm.createContext({window:{},activeTab:()=> 'events',tab:'library',data:{},pages:{events:4,library:3},libraryQuery:'old search',$:id=>controls[id],load(){assert.ok(Object.values(controls).every(c=>c.value===''));}});
+ const handler=code.slice(code.indexOf('window.onhashchange='),code.indexOf("document.addEventListener('keydown'"));
+ vm.runInContext(handler,context);context.window.onhashchange();
+ assert.equal(context.pages.library,1);assert.equal(context.pages.events,1);assert.equal(context.libraryQuery,'');
+ controls['#country'].value='JP';context.tab='events';context.load=()=>{};context.window.onhashchange();assert.equal(controls['#country'].value,'JP');
+});

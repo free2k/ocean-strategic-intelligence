@@ -1,3 +1,4 @@
+import {snapshotRules} from './published-rules.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
@@ -71,7 +72,7 @@ export function commitVersion(state,dataset){
 }
 export async function collectIEA(dir,{force=false}={}){
  const file=path.join(dir,'snapshot.json'),data=JSON.parse(await fs.readFile(file,'utf8'));const state=data.ieaDatasets||={datasets:{},history:[],products:{}};state.products||={};
- const home=process.env.IEA_DATA_HOME||path.join(dir,'iea'),session=process.env.IEA_SESSION_FILE||path.join(home,'session.json');await fs.mkdir(path.join(home,'archive'),{recursive:true});const config=JSON.parse(await fs.readFile(new URL('./quant-preview/legacy-rules.json',import.meta.url),'utf8'));
+ const home=process.env.IEA_DATA_HOME||path.join(dir,'iea'),session=process.env.IEA_SESSION_FILE||path.join(home,'session.json');await fs.mkdir(path.join(home,'archive'),{recursive:true});const config=snapshotRules(data);
  let browser;
  try{
   const due=products.filter(p=>force||!state.products[p.id]?.nextCheck||Date.parse(state.products[p.id].nextCheck)<=Date.now());if(!due.length)return;
