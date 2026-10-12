@@ -1,0 +1,4 @@
+import {pool} from '../server/integrations/mp2rss-store.mjs';
+const jobs=(await pool.query('SELECT id,action,status,result,error FROM mp2rss.jobs WHERE id>=73 ORDER BY id')).rows;
+console.log(JSON.stringify(jobs.map(j=>({id:j.id,action:j.action,status:j.status,error:j.error,current:j.result?.current,discovery:j.result?.discovery?.map(r=>({name:r.name,status:r.status,stages:r.stages?.filter(s=>s.status!=='running')})),batch:j.result?.batch?.map(r=>({name:r.expected?.name,status:r.status,error:r.error})),inserted:j.result?.inserted,streams:j.result?.streams?.length}))));
+console.log(JSON.stringify((await pool.query("SELECT payload->>'name' AS name,payload->>'remoteId' AS remote_id,last_sync,status FROM mp2rss.subscriptions WHERE present AND payload->>'platform'='mp' ORDER BY name")).rows));await pool.end();

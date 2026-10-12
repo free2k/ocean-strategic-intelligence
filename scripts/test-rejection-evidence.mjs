@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {rejectionEvidence as evidence} from '../server/integrations/rejection-evidence.mjs';
+const a={filterStatus:'rejected'};
+assert.equal(evidence({...a,classifyMethod:'llm'}).method,'大模型分类');
+assert.deepEqual(evidence({...a,rejectReason:'正文命中排除词「招聘」',classifyMethod:'llm'}).keywords,[{keyword:'招聘',field:'正文'}]);
+assert.equal(evidence({...a,manualClassify:true},{status:'excluded',negative:[{keyword:'招聘'}]}).keywords.length,0);
+assert.equal(evidence(a,{status:'excluded',reason:'命中反向规则',negative:[{keyword:'广告',field:'标题'}]}).keywords[0].keyword,'广告');
+assert.match(evidence(a).reason,/未保存/);
+assert.equal(evidence({filterStatus:'accepted'}),null);
+assert.equal(evidence({...a,classifyMethod:'llm'},{status:'excluded',negative:[{keyword:'广告'}]}).keywords.length,0);
+console.log('PASS: saved keyword evidence, model/manual attribution, historical missing evidence, accepted articles');

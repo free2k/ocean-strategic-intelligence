@@ -1,3 +1,4 @@
+import {standardTopics} from './industry-topics.mjs';
 import { createHash } from 'node:crypto';
 
 export const id = (prefix, value) => prefix + '_' + createHash('sha256').update(value).digest('hex').slice(0, 20);
@@ -5,7 +6,7 @@ export const clean = s => String(s || '').replace(/\s+/g, ' ').trim();
 export const countries = [
  ['CN','中国',105,35],['NO','挪威',10,63],['GB','英国',-2,54],['NL','荷兰',5,52],['DE','德国',10,51],['FR','法国',2,47],['DK','丹麦',10,56],['US','美国',-99,39],['BR','巴西',-49,-12],['SG','新加坡',104,1],['JP','日本',138,37],['AU','澳大利亚',134,-25],['CA','加拿大',-107,57],['IN','印度',79,23],['KR','韩国',128,36],['AE','阿联酋',54,24],['QA','卡塔尔',51,25],['SA','沙特阿拉伯',45,24],['ID','印度尼西亚',118,-3],['MY','马来西亚',102,4],['VN','越南',106,16],['IT','意大利',12,42],['ES','西班牙',-4,40],['PT','葡萄牙',-8,39],['SE','瑞典',16,62],['PL','波兰',19,52],['ZA','南非',25,-29],['EG','埃及',30,27],['RU','俄罗斯',90,61],['GY','圭亚那',-59,5],['MX','墨西哥',-102,24]
 ].map(([code,name,lon,lat])=>({code,name,lon,lat}));
-export const topics=['海洋油气','海上风电','海洋低碳','多能融合','宏观政策','海洋装备'];
+export const topics=standardTopics.map(t=>t.id);
 export const relationTypes=['投资','持股','运营','供货','建造','供电','运输','封存','签约','批准','采用','位于','合作'];
 export function canonical(url){const u=new URL(url);u.hash='';for(const k of [...u.searchParams.keys()])if(/^(utm_|fbclid|gclid)/i.test(k))u.searchParams.delete(k);return u.href;}
 export function chunks(text,size=1200,overlap=150){const result=[];for(let start=0;start<text.length;){let end=Math.min(text.length,start+size);if(end<text.length){const boundary=text.lastIndexOf('。',end);if(boundary>start+size/2)end=boundary+1;}result.push({start,end,text:text.slice(start,end)});if(end===text.length)break;start=end-overlap;}return result;}

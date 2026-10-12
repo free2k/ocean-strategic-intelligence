@@ -1,19 +1,9 @@
+import {topicAliases} from '../../../intelligence/industry-topics.mjs';
 import { desc, eq, like, sql, and, gte, inArray } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
+import { classificationEvidence } from '../../integrations/classification-evidence.mjs';
 
-function parseDateRange(range: string): Date | null {
-  const now = new Date();
-  switch (range) {
-    case '3d': return new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-    case '1w': return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    case '2w': return new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-    case '1m': return new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    case '3m': return new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-    case '6m': return new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
-    case '1y': return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-    default: return null;
-  }
-}
+import {dateRangeStart as parseDateRange} from '../../../intelligence/article-scope.mjs';
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
@@ -61,7 +51,7 @@ export default defineEventHandler(async (event) => {
         conditions.push(sql`1 = 0`);
       }
     } else {
-      conditions.push(eq(schema.articles.matchedTopic, matchedTopic));
+      conditions.push(inArray(schema.articles.matchedTopic, topicAliases(matchedTopic)));
     }
   }
   if (dateRange) {
@@ -79,7 +69,7 @@ export default defineEventHandler(async (event) => {
     const ids = overseasSourceIds.map(s => s.id);
     if (ids.length > 0) {
       conditions.push(inArray(schema.articles.sourceId, ids));
-    } else if (overseas === 'true') {
+    } else {
       conditions.push(sql`1 = 0`);
     }
   }
@@ -118,8 +108,18 @@ export default defineEventHandler(async (event) => {
       .where(where),
   ]);
 
+  // Read only compact decision metadata for this page, never historical HTML bodies.
+  const articleIds=articles.map(a=>a.id);
+  const evidence=new Map<number,any>();const reviews=new Map<number,any>();
+  if(articleIds.length){
+    const tables=await db.execute(sql`SELECT to_regclass('mp2rss.items') AS mp, to_regclass('classification.articles') AS classified,to_regclass('classification.semantic_queue') AS semantic`);
+    const ids=sql.join(articleIds.map(id=>sql`${id}`),sql`, `);
+    if(tables.rows[0]?.semantic){const rows=await db.execute(sql`SELECT article_id,status,error FROM classification.semantic_queue WHERE article_id IN (${ids}) AND status IN ('pending','failed','running')`);for(const row of rows.rows)reviews.set(Number(row.article_id),row);}
+    if(tables.rows[0]?.mp){const rows=await db.execute(sql`SELECT article_id,classification FROM mp2rss.items WHERE article_id IN (${ids})`);for(const row of rows.rows)evidence.set(Number(row.article_id),[row.classification]);}
+    if(tables.rows[0]?.classified){const rows=await db.execute(sql`SELECT article_id,classification FROM classification.articles WHERE article_id IN (${ids})`);for(const row of rows.rows)evidence.set(Number(row.article_id),[...(evidence.get(Number(row.article_id))||[]),row.classification]);}
+  }
   return {
-    articles,
+    articles:articles.map(a=>({...a,semanticReview:reviews.get(a.id)||null,classificationEvidence:classificationEvidence(a,...(evidence.get(a.id)||[]))})),
     total: Number(countResult[0]?.count || 0),
     page,
     pageSize,

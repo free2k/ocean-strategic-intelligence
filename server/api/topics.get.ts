@@ -1,4 +1,5 @@
-import { sql, eq, and, isNotNull, inArray, gte } from 'drizzle-orm';
+import {topicCounts} from '../../intelligence/industry-topics.mjs';
+import { sql, eq, and, isNotNull, inArray, gte, like } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 
 /** 获取所有已有文章的行业主题列表，支持按国内/外网和渠道类型筛选 */
@@ -20,7 +21,7 @@ export default defineEventHandler(async (event) => {
     if (ids.length > 0) {
       extraConditions.push(inArray(schema.articles.sourceId, ids));
     } else {
-      return { topics: [] };
+      return { topics: topicCounts([]) };
     }
   }
 
@@ -50,22 +51,21 @@ export default defineEventHandler(async (event) => {
     if (since) extraConditions.push(gte(schema.articles.publishedAt, since));
   }
 
+  if(query.search)extraConditions.push(like(schema.articles.title, `%${query.search}%`));
+  if(query.filterStatus==='manual')extraConditions.push(eq(schema.articles.manualClassify,true));
   const results = await db.select({
     topic: schema.articles.matchedTopic,
-    count: sql<number>`count(*)`,
+    count: sql<number>`count(DISTINCT ${schema.articles.id})`,
   })
     .from(schema.articles)
     .where(and(
       isNotNull(schema.articles.matchedTopic),
-      eq(schema.articles.filterStatus, 'accepted'),
+      ...(['manual','all'].includes(String(query.filterStatus))?[]:[eq(schema.articles.filterStatus, String(query.filterStatus||'accepted'))]),
       ...extraConditions,
     ))
     .groupBy(schema.articles.matchedTopic);
 
-  const topics = results.map(r => ({
-    name: r.topic,
-    articleCount: Number(r.count),
-  }));
+  const topics = topicCounts(results);
 
   return { topics };
 });

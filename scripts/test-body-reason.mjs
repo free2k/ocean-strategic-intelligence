@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {bodyReason,attachBodyReasons} from '../server/integrations/body-reason.mjs';
+const item=(text,extra={})=>({kind:'mp_article',contentStatus:'pending_body',raw:{contentMarkdown:text},...extra});
+assert.equal(bodyReason(item('![图片](https://example.org/a.png)')).code,'image_only');
+assert.equal(bodyReason(item('<img src="a">')).code,'image_only');
+assert.equal(bodyReason(item('')).code,'provider_empty');
+assert.equal(bodyReason(item(null)).code,'provider_empty');
+assert.equal(bodyReason(item('',{title:'视频：并非依据'})).code,'provider_empty');
+assert.equal(bodyReason(item('',{raw:{}})).code,'unknown');
+assert.equal(bodyReason(item('<video src="a"></video>')).code,'media_only');
+assert.equal(bodyReason(item('正文未解析')).code,'text_unprocessed');
+assert.equal(bodyReason(item('点赞关注',{originalContent:'点赞关注',content:'',cleaning:{removed:[{reason:'互动提示'}]}})).code,'cleaned_empty');
+assert.equal(bodyReason(item('![图片](https://example.org/a.png)',{contentStatus:'complete',bodyOrigin:'manual',content:'已补充'})),null);
+const list=[{id:'a'},{id:'b'}];await attachBodyReasons({query:async()=>({rows:[{subscription_id:'a',payload:item('')},{subscription_id:'a',payload:item('')},{subscription_id:'a',payload:item('![](https://example.org/a)')}]})},list);
+assert.deepEqual(list[0].body_reasons.map(r=>[r.code,r.count]),[['provider_empty',2],['image_only',1]]);assert.deepEqual(list[1].body_reasons,[]);
+console.log('Body reasons: raw evidence, no title guessing, cleaned/media/unknown cases and aggregation passed');

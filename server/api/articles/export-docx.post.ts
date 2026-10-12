@@ -1,3 +1,5 @@
+import { inArray } from 'drizzle-orm';
+import {topicAliases} from '../../../intelligence/industry-topics.mjs';
 import { desc, eq, and, gte } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 import { chatCompletion } from '~/server/utils/embedding';
@@ -93,7 +95,7 @@ export default defineEventHandler(async (event) => {
   const db = useDB();
   const conditions = [];
 
-  if (body?.topic) conditions.push(eq(schema.articles.matchedTopic, body.topic));
+  if (body?.topic) conditions.push(inArray(schema.articles.matchedTopic, topicAliases(body.topic)));
   if (body?.dateRange) {
     const since = parseDateRange(body.dateRange);
     if (since) conditions.push(gte(schema.articles.publishedAt, since));

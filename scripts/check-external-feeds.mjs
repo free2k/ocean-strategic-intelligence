@@ -1,0 +1,7 @@
+import {pool,init} from '../server/integrations/mp2rss-store.mjs';
+import {fetch,ProxyAgent} from 'undici';
+async function getResource(url){for(const proxy of [null,process.env.DOWNLOAD_PROXY].filter((x,i)=>i===0||x)){let dispatcher;try{if(proxy)dispatcher=new ProxyAgent(proxy);const response=await fetch(url,{signal:AbortSignal.timeout(20000),...(dispatcher?{dispatcher}:{}),headers:{'User-Agent':'OceanEnergyResearch/1.0'}});if(!response.ok){await response.body?.cancel();throw Error();}return await response.text();}catch{}finally{await dispatcher?.close();}}throw Error('Fetch failed');}
+try{await init();const urls=[...(await pool.query("SELECT DISTINCT alias FROM sources WHERE type='rss'")).rows.map(s=>s.alias),'https://norlights.com/post-sitemap.xml'];const health={};
+ for(const url of urls){if(!url||new URL(url).hostname==='cn.todayrss.com')continue;try{const text=await getResource(url);const xml=/<(?:rss|feed|urlset|sitemapindex)[\s>]/i.test(text);health[url]={status:xml?'ready':'failed',checkedAt:new Date().toISOString(),error:xml?null:'返回内容不是 RSS/Atom/站点地图',format:/<urlset[\s>]/i.test(text)?'sitemap':'rss'};}catch{health[url]={status:'failed',checkedAt:new Date().toISOString(),error:'本次访问失败，保留源供重试'};}console.log(JSON.stringify({url,...health[url]}));}
+ await pool.query("INSERT INTO mp2rss.state(id,payload) VALUES('external-feed-health',$1) ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload",[health]);
+}finally{await pool.end();}

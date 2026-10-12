@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.sources.id, body.sourceId))
     .limit(1);
 
-  if (!source || !source.alias) {
+  if (!source || !source.alias || source.type !== 'rss') {
     throw createError({ statusCode: 404, statusMessage: '未找到 RSS 源或缺少 URL' });
   }
 

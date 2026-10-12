@@ -1,0 +1,12 @@
+﻿import assert from 'node:assert/strict';
+import {classificationEvidence as evidence} from '../server/integrations/classification-evidence.mjs';
+const a={filterStatus:'accepted',matchedTopic:'海洋油气',classifyMethod:'keyword'};
+const d={status:'accepted',primary:'海洋油气',reason:'正向规则匹配',version:'v1',positive:[{topic:'海洋油气',origin:'本地补充别名',keywords:[{keyword:'海上',field:'中英别名'}]}]};
+assert.equal(evidence(a,d).keywords[0].origin,'本地补充别名');
+assert.equal(evidence(a,{...d,status:'excluded'},d).version,'v1');
+assert.equal(evidence({...a,manualClassify:true},d).keywords.length,0);
+assert.equal(evidence({...a,classifyMethod:'llm'},d).method,'大模型分类');
+assert.equal(evidence({...a,matchedKeywordsJson:'bad'}).reason,'历史分类依据未保存');
+assert.equal(evidence({...a,matchedKeywordsJson:'[{"keyword":"海上","source":"content"}]'}).keywords[0].field,'正文');
+assert.equal(evidence({...a,filterStatus:'rejected'}, {status:'excluded',negative:[{keyword:'招聘',field:'标题'}]}).keywords[0].keyword,'招聘');
+console.log('PASS: saved evidence, fallback, stale status, manual/model precedence, rejection');

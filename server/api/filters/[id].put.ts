@@ -1,3 +1,4 @@
+import {canonicalTopic,topicDefinition} from '../../../intelligence/industry-topics.mjs';
 import { eq } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 
@@ -17,7 +18,8 @@ export default defineEventHandler(async (event) => {
   const db = useDB();
   const updates: Record<string, any> = { updatedAt: new Date() };
 
-  if (body.topic !== undefined) updates.topic = body.topic;
+  const existing=await db.select().from(schema.filterRules).where(eq(schema.filterRules.id,id));
+  if(body.topic!==undefined){if(existing[0]?.type==='include'&&!topicDefinition(body.topic))throw createError({statusCode:400,message:'Choose one of the six standard domains'});updates.topic=existing[0]?.type==='include'?canonicalTopic(body.topic):body.topic;}
   if (body.description !== undefined) updates.description = body.description;
   if (body.titleKeywords !== undefined) updates.titleKeywords = body.titleKeywords;
   if (body.contentKeywords !== undefined) updates.contentKeywords = body.contentKeywords;

@@ -9,6 +9,7 @@ const navItems = [
 ];
 
 function isActive(to: string): boolean {
+  if (to === '/wechat/subscriptions' && route.path === '/wechat/subscription-articles') return true;
   return route.path === to || route.path.startsWith(to + '/');
 }
 </script>

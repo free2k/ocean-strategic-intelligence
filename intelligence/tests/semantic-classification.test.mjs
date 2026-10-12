@@ -1,0 +1,11 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {semanticDecision,inputHash} from '../semantic-classification.mjs';
+const base={status:'unmatched',positive:[],negative:[],version:'v1',reason:'missing context'};
+const record={title:'项目',content:'项目将在海底咸水层永久封存二氧化碳，每年计划封存一百万吨。'};
+const invoke=value=>({client:{chat:{completions:{create:async()=>({choices:[{message:{content:JSON.stringify(value)}}]})}}},model:'test-qwen'});
+test('marine semantic admission stores verified quote and model',async()=>{const d=await semanticDecision(record,base,{rules:[]},invoke({relevant:true,topic:'海洋低碳',reason:'海底碳封存项目',evidenceId:'p1'}));assert.equal(d.status,'accepted');assert.equal(d.semantic.model,'test-qwen');assert.equal(d.semantic.quote,record.content);});
+test('general aviation fuel stays candidate',async()=>{const d=await semanticDecision({title:'SAF',content:'麻风树航空燃料'},base,{rules:[]},invoke({relevant:false,topic:null,reason:'未提供海洋能源直接关联',quote:''}));assert.equal(d.status,'unmatched');assert.equal(d.primary,null);});
+test('fabricated quotes and unknown categories cannot admit',async()=>{for(const value of [{relevant:true,topic:'海洋低碳',reason:'x',evidenceId:'p999'},{relevant:true,topic:'航空',reason:'x',evidenceId:'p1'}])await assert.rejects(()=>semanticDecision(record,base,{rules:[]},invoke(value)),/EVIDENCE/);});
+test('manual, accepted and excluded decisions bypass model',async()=>{for(const d of [{...base,manual:true},{...base,status:'accepted'},{...base,status:'excluded'}])assert.equal(await semanticDecision(record,d,{rules:[]},{client:{}}),d);});
+test('hash changes with title or body and strips markup',()=>{assert.equal(inputHash('a','<p>body</p>'),inputHash('a','body'));assert.notEqual(inputHash('a','body'),inputHash('b','body'));});

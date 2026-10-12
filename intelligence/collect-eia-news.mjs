@@ -1,3 +1,4 @@
+import {domainPrompt} from './industry-topics.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fetch,ProxyAgent} from 'undici';
@@ -38,7 +39,7 @@ for(const source of newsSources){
     const doc={id:id('doc',url),sourceId:source.id,url,title:clean(item.title),publishedAt:published.toISOString().slice(0,10),publishedOriginal:String(item.pubDate),publishedPrecision:'day',collectedAt:new Date().toISOString(),content,contentHash:id('sha',content),versionId:id('ver',url+content),language:'en',originalPublisher:'U.S. Energy Information Administration',topic:'海洋油气',chunks:chunks(content)};
     const fallback=ruleExtract(doc);doc.extraction=fallback;doc.titleZh=doc.title;doc.summaryZh=fallback.summaryZh;doc.topic=fallback.topic;doc.extractionStatus='candidate';doc.translationType='英文原文；尚未翻译';doc.extractionVersion='rules-v1';
     if(client){try{
-      const r=await client.chat.completions.create({model:process.env.CHAT_MODEL||'qwen-plus',messages:[{role:'system',content:prompt},{role:'user',content:JSON.stringify({title:doc.title,content:content.slice(0,16000)})}],response_format:{type:'json_object'},temperature:0,max_tokens:2600});
+      const r=await client.chat.completions.create({model:process.env.CHAT_MODEL||'qwen-plus',messages:[{role:'system',content:prompt+'\n'+domainPrompt()},{role:'user',content:JSON.stringify({title:doc.title,content:content.slice(0,16000)})}],response_format:{type:'json_object'},temperature:0,max_tokens:2600});
       const raw=JSON.parse(r.choices[0].message.content);doc.topic=topics.includes(raw.topic)?raw.topic:doc.topic;
       doc.extraction=normalizeExtraction(doc,raw);doc.titleZh=clean(raw.titleZh)||doc.title;doc.summaryZh=clean(raw.summaryZh);doc.translationType='AI中文标题与摘要；证据保留英文';doc.extractionStatus='extracted';doc.extractionVersion='eia-evidence-v1';doc.model=process.env.CHAT_MODEL||'qwen-plus';doc.inputTruncated=content.length>16000;
       for(const kind of ['events','relations','observations'])for(const x of doc.extraction[kind])x.status='candidate';

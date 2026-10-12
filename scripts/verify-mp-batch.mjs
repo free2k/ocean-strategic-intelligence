@@ -1,0 +1,9 @@
+import fs from 'node:fs/promises';import assert from 'node:assert/strict';
+const base='http://127.0.0.1:3000',login=await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:process.env.SITE_PASSWORD})});assert.equal(login.status,200);const cookie=login.headers.get('set-cookie')?.split(';')[0];assert.ok(cookie);
+const post=async body=>fetch(base+'/api/subscriptions/batch',{method:'POST',headers:{cookie,'Content-Type':'application/json'},body:JSON.stringify(body)});
+const r=await post({action:'preview',text:await fs.readFile('/opt/knowledge-base/wechatPost-import.txt','utf8')});assert.equal(r.status,200);const p=await r.json();assert.equal(p.rows.length,36);console.log(JSON.stringify({preview:p.rows.reduce((a,r)=>(a[r.status]=(a[r.status]||0)+1,a),{})}));
+const status=await (await fetch(base+'/api/subscriptions',{headers:{cookie}})).json();assert.ok(status.list.every(s=>s.enabled&&s.articles));
+if(process.argv.includes('--sync-test')){const r=await post({action:'batch_sync',entries:['mp:3867577799']});assert.equal(r.status,200);console.log(JSON.stringify({syncTest:await r.json()}));}
+if(process.argv.includes('--session')){const i=cookie.indexOf('=');await fs.writeFile('/opt/knowledge-base/batch-test-session.json',JSON.stringify({cookies:[{name:cookie.slice(0,i),value:cookie.slice(i+1),domain:'49.233.77.111',path:'/',httpOnly:true,secure:false,sameSite:'Lax'}],origins:[]}),{mode:0o600});}
+console.log(JSON.stringify({autoSync:status.list.length,jobs:status.jobs.filter(x=>x.action.startsWith('batch_')).map(x=>({id:x.id,action:x.action,status:x.status,result:x.result}))}));
+const anonymous=await fetch(base+'/api/subscriptions/batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'preview',text:'test'})});assert.equal(anonymous.status,401);

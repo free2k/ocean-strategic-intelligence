@@ -1,4 +1,16 @@
 <script setup lang="ts">
+import {canonicalTopic,topicLabel,standardTopics} from '~/intelligence/industry-topics.mjs';
+const showFilteredReclassify=ref(false);
+const filteredFlow=ref<any>(null);
+const filteredScope=ref<Record<string,any>>({});
+const filteredLabel=ref('');
+async function reclassifyFiltered(){
+ const existingFlow=filteredFlow.value;
+ filteredScope.value={targeted:true,sourceType:sourceType.value,sourceId:sourceId.value,filterStatus:filterStatus.value,dateRange:dateRange.value,search:search.value,matchedTopic:matchedTopic.value,overseas:isOverseas.value?'true':'false'};
+ filteredLabel.value=[isOverseas.value?'外网资讯':'国内资讯',sourceTypeOptions.find(x=>x.value===sourceType.value)?.label,sourceId.value?wechatSources.value.find(x=>x.value===sourceId.value)?.label:'',filterStatusOptions.find(x=>x.value===filterStatus.value)?.label,dateRangeOptions.find(x=>x.value===dateRange.value)?.label,search.value?'标题包含：'+search.value:'',matchedTopic.value].filter(Boolean).join(' · ');
+ showFilteredReclassify.value=true;await nextTick();if(existingFlow&&filteredFlow.value===existingFlow)await existingFlow.preview();
+}
+watch(filteredFlow,flow=>{if(flow&&showFilteredReclassify.value)flow.preview();});
 // --- 当前 Tab ---
 const activeTab = ref(0);
 const isOverseas = computed(() => activeTab.value === 1);
@@ -20,8 +32,10 @@ const { data: topicsData, refresh: refreshTopics } = await useFetch('/api/topics
     sourceType: sourceType.value || undefined,
     sourceId: sourceId.value || undefined,
     dateRange: dateRange.value || undefined,
+    search: search.value || undefined,
+    filterStatus: filterStatus.value || 'all',
   })),
-  watch: [activeTab, sourceType, sourceId, dateRange],
+  watch: [activeTab, sourceType, sourceId, dateRange, search, filterStatus],
 });
 
 const { data, refresh } = await useFetch('/api/articles', {
@@ -117,7 +131,7 @@ const wechatSources = computed(() => {
 
 const topicOptions = computed(() => {
   const list = (topicsData.value?.topics || []).filter(t => t.name !== '外网资讯');
-  return [{ label: '全部分类', value: '' }, ...list.map(t => ({ label: `${t.name} (${t.articleCount})`, value: t.name }))];
+  return [{ label: '全部分类', value: '' }, ...list.map(t => ({ label: `${t.name} (${t.articleCount})`, value: t.id }))];
 });
 
 const statusColor: Record<string, string> = { pending: 'yellow', accepted: 'green', rejected: 'red' };
@@ -132,9 +146,7 @@ const manualClassifyLoading = ref(false);
 // 从 filter_rules 获取所有正向规则的 topic 作为可选分类
 const { data: filterRulesData } = await useFetch('/api/filters');
 const classifyTopicOptions = computed(() => {
-  const rules = (filterRulesData.value as any)?.rules || [];
-  const includeRules = Array.isArray(rules) ? rules.filter((r: any) => r.type === 'include' && r.topic) : [];
-  const options = includeRules.map((r: any) => ({ label: r.topic, value: r.topic }));
+  const options = standardTopics.map(t=>({label:t.name,value:t.id}));
   // 添加"排除（不匹配任何分类）"选项
   options.push({ label: '── 排除（不属于任何行业）', value: '__reject__' });
   return options;
@@ -142,7 +154,7 @@ const classifyTopicOptions = computed(() => {
 
 function openManualClassify(articleId: number, currentTopic?: string | null) {
   manualClassifyId.value = articleId;
-  manualClassifyTopic.value = currentTopic || '';
+  manualClassifyTopic.value = canonicalTopic(currentTopic || '');
 }
 
 async function submitManualClassify() {
@@ -449,10 +461,16 @@ function cancelExport() { showExportConfirm.value = false; exportCount.value = n
         <USelect v-if="sourceType === 'wechat'" v-model="sourceId" :options="wechatSources" value-attribute="value" option-attribute="label" class="w-40" />
         <USelect v-model="filterStatus" :options="filterStatusOptions" value-attribute="value" option-attribute="label" class="w-32" />
         <UButton @click="resetFilters" color="gray" size="sm" variant="ghost">重置</UButton>
+        <UButton @click="reclassifyFiltered" color="orange" variant="soft" size="sm" :disabled="!data?.total">按当前筛选重新分类</UButton>
         <span class="text-sm text-gray-500 dark:text-gray-400 ml-auto" v-if="data">共 {{ data.total }} 篇</span>
       </div>
     </UCard>
 
+    <UModal v-model="showFilteredReclassify" :ui="{width:'sm:max-w-4xl'}">
+      <div class="p-5 max-h-[85vh] overflow-y-auto"><div class="flex justify-between items-center mb-4"><h3 class="font-semibold">按当前筛选重新分类</h3><UButton @click="showFilteredReclassify=false" color="gray" variant="ghost">关闭</UButton></div>
+        <ClassificationHistoryFlow ref="filteredFlow" :scope="filteredScope" :scope-label="filteredLabel" @published="refresh()" />
+      </div>
+    </UModal>
     <!-- 分类标签筛选（仅"已通过"状态时展示） -->
     <div v-if="filterStatus === 'accepted'" class="flex items-center gap-2 flex-wrap">
       <span class="text-xs text-gray-500 shrink-0">分类：</span>
@@ -517,23 +535,22 @@ function cancelExport() { showExportConfirm.value = false; exportCount.value = n
                 <UButton v-else @click="vectorizeOne(article.id)" :loading="vectorizingId === article.id" size="xs" color="green" variant="ghost" class="ml-1">向量化</UButton>
               </template>
             </div>
+            <div v-if="article.classificationEvidence" class="mt-3 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/30 px-3 py-2 text-sm space-y-2" aria-label="分类依据">
+              <p class="text-gray-800 dark:text-gray-200"><strong>分类方式：{{article.classificationEvidence.method}}</strong></p>
+              <p class="text-gray-700 dark:text-gray-300 break-words">分类原因：{{article.classificationEvidence.reason}}</p>
+              <p v-if="article.semanticReview" class="text-sm text-amber-600 dark:text-amber-400">语义复核：{{article.semanticReview.status==='failed'?'暂未完成，等待自动重试':article.semanticReview.status==='running'?'Qwen 正在复核':'等待后台复核'}}<span v-if="article.semanticReview.error"> · {{article.semanticReview.error}}</span></p>
+              <blockquote v-if="article.classificationEvidence.quote" class="border-l-2 pl-3 text-gray-500">原文证据：{{article.classificationEvidence.quote}}</blockquote>
+              <p v-if="article.classificationEvidence.model" class="text-xs text-gray-500">判断模型：{{article.classificationEvidence.model}}</p>
+              <div v-if="article.classificationEvidence.keywords.length" class="flex flex-wrap gap-2">
+                <span v-for="(hit,index) in article.classificationEvidence.keywords" :key="index" class="rounded bg-gray-100 dark:bg-gray-800 px-2 py-1 text-xs text-gray-700 dark:text-gray-300">{{hit.field}}：{{hit.keyword}}<span v-if="hit.origin"> · {{hit.origin}}</span><span v-if="hit.topic"> · {{hit.topic}}</span></span>
+              </div>
+              <p v-if="article.classificationEvidence.version" class="text-xs text-gray-500">规则版本：{{article.classificationEvidence.version}}</p>
+            </div>
             <div v-if="article.matchedTopic" class="flex items-center gap-2 mt-2 flex-wrap">
-              <span class="text-sm font-medium text-primary-500 cursor-pointer hover:text-primary-600" @click="matchedTopic = article.matchedTopic">{{ article.matchedTopic }}</span>
+              <span class="text-sm font-medium text-primary-500 cursor-pointer hover:text-primary-600" @click="matchedTopic = canonicalTopic(article.matchedTopic)">{{ topicLabel(article.matchedTopic) }}</span>
               <span v-if="article.classifyMethod" class="text-[11px] text-gray-400">({{ methodLabel[article.classifyMethod] || article.classifyMethod }})</span>
               <UBadge v-if="article.manualClassify" color="purple" size="xs" variant="subtle">人工分类校准</UBadge>
               <UButton v-if="article.manualClassify" @click="clearManualClassify(article.id)" size="xs" color="gray" variant="ghost" class="text-[11px]">清除标注</UButton>
-              <template v-if="article.matchedKeywordsJson && article.classifyMethod === 'keyword'">
-                <span
-                  v-for="(kw, idx) in JSON.parse(article.matchedKeywordsJson)"
-                  :key="idx"
-                  class="text-[11px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
-                >
-                  {{ kw.source === 'title' ? '标题' : kw.source === 'content' ? '正文' : kw.source === 'digest' ? '摘要' : '组合' }}:「{{ kw.keyword }}」
-                </span>
-              </template>
-              <span v-else-if="article.classifyMethod === 'llm'" class="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
-                AI语义判断
-              </span>
               <UButton v-if="!article.manualClassify" @click="openManualClassify(article.id, article.matchedTopic)" size="xs" color="purple" variant="ghost" class="text-[11px]">人工校准</UButton>
             </div>
             <div v-else class="flex items-center gap-2 mt-2">

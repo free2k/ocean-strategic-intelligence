@@ -1,3 +1,4 @@
+import {standardTopics,canonicalTopic,domainPrompt} from '../../intelligence/industry-topics.mjs';
 import { chatCompletion } from './embedding';
 import { useDB, schema } from '~/server/db';
 import { eq } from 'drizzle-orm';
@@ -24,7 +25,7 @@ async function getValidCategories(): Promise<string[]> {
   const rules = await db.select({ topic: schema.filterRules.topic })
     .from(schema.filterRules)
     .where(eq(schema.filterRules.type, 'include'));
-  return rules.map(r => r.topic).filter((t): t is string => !!t);
+  return standardTopics.map(t=>t.id);
 }
 
 // ============================================================
@@ -32,29 +33,7 @@ async function getValidCategories(): Promise<string[]> {
 // ============================================================
 
 async function buildClassifyPrompt(): Promise<string> {
-  const db = useDB();
-  const rules = await db.select()
-    .from(schema.filterRules)
-    .where(eq(schema.filterRules.type, 'include'));
-
-  const enabledRules = rules.filter(r => r.enabled && r.topic);
-
-  const categoryDescriptions = enabledRules.map((rule, idx) => {
-    return `${idx + 1}. ${rule.topic}：${rule.description || ''}`;
-  }).join('\n');
-
-  const categoryNames = enabledRules.map(r => `- ${r.topic}`).join('\n');
-
-  return `你是一个行业分类助手。根据以下行业类别定义，判断给定文章属于哪个行业类别。
-
-行业类别：
-${categoryDescriptions}
-
-请以 JSON 格式返回分类结果：{"category": "行业类别名", "reason": "分类理由"}
-如果文章不属于以上任何行业类别，返回：{"category": null, "reason": "不属于任何行业类别"}
-
-有效的行业类别为：
-${categoryNames}`;
+ return domainPrompt()+'\nReturn JSON {category: standard domain identifier or null, reason: string}. Only classify direct marine energy facts; respect the scope and exclusions above.';
 }
 
 // ============================================================
@@ -86,14 +65,14 @@ export async function matchByKeywords(title: string, content: string): Promise<K
     // 先检查 titleKeywords 直接命中
     for (const keyword of (rule.titleKeywords || [])) {
       if (title.includes(keyword)) {
-        return { topic: rule.topic!, keywords: [{ keyword, source: 'title' }] };
+        return { topic: canonicalTopic(rule.topic), keywords: [{ keyword, source: 'title' }] };
       }
     }
 
     // 检查 contentKeywords 直接命中
     for (const keyword of (rule.contentKeywords || [])) {
       if (content.includes(keyword)) {
-        return { topic: rule.topic!, keywords: [{ keyword, source: 'content' }] };
+        return { topic: canonicalTopic(rule.topic), keywords: [{ keyword, source: 'content' }] };
       }
     }
 
@@ -108,7 +87,7 @@ export async function matchByKeywords(title: string, content: string): Promise<K
           const hit = group.find(kw => fullText.includes(kw));
           if (hit) hitKeywords.push({ keyword: hit, source: 'group' });
         }
-        return { topic: rule.topic!, keywords: hitKeywords };
+        return { topic: canonicalTopic(rule.topic), keywords: hitKeywords };
       }
     }
   }
@@ -135,7 +114,7 @@ export async function classifyByLLM(title: string, content: string): Promise<str
   const truncatedContent = content.slice(0, 2000);
   const userMessage = `文章标题：${title}\n\n文章内容：\n${truncatedContent}`;
 
-  const response = await chatCompletion(systemPrompt, userMessage);
+  const response = await chatCompletion(systemPrompt+'\n'+domainPrompt(), userMessage);
 
   // Parse the LLM response as JSON
   try {
@@ -153,8 +132,8 @@ export async function classifyByLLM(title: string, content: string): Promise<str
     }
 
     // Validate that the category is in the valid list
-    if (validCategories.includes(parsed.category)) {
-      return parsed.category;
+    if (validCategories.includes(canonicalTopic(parsed.category))) {
+      return canonicalTopic(parsed.category);
     }
 
     // Category not in valid list, treat as null

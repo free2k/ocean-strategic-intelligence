@@ -33,7 +33,8 @@ export function normalize(s,kind,item){
  const key=s.platform==='mp'?`mp:${s.remoteId}:${item.articleId}`:post?`x:posts:${item.postId}`:`x:articles:${hash(url)}`;
  if(s.platform==='mp'&&!item.articleId)throw Error('缺少文章标识');
  const context=post?{retweetedPost:item.retweetedPost||null,quotedPost:item.quotedPost||null,threadPosts:item.threadPosts||[],media:item.media||[]}:null;
- const text=content||plain(item.summary||item.description);const title=plain(item.title)||text.slice(0,90)||'X 帖子（无文本）';
+ // Slice Unicode code points so an emoji at the title boundary cannot produce invalid JSONB.
+ const text=content||plain(item.summary||item.description);const title=plain(item.title)||Array.from(text).slice(0,90).join('')||'X 帖子（无文本）';
  // Nested authors stay raw. Do not flatten third-party speech into the outer author's evidence.
  const contentStatus=content?'complete':post?'media_only':'pending_body';
  return {key,kind:s.platform==='mp'?'mp_article':post?'x_post':'x_article',url,title,content,summary:plain(item.summary||item.description),contentStatus,publishedAt,providerUpdatedAt:item.updatedAt?iso(item.updatedAt):null,author:s.name,source:s,context,raw:item,hash:hash(JSON.stringify({content,title,context,publishedAt})),language:/[\u4e00-\u9fff]/.test(text)?'zh':'en'};

@@ -1,0 +1,3 @@
+import {init,pool} from '../../integrations/mp2rss-store.mjs';
+import {initDiscovery} from '../../integrations/mp-discovery.mjs';
+export default defineEventHandler(async()=>{await init();await initDiscovery(pool);return {configured:!!process.env.OPENAI_API_KEY,model:process.env.MP_DISCOVERY_MODEL||process.env.CHAT_MODEL||'qwen-plus',results:(await pool.query('SELECT payload FROM mp2rss.discovery ORDER BY updated_at DESC LIMIT 200')).rows.map(r=>r.payload),jobs:(await pool.query("SELECT id,action,status,target,request,result,error,created_at FROM mp2rss.jobs WHERE action IN ('batch_discover','batch_verified_subscribe') ORDER BY id DESC LIMIT 20")).rows};});

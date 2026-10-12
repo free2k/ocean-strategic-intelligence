@@ -1,3 +1,4 @@
+import {topicLabel} from './industry-topics.mjs';
 import {formatDisplayDate} from './preview.js';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const link=(url,label)=>/^https?:\/\//.test(url||'')?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} ↗</a>`:esc(label);
@@ -7,7 +8,7 @@ function originView(o){
 }
 export function xEvidenceView(d){
  if(!d.provenance?.length&&!d.discovery&&!d.context)return '';
- return `<section class="panel" style="margin-top:20px"><h3>分类与来源链</h3><p>主类别：${esc(d.industry?.primary||'待分类')} · ${esc(d.industry?.reason||'')}</p><p class="meta">其他命中：${esc(d.industry?.topics?.join('、'))} · 规则版本 ${esc(d.industry?.version)}</p>${(d.provenance||[]).map(originView).join('')}${d.discovery?`<p>本条来自 ${link(d.discovery.parentPostUrl,'父推文')}，作者和日期按子推文独立保存。</p>`:''}
+ return `<section class="panel" style="margin-top:20px"><h3>分类与来源链</h3><p>主类别：${esc(topicLabel(d.industry?.primary)||'待分类')} · ${esc(d.industry?.reason||'')}</p><p class="meta">其他命中：${esc(d.industry?.topics?.map(topicLabel).join('、'))} · 规则版本 ${esc(d.industry?.version)}</p>${(d.provenance||[]).map(originView).join('')}${d.discovery?`<p>本条来自 ${link(d.discovery.parentPostUrl,'父推文')}，作者和日期按子推文独立保存。</p>`:''}
  <p>${link(d.url,'原始文章')} · 文章发布：${esc(formatDisplayDate(d.publishedAt||'未明确'))}</p>
  ${d.references?.length?`<details><summary>正文引用来源（尚未逐项核实）</summary>${d.references.map(r=>`<p>${link(r.url,r.label||r.url)}</p>`).join('')}</details>`:''}
  ${(d.sourceTables||[]).map(t=>`<details><summary>原始表格：${esc(t.title||'未命名')} · ${t.rows?.length||0} 行</summary><p class="meta">保留原始单元格。单位、统计期及口径待核对；未自动拼接为趋势。</p><div class="table-wrap"><table>${(t.rows||[]).slice(0,100).map(r=>`<tr>${r.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</table></div>${t.rows?.length>100?'<p>预览前100行，完整表格以原始文件为准。</p>':''}</details>`).join('')}

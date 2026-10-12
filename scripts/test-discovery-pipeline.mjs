@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {discoveryPipeline} from '../server/integrations/mp-discovery-pipeline.mjs';
+import {verifyWithHistory} from '../server/integrations/wechat-history.mjs';
+const url='https://mp.weixin.qq.com/s/history',biz='MjM5NTI4MTIyMg==';
+const html=`<a id="js_name">测试公众号</a><script>var biz="${biz}";</script><div id="js_content">${'能源'.repeat(60)}</div>`;
+const pool={query:async()=>({rows:[{id:7,name:'测试公众号',fakeid:biz,content:html}]})};
+const proof=await verifyWithHistory(pool,'测试公众号',url,{fetchPage:async()=>{throw Error('no network expected')}});assert.equal(proof.status,'verified');assert.equal(proof.basis,'historical_original');
+const wrong={query:async()=>({rows:[{id:7,name:'测试公众号',fakeid:'OtherBiz123',content:html}]})};assert.notEqual((await verifyWithHistory(wrong,'测试公众号',url,{fetchPage:async()=>{throw Error('blocked')}})).status,'verified');
+let searched=0;const local={active:[],sources:[],links:[{url,articleId:7}]};
+const result=await discoveryPipeline('测试公众号',{local,verify:async()=>proof,search:async()=>{searched++;throw Error('unexpected')},fetchPage:async()=>{throw Error('unexpected')}});assert.equal(result.status,'verified');assert.equal(searched,0);
+assert.equal((await discoveryPipeline('测试公众号',{local:{active:[{id:'mp:1',payload:{name:'测试公众号'}}],links:[]}})).status,'existing');
+const queries=[];const miss=await discoveryPipeline('未知账号',{search:async(n,o)=>{queries.push(o.query);return {sources:[]}},fetchPage:async()=>{throw Error('blocked')}});assert.equal(miss.status,'not_found');assert.equal(new Set(queries).size,2);assert.ok(miss.stages.some(s=>s.status==='blocked'));
+console.log('History identity binding, local-first/no-search, existing subscription, staged fallback tests passed');

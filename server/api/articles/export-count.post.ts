@@ -1,3 +1,4 @@
+import {topicAliases} from '../../../intelligence/industry-topics.mjs';
 import { desc, eq, and, gte, inArray, sql } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 
@@ -29,7 +30,7 @@ export default defineEventHandler(async (event) => {
   const conditions = [];
 
   if (body?.topic) {
-    conditions.push(eq(schema.articles.matchedTopic, body.topic));
+    conditions.push(inArray(schema.articles.matchedTopic, topicAliases(body.topic)));
   }
   if (body?.dateRange) {
     const since = parseDateRange(body.dateRange);

@@ -1,3 +1,7 @@
+<script setup lang="ts">
+const route=useRoute(),content=ref<HTMLElement>();
+watch(()=>[route.path,route.query.view,route.query.page],async()=>{await nextTick();content.value?.scrollTo({top:0});});
+</script>
 <template>
   <div class="flex h-[calc(100vh-64px)]">
     <!-- 左侧导航栏 -->
@@ -5,7 +9,7 @@
       <WechatSideNav class="flex-1" />
     </aside>
     <!-- 右侧内容区 -->
-    <main class="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-6 min-w-0">
+    <main ref="content" class="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-6 min-w-0">
       <NuxtPage />
     </main>
   </div>

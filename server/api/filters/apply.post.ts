@@ -1,3 +1,4 @@
+import {domainPrompt,canonicalTopic} from '../../../intelligence/industry-topics.mjs';
 import { eq, or, and, inArray } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 import { chatCompletion } from '~/server/utils/embedding';
@@ -32,13 +33,13 @@ ${topicList}
   const userMessage = `文章标题：${title}\n\n文章内容：\n${truncatedContent}`;
 
   try {
-    const response = await chatCompletion(systemPrompt, userMessage);
+    const response = await chatCompletion(systemPrompt+'\n'+domainPrompt(), userMessage);
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;
     const parsed = JSON.parse(jsonMatch[0]) as { category?: string | null };
     if (!parsed.category) return null;
     // 验证返回的类别在有效列表中
-    if (topics.includes(parsed.category)) return parsed.category;
+    const category=canonicalTopic(parsed.category);if(topics.some(t=>canonicalTopic(t)===category))return category;
     return null;
   } catch {
     return null;

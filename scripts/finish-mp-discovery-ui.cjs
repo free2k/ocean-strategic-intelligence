@@ -1,0 +1,1 @@
+const fs=require('fs'),p='pages/wechat/subscriptions.vue';let s=fs.readFileSync(p,'utf8');if(!s.includes("batch_discover:'AI检索核验'"))s=s.replace("batch_unsubscribe:'批量取消'","batch_unsubscribe:'批量取消',batch_discover:'AI检索核验',batch_verified_subscribe:'核验订阅'");if(!s.includes("uncertain:'需核对'"))s=s.replace("paused:'暂停'","paused:'暂停',uncertain:'需核对'");fs.writeFileSync(p,s);

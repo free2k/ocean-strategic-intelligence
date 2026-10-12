@@ -1,0 +1,2 @@
+import {pool} from '../server/integrations/mp2rss-store.mjs';
+try{console.log(JSON.stringify((await pool.query(`SELECT count(*)::int AS all_articles,count(*) FILTER(WHERE EXISTS(SELECT 1 FROM mp2rss.items i WHERE i.article_id=a.id))::int AS linked_to_mp2rss,count(*) FILTER(WHERE s.type='wechat' AND NOT EXISTS(SELECT 1 FROM mp2rss.items i WHERE i.article_id=a.id))::int AS legacy_wechat_only FROM public.articles a LEFT JOIN public.sources s ON s.id=a.source_id`)).rows[0]));}finally{await pool.end();}

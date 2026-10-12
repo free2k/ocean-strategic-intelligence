@@ -1,3 +1,4 @@
+import {canonicalTopic,topicDefinition} from '../../../intelligence/industry-topics.mjs';
 import { eq } from 'drizzle-orm';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
@@ -30,13 +31,14 @@ export default defineEventHandler(async () => {
   const raw = readFileSync(targetPath, 'utf-8');
   const config: TargetConfig = JSON.parse(raw);
 
+  if(Object.keys(config.topics).some(t=>!topicDefinition(t)))throw createError({statusCode:400,message:'导入规则包含未知领域'});
   // 删除现有的正向规则
   await db.delete(schema.filterRules).where(eq(schema.filterRules.type, 'include'));
 
   // 插入新规则
   const rules = Object.entries(config.topics).map(([topicName, rule]) => ({
     type: 'include' as const,
-    topic: topicName,
+    topic: canonicalTopic(topicName),
     description: rule.description,
     titleKeywords: rule.includeTitle,
     contentKeywords: rule.includeContent,

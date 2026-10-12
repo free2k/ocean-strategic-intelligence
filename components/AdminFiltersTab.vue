@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import {standardTopics,canonicalTopic,topicLabel,topicDefinition,taxonomyVersion} from '~/intelligence/industry-topics.mjs';
+const domainOptions=standardTopics.map(t=>({label:t.name,value:t.id}));
 const emit = defineEmits<{
   changed: [];
 }>();
 
 const { data, refresh } = await useFetch('/api/filters');
 
+const historyFlow = ref<any>(null);
 const applyLoading = ref(false);
 const applyResult = ref('');
 const importLoading = ref(false);
@@ -42,7 +45,7 @@ const editForm = ref({
 function startEdit(rule: any) {
   editingId.value = rule.id;
   editForm.value = {
-    topic: rule.topic || '',
+    topic: canonicalTopic(rule.topic || ''),
     description: rule.description || '',
     titleKeywords: (rule.titleKeywords as string[]).join('\n'),
     contentKeywords: (rule.contentKeywords as string[]).join('\n'),
@@ -78,6 +81,7 @@ async function saveEdit(id: number) {
     editingId.value = null;
     refresh();
     emit('changed');
+    await historyFlow.value?.preview();
   } catch (e: any) {
     alert(e.data?.message || '保存失败');
   }
@@ -99,6 +103,7 @@ async function addRule() {
     newRule.value = { type: 'include', topic: '', description: '', titleKeywords: '', contentKeywords: '' };
     refresh();
     emit('changed');
+    await historyFlow.value?.preview();
   } catch (e: any) {
     alert(e.data?.message || '添加失败');
   }
@@ -109,11 +114,13 @@ async function deleteRule(id: number) {
   await $fetch(`/api/filters/${id}`, { method: 'DELETE' });
   refresh();
   emit('changed');
+    await historyFlow.value?.preview();
 }
 
 async function toggleRule(id: number, enabled: boolean) {
   await $fetch(`/api/filters/${id}`, { method: 'PUT', body: { enabled: !enabled } });
   refresh();
+  await historyFlow.value?.preview();
 }
 
 // 目标公众号筛选
@@ -126,20 +133,7 @@ const sourceOptions = computed(() => {
   return [{ label: '全部公众号', value: '' }, ...sources.map((s: any) => ({ label: s.name, value: String(s.id) }))];
 });
 
-async function applyFilters() {
-  applyLoading.value = true;
-  applyResult.value = '';
-  classifyProgress.value = null;
-  classifyLogs.value = [];
-  try {
-    await runClassifyStream(false);
-    emit('changed');
-  } catch (e: any) {
-    applyResult.value = `筛选失败：${e.message}`;
-  } finally {
-    applyLoading.value = false;
-  }
-}
+async function applyFilters() { await historyFlow.value?.preview(true); }
 
 const reapplyLoading = ref(false);
 const classifyProgress = ref<{ current: number; total: number; accepted: number; rejected: number; phase: string; message: string } | null>(null);
@@ -166,70 +160,7 @@ function exportLogs() {
   URL.revokeObjectURL(url);
 }
 
-async function reapplyAll() {
-  const msg = targetSourceId.value
-    ? '将重置指定公众号的已分类文章并重新分类，确定继续？'
-    : '将重置所有已分类文章并按当前规则重新分类（包含自动下载缺失正文），确定继续？';
-  if (!confirm(msg)) return;
-  reapplyLoading.value = true;
-  applyResult.value = '';
-  classifyProgress.value = null;
-  classifyLogs.value = [];
-  try {
-    await runClassifyStream(true);
-    emit('changed');
-  } catch (e: any) {
-    applyResult.value = `重新分类失败：${e.message}`;
-  } finally {
-    reapplyLoading.value = false;
-  }
-}
-
-async function runClassifyStream(reapplyAll: boolean) {
-  const bodyParams: any = { reapplyAll };
-  if (targetSourceId.value) bodyParams.sourceId = Number(targetSourceId.value);
-  if (targetSinceDate.value) bodyParams.sinceDate = new Date(targetSinceDate.value).toISOString();
-
-  const response = await fetch('/api/filters/apply-stream', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(bodyParams),
-  });
-  const reader = response.body!.getReader();
-  const decoder = new TextDecoder();
-  let buffer = '';
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n\n');
-    buffer = lines.pop() || '';
-    for (const line of lines) {
-      if (!line.startsWith('data: ')) continue;
-      try {
-        const data = JSON.parse(line.slice(6));
-        if (data.type === 'phase') {
-          classifyProgress.value = { current: 0, total: data.total || 0, accepted: 0, rejected: 0, phase: data.phase, message: data.message };
-        } else if (data.type === 'progress') {
-          const currentPhase = classifyProgress.value?.phase || 'classify';
-          classifyProgress.value = { current: data.current, total: data.total, accepted: data.accepted || 0, rejected: data.rejected || 0, phase: currentPhase, message: '' };
-          if (data.log) {
-            classifyLogs.value.push(data.log);
-            // 保留最近 200 条，避免内存溢出
-            if (classifyLogs.value.length > 200) classifyLogs.value = classifyLogs.value.slice(-200);
-          }
-        } else if (data.type === 'done') {
-          classifyProgress.value = null;
-          applyResult.value = `分类完成：通过 ${data.accepted} 篇，排除 ${data.rejected} 篇，未匹配 ${data.pending} 篇`;
-          // 分类完成后异步向量化（无论是否有新通过的文章，检查是否有待向量化的）
-          console.log('[AdminFiltersTab] 分类完成，启动自动向量化');
-          autoVectorizeInBackground();
-        }
-      } catch {}
-    }
-  }
-}
+async function reapplyAll() { await historyFlow.value?.preview(); }
 
 async function handleImportRules(event: Event) {
   const input = event.target as HTMLInputElement;
@@ -244,6 +175,7 @@ async function handleImportRules(event: Event) {
     const result = await $fetch('/api/filters/import', { method: 'POST', body: json });
     importResult.value = `导入成功：${result.imported} 条规则`;
     refresh();
+    await historyFlow.value?.preview();
   } catch (e: any) {
     importResult.value = `导入失败：${e.data?.message || e.message}`;
   } finally {
@@ -257,7 +189,14 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
 </script>
 
 <template>
+  <section class="rounded-lg border border-gray-300 dark:border-gray-700 p-4 mb-4 space-y-3" aria-label="统一六大领域定义">
+    <h3 class="font-semibold">统一六大领域 · {{taxonomyVersion}}</h3>
+    <p class="text-sm text-gray-500">关键词规则、Qwen 语义复核、文章库和智库共同使用以下定义。关键词与组合条件用于识别线索，不能扩展领域边界；不确定内容进入语义复核。规则说明仅作备注，不替代领域定义。</p>
+    <details v-for="domain in standardTopics" :key="domain.id"><summary class="cursor-pointer font-medium">{{domain.name}}</summary><p class="text-sm mt-2">{{domain.definition}}</p><p class="text-sm text-gray-500">边界：{{domain.boundary}}</p></details>
+    <details><summary class="cursor-pointer text-sm">公共匹配策略</summary><p class="text-sm text-gray-500">人工分类优先；反向词优先排除；标题和正文前 1800 字检查海洋范围，全文匹配正向词与组合条件。未确定行业且有正文时交 Qwen 复核。关键词组合和补充别名属于识别线索。</p><p class="text-xs break-words">海洋范围词：{{data?.marineContextPattern}}</p><p v-for="(rule,i) in data?.supplementalRules||[]" :key="i" class="text-xs">{{topicLabel(rule.topic)}}：{{rule.groups.map((g:string[])=>g.join(' / ')).join(' ＋ ')}}</p></details>
+  </section>
   <div class="space-y-6 pt-4">
+    <ClassificationHistoryFlow ref="historyFlow" :source-id="targetSourceId" :since-date="targetSinceDate" @published="emit('changed')" />
     <!-- 操作栏 -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
@@ -285,9 +224,9 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
             <USelect v-model="newRule.type" :options="[{label:'正向(目标行业)',value:'include'},{label:'反向(排除)',value:'exclude'}]" value-attribute="value" option-attribute="label" />
           </UFormGroup>
           <UFormGroup v-if="newRule.type === 'include'" label="行业/主题" class="flex-1">
-            <UInput v-model="newRule.topic" placeholder="如：海洋油气装备" />
+            <USelect v-model="newRule.topic" :options="domainOptions" placeholder="选择标准领域" />
           </UFormGroup>
-          <UFormGroup label="描述" class="flex-1">
+          <UFormGroup label="规则备注" class="flex-1">
             <UInput v-model="newRule.description" placeholder="规则说明（可选）" />
           </UFormGroup>
         </div>
@@ -310,7 +249,7 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
       </template>
       <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
         <!-- 对所有"待筛选"状态的文章应用过滤规则。先检查反向规则排除，再检查正向规则匹配目标行业。<br><br> -->
-        "执行筛选"会保留现有已归类的文章，"重新分类"则所有文章按照最新规则重新覆盖分类。
+        执行筛选预览待分类文章；重新分类预览所选历史范围，确认后联动更新文章库、Mp2RSS 和智库。人工标注保留。
       </p>
       <div class="flex items-center gap-4 flex-wrap">
         <UButton @click="applyFilters" :loading="applyLoading" color="green">
@@ -368,9 +307,9 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
           <div v-if="editingId === rule.id" class="space-y-4">
             <div class="flex gap-4">
               <UFormGroup label="行业/主题" class="flex-1">
-                <UInput v-model="editForm.topic" placeholder="如：海洋油气装备" />
+                <USelect v-model="editForm.topic" :options="domainOptions" placeholder="选择标准领域" />
               </UFormGroup>
-              <UFormGroup label="描述" class="flex-1">
+              <UFormGroup label="规则备注" class="flex-1">
                 <UInput v-model="editForm.description" placeholder="规则说明（可选）" />
               </UFormGroup>
               <UFormGroup label="优先级" class="w-24">
@@ -411,7 +350,7 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
           <div v-else>
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-2">
-                <span class="font-medium">{{ rule.topic }}</span>
+                <span class="font-medium">{{ topicLabel(rule.topic) }}</span>
                 <UBadge :color="rule.enabled ? 'green' : 'gray'" size="xs">
                   {{ rule.enabled ? '启用' : '禁用' }}
                 </UBadge>
@@ -424,7 +363,7 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
                 <UButton @click="deleteRule(rule.id)" size="xs" color="red" variant="ghost">删除</UButton>
               </div>
             </div>
-            <p v-if="rule.description" class="text-sm text-gray-500 mb-2">{{ rule.description }}</p>
+            <p v-if="rule.description" class="text-sm text-gray-500 mb-2">{{ rule.type==='include'?topicDefinition(rule.topic)?.definition:rule.description }}</p>
             <div class="flex gap-4 text-xs text-gray-400">
               <span>标题关键词: {{ (rule.titleKeywords as string[]).length }} 个</span>
               <span>正文关键词: {{ (rule.contentKeywords as string[]).length }} 个</span>
@@ -450,7 +389,7 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
               <UFormGroup label="名称" class="flex-1">
                 <UInput v-model="editForm.topic" placeholder="排除规则名称" />
               </UFormGroup>
-              <UFormGroup label="描述" class="flex-1">
+              <UFormGroup label="规则备注" class="flex-1">
                 <UInput v-model="editForm.description" placeholder="规则说明（可选）" />
               </UFormGroup>
             </div>

@@ -1,3 +1,4 @@
+import {topicLabel as topicName} from '../industry-topics.mjs';
 import {formatDisplayDate} from '../preview.js';
 // IEA_COHORTS_V1
 // IEA_UNIFIED_V1
@@ -15,7 +16,6 @@ const visibleCards=()=>scopedCards().filter(c=>showConstant||!c.constant);
 function syncTheme(){let light=localStorage.getItem('ocean-theme')!=='dark';if(root.host)light=document.body.classList.contains('light');else if(window.parent!==window)light=window.parent.document.body.classList.contains('light');const changed=themeTarget.dataset.theme!==(light?'light':'dark');themeTarget.dataset.theme=light?'light':'dark';if(changed&&data)render();}
 syncTheme();const themeObserver=new MutationObserver(syncTheme);themeObserver.observe(document.body,{attributes:true,attributeFilter:['class']});window.addEventListener('storage',syncTheme,{signal:lifecycle.signal});
 async function waitForCharts(){for(let n=0;n<200;n++){if(window.echarts)return;await new Promise(r=>setTimeout(r,100));}throw Error('图表引擎加载超时，请点击刷新重试');}
-const topicName=t=>t==='海上风电'?'海洋新能源（含海上风电）':t;
 const source=id=>data.sources.find(s=>s.id===id)?.name||id;
 const link=(url,label)=>/^https?:\/\//i.test(url||'')?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} ↗</a>`:esc(label||'未提供');
 const sourcesHtml=sources=>`<div class="source-list">${sources.map(s=>link(s.url,s.name)).join('')}</div>`;

@@ -1,0 +1,5 @@
+const base=new URL(process.env.OPENAI_BASE_URL||'https://dashscope.aliyuncs.com/compatible-mode/v1');
+console.log(JSON.stringify({host:base.hostname,model:process.env.CHAT_MODEL,configured:!!process.env.OPENAI_API_KEY}));
+const endpoint=new URL('/api/v1/services/aigc/text-generation/generation',base);
+const r=await fetch(endpoint,{method:'POST',headers:{Authorization:'Bearer '+process.env.OPENAI_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({model:process.env.CHAT_MODEL||'qwen-plus',input:{messages:[{role:'user',content:'联网查找微信公众号“中国能源报”的一篇真实文章。只考虑 mp.weixin.qq.com/s/ 或 mp.weixin.qq.com/s? 的文章原链接，不要虚构链接。搜索关键词：中国能源报 微信公众号 site:mp.weixin.qq.com'}]},parameters:{enable_search:true,search_options:{enable_source:true,forced_search:true},result_format:'message',max_tokens:800}}),signal:AbortSignal.timeout(120000)});
+const b=await r.json();console.log(JSON.stringify({status:r.status,code:b.code,sources:b.output?.search_info?.search_results,answer:b.output?.choices?.[0]?.message?.content}));

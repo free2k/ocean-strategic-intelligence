@@ -1,0 +1,15 @@
+const fs=require('fs'),f='components/MpSubscriptionsHome.vue';let s=fs.readFileSync(f,'utf8');const start=s.indexOf('   <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">'),end=s.indexOf('   </UCard></div>',start);if(start<0||end<0)throw Error('Account grid not found');
+const table=`   <div v-if="rows.length" class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+    <table class="w-full text-sm text-left min-w-[960px]" aria-label="订阅源列表">
+     <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500"><tr><th class="px-4 py-3 font-medium">账号</th><th class="px-4 py-3 font-medium whitespace-nowrap">Mp2RSS 收录</th><th class="px-4 py-3 font-medium whitespace-nowrap">已有正文</th><th class="px-4 py-3 font-medium whitespace-nowrap">最新文章</th><th class="px-4 py-3 font-medium whitespace-nowrap">上次完成同步</th><th class="px-4 py-3 font-medium">同步状态</th><th class="px-4 py-3 font-medium">操作</th></tr></thead>
+     <tbody class="divide-y divide-gray-200 dark:divide-gray-700"><tr v-for="s in rows" :key="s.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/40">
+      <th scope="row" class="px-4 py-4 font-medium min-w-48"><NuxtLink :to="articleLink(s)" class="text-primary-500">{{s.payload.name}}</NuxtLink><p v-if="s.payload.handle" class="text-xs text-gray-500 mt-1">@{{s.payload.handle}}</p><UCheckbox v-if="s.payload.platform==='x'" class="mt-2" :model-value="s.posts" label="采集推文" @update:model-value="v=>action({action:'update',id:s.id,posts:v})"/></th>
+      <td class="px-4 py-4 tabular-nums">{{s.count}} 篇</td><td class="px-4 py-4 tabular-nums">{{s.ready}} 篇</td>
+      <td class="px-4 py-4 text-xs text-gray-500 whitespace-nowrap">{{date(s.latest)}}</td><td class="px-4 py-4 text-xs text-gray-500 whitespace-nowrap">{{date(s.last_sync)}}</td>
+      <td class="px-4 py-4 text-xs min-w-32"><span v-if="pendingFor(s.id)" class="text-primary-500">{{pendingFor(s.id).status==='running'?'正在同步':'等待执行'}} #{{pendingFor(s.id).id}}<span v-if="pendingFor(s.id).status==='queued'" class="block mt-1">前方 {{queuePosition(pendingFor(s.id).id)}} 个任务</span></span><span v-else-if="s.error" class="text-orange-500">{{s.error}}</span><span v-else class="text-gray-500">{{s.last_sync?'自动更新':'待首次同步'}}</span></td>
+      <td class="px-4 py-4"><div class="flex gap-2 whitespace-nowrap"><UButton :to="articleLink(s)" size="xs" variant="soft">查看文章</UButton><UButton variant="ghost" size="xs" :disabled="busy||!!pendingFor(s.id)" @click="action({action:'sync',id:s.id})">立即同步</UButton></div></td>
+     </tr></tbody>
+    </table>
+   </div>`;
+s=s.slice(0,start)+table+s.slice(end+'   </UCard></div>'.length);s=s.replace('>已收录文章</p>','>Mp2RSS 收录文章</p>');s=s.replace('   <div role="group" aria-label="渠道类型"', '   <p class="text-sm text-gray-500">本表的篇数、正文数和最新文章时间仅统计 Mp2RSS 已同步内容，不含旧采集渠道独有的历史文章。<NuxtLink to="/articles" class="text-primary-500">查看全部入库文章 →</NuxtLink></p>\n   <div role="group" aria-label="渠道类型"');fs.writeFileSync(f,s);
+f2='pages/wechat/subscription-articles.vue';s=fs.readFileSync(f2,'utf8');s=s.replace('下列内容仅属于「{{account.payload.name}}」。','下列为「{{account.payload.name}}」经 Mp2RSS 同步的内容，不含旧采集渠道独有的历史文章。');fs.writeFileSync(f2,s);

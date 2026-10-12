@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';import path from 'node:path';import OpenAI from 'openai';
 export function selectPending(documents,limit=0){
  if(!Number.isInteger(limit)||limit<0)throw new Error('INTEL_ENRICH_LIMIT must be a non-negative integer (0 means unlimited)');
- const pending=documents.filter(d=>!d.manual&&(!d.embedding||(d.language==='en'&&d.translationVersion!==d.versionId)));
+ const pending=documents.filter(d=>!d.manual&&(!d.industry||d.industry.status==='accepted')&&(!d.embedding||(d.language==='en'&&d.translationVersion!==d.versionId)));
  return limit===0?pending:pending.slice(0,limit);
 }
 export async function enrich(dir,{limit=0}={}){

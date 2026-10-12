@@ -1,3 +1,4 @@
+import {canonicalTopic,topicDefinition} from '../../../intelligence/industry-topics.mjs';
 import { eq, inArray } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 
@@ -20,6 +21,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: '请提供文章ID' });
   }
 
+  if(!body.clear&&body.topic!=='__reject__'&&!topicDefinition(body.topic))throw createError({statusCode:400,message:'Choose one of the six standard domains'});
   const db = useDB();
 
   // 清除人工标注：恢复为待筛选状态
@@ -64,7 +66,7 @@ export default defineEventHandler(async (event) => {
   await db.update(schema.articles)
     .set({
       filterStatus: 'accepted',
-      matchedTopic: body.topic,
+      matchedTopic: canonicalTopic(body.topic),
       classifyMethod: 'manual',
       manualClassify: true,
       rejectReason: null,

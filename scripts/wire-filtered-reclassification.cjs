@@ -1,0 +1,23 @@
+const fs=require('fs');
+function edit(file,fn){const s=fs.readFileSync(file,'utf8').replace(/\r\n/g,'\n'),next=fn(s);if(next===s)throw Error('No change '+file);fs.writeFileSync(file,next);}
+edit('intelligence/classification-jobs.mjs',s=>s.replace("if((await db.query(\"SELECT to_regclass('ocean_intel.documents') t\"))", "if(!scope.targeted&&(await db.query(\"SELECT to_regclass('ocean_intel.documents') t\"))").replace('...summary,intelligence,previewToken','...summary,intelligence:scope.targeted?null:intelligence,previewToken'));
+edit('intelligence/reconcile-classification.mjs',s=>s.replace('const config=jobs[0].config,compiled=compileRules(config);data.industryRuleConfig=config;data.industryRuleVersion=compiled.version;', 'const targeted=jobs[0].scope.targeted===true,config=jobs[0].config,compiled=compileRules(config);if(!targeted){data.industryRuleConfig=config;data.industryRuleVersion=compiled.version;}').replace('ORDER BY a.id`)).rows;', 'WHERE ($1::bigint IS NULL OR c.job_id=$1) ORDER BY a.id`,[targeted?jobs[0].id:null])).rows;').replace('reconcileDocument(doc,decision);','reconcileDocument(doc,decision);doc.classificationManaged=true;').replace('if(!owned.has(doc.url)&&!doc.manual', 'if(!targeted&&!owned.has(doc.url)&&!doc.manual').replace('for(const dataset of Object.values(data.ieaDatasets?.datasets||{}))', 'for(const dataset of Object.values(targeted?{}:data.ieaDatasets?.datasets||{}))').replace("if(doc?.industry?.status==='accepted'&&!event.manual", "if((!targeted||owned.has(doc?.url))&&doc?.industry?.status==='accepted'&&!event.manual"));
+edit('intelligence/industry-classification.mjs',s=>s.replace('industry:d.industry?.manual||d.industry?.version===compiled.version?', 'industry:(d.classificationManaged&&d.industry)||d.industry?.manual||d.industry?.version===compiled.version?'));
+edit('components/ClassificationHistoryFlow.vue',s=>s.replace('sourceId?:string,sinceDate?:string','sourceId?:string,sinceDate?:string,scope?:Record<string,any>,scopeLabel?:string').replace("sinceDate:props.sinceDate||undefined,pendingOnly}}", "sinceDate:props.sinceDate||undefined,pendingOnly,...props.scope}}").replace('watch(()=>[props.sourceId,props.sinceDate]', 'watch(()=>[props.sourceId,props.sinceDate,JSON.stringify(props.scope)]').replace("{{impact.scope.pendingOnly?'待分类文章':'历史文章（含候选、排除）'}}", "{{impact.scope.targeted?'当前列表筛选结果':impact.scope.pendingOnly?'待分类文章':'历史文章（含候选、排除）'}}").replace('<p v-if="error"', '<p v-if="scopeLabel" class="text-sm font-medium">筛选范围：{{scopeLabel}}（全部匹配结果，跨分页）</p>\n  <p v-if="scope?.targeted" class="text-sm text-gray-500">仅重分类匹配的文章并同步其智库记录，其他文章保留原有分类。</p>\n  <p v-if="error"'));
+edit('pages/articles.vue',s=>s.replace('// --- 当前 Tab ---', `const showFilteredReclassify=ref(false);
+const filteredFlow=ref<any>(null);
+const filteredScope=ref<Record<string,any>>({});
+const filteredLabel=ref('');
+async function reclassifyFiltered(){
+ filteredScope.value={targeted:true,sourceType:sourceType.value,sourceId:sourceId.value,filterStatus:filterStatus.value,dateRange:dateRange.value,search:search.value,matchedTopic:matchedTopic.value,overseas:isOverseas.value?'true':'false'};
+ filteredLabel.value=[isOverseas.value?'外网资讯':'国内资讯',sourceTypeOptions.find(x=>x.value===sourceType.value)?.label,sourceId.value?wechatSources.value.find(x=>x.value===sourceId.value)?.label:'',filterStatusOptions.find(x=>x.value===filterStatus.value)?.label,dateRangeOptions.find(x=>x.value===dateRange.value)?.label,search.value?'标题包含：'+search.value:'',matchedTopic.value].filter(Boolean).join(' · ');
+ showFilteredReclassify.value=true;await nextTick();
+}
+watch(filteredFlow,flow=>{if(flow&&showFilteredReclassify.value)flow.preview();});
+// --- 当前 Tab ---`).replace('<span class="text-sm text-gray-500 dark:text-gray-400 ml-auto" v-if="data">', '<UButton @click="reclassifyFiltered" color="orange" variant="soft" size="sm" :disabled="!data?.total">按当前筛选重新分类</UButton>\n        <span class="text-sm text-gray-500 dark:text-gray-400 ml-auto" v-if="data">').replace('    <!-- 分类标签筛选', `    <UModal v-model="showFilteredReclassify" :ui="{width:'sm:max-w-4xl'}">
+      <div class="p-5 max-h-[85vh] overflow-y-auto"><div class="flex justify-between items-center mb-4"><h3 class="font-semibold">按当前筛选重新分类</h3><UButton @click="showFilteredReclassify=false" color="gray" variant="ghost">关闭</UButton></div>
+        <ClassificationHistoryFlow ref="filteredFlow" :scope="filteredScope" :scope-label="filteredLabel" @published="refresh()" />
+      </div>
+    </UModal>
+    <!-- 分类标签筛选`));
+edit('server/api/articles/index.get.ts',s=>s.replace(/function parseDateRange[\s\S]*?\n\}\n/, "import {dateRangeStart as parseDateRange} from '../../../intelligence/article-scope.mjs';\n"));

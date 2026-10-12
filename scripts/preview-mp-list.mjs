@@ -1,0 +1,2 @@
+import fs from 'node:fs/promises';import pg from 'pg';import {planImport} from '../server/integrations/mp2rss-batch.mjs';
+const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});try{const text=await fs.readFile(process.argv[2],'utf8'),s=(await pool.query('SELECT id,payload,present FROM mp2rss.subscriptions')).rows;const rows=planImport(text,s);console.log(JSON.stringify({total:rows.length,counts:rows.reduce((a,r)=>(a[r.status]=(a[r.status]||0)+1,a),{}),rows}));}finally{await pool.end();}

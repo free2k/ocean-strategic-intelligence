@@ -1,3 +1,4 @@
+import {topicCounts} from '../../../intelligence/industry-topics.mjs';
 import { sql, eq, and, isNotNull, inArray } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 
@@ -26,7 +27,7 @@ export default defineEventHandler(async () => {
   if (domesticIds.length > 0) {
     const domesticResults = await db.select({
       topic: schema.articles.matchedTopic,
-      count: sql<number>`count(*)`,
+      count: sql<number>`count(DISTINCT ${schema.articles.id})`,
     })
       .from(schema.articles)
       .where(and(
@@ -36,10 +37,7 @@ export default defineEventHandler(async () => {
       ))
       .groupBy(schema.articles.matchedTopic);
 
-    domestic = domesticResults.map(r => ({
-      name: r.topic!,
-      count: Number(r.count),
-    }));
+    domestic = topicCounts(domesticResults).map(t=>({name:t.name,count:t.articleCount}));
   }
 
   // Overseas categories
@@ -47,7 +45,7 @@ export default defineEventHandler(async () => {
   if (overseasIds.length > 0) {
     const overseasResults = await db.select({
       topic: schema.articles.matchedTopic,
-      count: sql<number>`count(*)`,
+      count: sql<number>`count(DISTINCT ${schema.articles.id})`,
     })
       .from(schema.articles)
       .where(and(
@@ -57,10 +55,7 @@ export default defineEventHandler(async () => {
       ))
       .groupBy(schema.articles.matchedTopic);
 
-    overseas = overseasResults.map(r => ({
-      name: r.topic!,
-      count: Number(r.count),
-    }));
+    overseas = topicCounts(overseasResults).map(t=>({name:t.name,count:t.articleCount}));
   }
 
   return { domestic, overseas };

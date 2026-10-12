@@ -1,3 +1,4 @@
+import {domainPrompt,canonicalTopic} from '../../../intelligence/industry-topics.mjs';
 import { eq, or, and, inArray, gte } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 import { chatCompletion } from '~/server/utils/embedding';
@@ -8,12 +9,12 @@ async function classifyByLLMWithRules(title: string, content: string, topics: st
   const systemPrompt = `你是一个行业分类助手。根据以下行业类别，判断给定文章属于哪个行业类别。\n\n可选的行业类别：\n${topicList}\n\n规则：\n- 根据文章标题和内容判断最匹配的行业类别\n- 如果文章不属于以上任何类别，返回 null\n- 以 JSON 格式返回：{"category": "行业类别名"} 或 {"category": null}\n- 只返回 JSON，不要其他文字`;
   const truncatedContent = (content || '').slice(0, 2000);
   try {
-    const response = await chatCompletion(systemPrompt, `文章标题：${title}\n\n文章内容：\n${truncatedContent}`);
+    const response = await chatCompletion(systemPrompt+'\n'+domainPrompt(), `文章标题：${title}\n\n文章内容：\n${truncatedContent}`);
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;
     const parsed = JSON.parse(jsonMatch[0]) as { category?: string | null };
-    if (!parsed.category || !topics.includes(parsed.category)) return null;
-    return parsed.category;
+    if (!parsed.category || !topics.some(t=>canonicalTopic(t)===canonicalTopic(parsed.category))) return null;
+    return canonicalTopic(parsed.category);
   } catch { return null; }
 }
 

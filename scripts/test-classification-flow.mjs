@@ -1,0 +1,74 @@
+import {queueSemantic,processSemanticQueue} from '../intelligence/semantic-classification.mjs';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import pg from 'pg';
+import {initClassification,previewClassification,enqueueClassification,applyClassificationJob,acknowledgeClassification} from '../intelligence/classification-jobs.mjs';
+import {reconcileClassification as reconcile} from '../intelligence/reconcile-classification.mjs';
+import {autoExtract,isComplete,pipelineVersion} from '../intelligence/auto-extract.mjs';
+import {filterData} from '../intelligence/core.mjs';
+import {buildCatalog} from '../intelligence/quant-preview/catalog.mjs';
+const reconcileClassification=(pool,data)=>reconcile(pool,data,{limit:100,model:'test',client:{chat:{completions:{create:async()=>({choices:[{message:{content:JSON.stringify({relevant:false,topic:null,reason:'No marine evidence',quote:''})}}]})}}}});
+const pool=new pg.Pool({connectionString:process.env.DATABASE_URL,max:3}),schema='test_classification_'+Date.now();
+const rewrite=sql=>sql.replaceAll('classification.articles',schema+'.classified_articles').replace(/\b(public|mp2rss|classification|ocean_intel)\./g,schema+'.').replace('CREATE SCHEMA IF NOT EXISTS classification','CREATE SCHEMA IF NOT EXISTS '+schema);
+const db={query:(sql,args)=>pool.query(rewrite(sql),args),connect:async()=>{const c=await pool.connect();return {query:(sql,args)=>c.query(rewrite(sql),args),release:()=>c.release()};}};
+const dir=await fs.mkdtemp(path.join(os.tmpdir(),'classification-flow-'));
+try{
+ await pool.query(`CREATE SCHEMA ${schema}; CREATE TABLE ${schema}.articles(id integer PRIMARY KEY,title text,content text,link text,source_id integer,source_type text DEFAULT 'wechat',published_at timestamptz,filter_status varchar(20),matched_topic text,reject_reason text,manual_classify boolean DEFAULT false,classify_method text,matched_keywords_json text,vectorized boolean DEFAULT false,updated_at timestamptz DEFAULT now()); CREATE TABLE ${schema}.sources(id integer PRIMARY KEY,name text,type text,is_overseas boolean DEFAULT false); CREATE TABLE ${schema}.items(id text PRIMARY KEY,subscription_id text,article_id integer,payload jsonb,classification jsonb,content_hash text,updated_at timestamptz DEFAULT now()); CREATE TABLE ${schema}.article_chunks(article_id integer); CREATE TABLE ${schema}.filter_rules(id integer,type text,topic text,description text,title_keywords jsonb,content_keywords jsonb,priority integer,require_all boolean,groups jsonb,enabled boolean);`);
+ await db.query("INSERT INTO public.sources(id,name,type) VALUES(1,'测试账号','wechat')");
+ await db.query(`INSERT INTO public.filter_rules VALUES(1,'include','海洋新能源','海上风电规则','["海上风电"]','[]',1,false,'[]',true),(2,'exclude',null,'排除招聘','["招聘"]','[]',1,false,'[]',true)`);
+ for(const [n,title,content,status,manual] of [[1,'海上风电项目建设','海上风电项目原文提供了明确装机容量和项目进展。','rejected',false],[2,'海上风电招聘','招聘公告原文应保留，但不进入能源项目统计。','accepted',false],[3,'海上风电人工排除','人工不纳入此项目原文。','rejected',true],[4,'海上风电缺正文','','pending',false],[5,'海上风电历史项目','历史原文包含海上风电装机和施工时间等事实。','pending',false]])await db.query('INSERT INTO public.articles(id,title,content,link,source_id,published_at,filter_status,manual_classify) VALUES($1,$2,$3,$4,1,now(),$5,$6)',[n,title,content,'https://example.invalid/'+n,status,manual]);
+ await db.query(`INSERT INTO mp2rss.items VALUES('mp:1:1','mp:1',1,$1,'{"status":"excluded"}','hash1',now())`,[{content:'海上风电项目原文提供了明确装机容量和项目进展。',hash:'hash1',language:'zh'}]);
+ await db.query("INSERT INTO public.articles(id,title,content,link,source_id,published_at,filter_status) SELECT n,'非行业资料','日常生活资料','https://example.invalid/'||n,1,now(),'pending' FROM generate_series(10,34) n");
+ await initClassification(db);const preview=await previewClassification(db,{});assert.equal(preview.total,30);assert.equal(preview.manual,1);assert.equal(preview.newlyAccepted,3);assert.equal(preview.missingBody,1);
+ const job=await enqueueClassification(db,{version:preview.version,previewToken:preview.previewToken});await assert.rejects(()=>enqueueClassification(db,{version:preview.version,previewToken:preview.previewToken}),/已有历史/);
+ const broken={...db,connect:async()=>{const c=await db.connect();return {...c,query:(sql,args)=>{if(sql.startsWith('UPDATE mp2rss.items'))throw Error('simulated process failure');return c.query(sql,args);}};}};
+ await assert.rejects(()=>applyClassificationJob(broken),/simulated process failure/);assert.equal((await db.query('SELECT filter_status FROM public.articles WHERE id=1')).rows[0].filter_status,'rejected');assert.equal((await db.query('SELECT status FROM classification.jobs WHERE id=$1',[job.id])).rows[0].status,'queued');
+ assert.match((await db.query('SELECT error FROM classification.jobs WHERE id=$1',[job.id])).rows[0].error,/CLASSIFICATION_FAILED/);
+ await applyClassificationJob(db);assert.equal((await db.query('SELECT classification FROM mp2rss.items')).rows[0].classification.status,'accepted');assert.equal((await db.query('SELECT filter_status FROM public.articles WHERE id=3')).rows[0].filter_status,'rejected');
+ const old={id:'old2',url:'https://example.invalid/2',versionId:'v2',title:'海上风电招聘',content:'招聘公告原文应保留，但不进入能源项目统计。',industry:{status:'accepted',primary:'海上风电'},autoExtraction:{versionId:'v2',pipelineVersion,status:'completed'}};
+ let data={sources:[],documents:[old],events:[{id:'reviewed',documentId:'old2',reviewedAt:'2026-01-01',countries:[]}],entities:[],relations:[],observations:[],evidence:[],series:[],assetRegistries:{}};
+ await reconcileClassification(db,data);assert.equal(data.documents.length,3);assert.equal(data.documents.find(d=>d.url.endsWith('/1')).industry.status,'accepted');assert.equal(filterData(data).events.length,0);assert.equal(data.events.length,1);
+ await fs.writeFile(path.join(dir,'snapshot.json'),JSON.stringify(data));let calls=0;
+ await autoExtract(dir,{client:{},extract:async()=>{calls++;return {entities:[],events:[],relations:[],observations:[],evidence:[]};}});assert.equal(calls,2);
+ data=JSON.parse(await fs.readFile(path.join(dir,'snapshot.json'),'utf8'));await acknowledgeClassification(db,data,isComplete);let result=(await db.query('SELECT * FROM classification.jobs WHERE id=$1',[job.id])).rows[0];assert.equal(result.status,'completed');assert.equal(result.result.extracted,2);
+ const catalog=buildCatalog(data,data.industryRuleConfig);assert.equal(catalog.audit.accepted,2);
+ await reconcileClassification(db,data);await fs.writeFile(path.join(dir,'snapshot.json'),JSON.stringify(data));await autoExtract(dir,{client:{},extract:async()=>{throw Error('unchanged content must not run twice');}});assert.equal(data.documents.length,3);assert.equal((await db.query('SELECT count(*)::int n FROM classification.audit')).rows[0].n,30);
+ // Change rules: previously excluded becomes eligible, formerly accepted leaves; reviewed fact is retained.
+ await db.query("UPDATE public.filter_rules SET enabled=false WHERE type='exclude'");const second=await previewClassification(db,{});await assert.rejects(()=>enqueueClassification(db,{version:preview.version,previewToken:preview.previewToken}),/规则已变化/);await enqueueClassification(db,{version:second.version,previewToken:second.previewToken});await reconcileClassification(db,data);assert.equal(data.documents.find(d=>d.id==='old2').industry.status,'accepted');assert.equal(isComplete(data.documents.find(d=>d.id==='old2')),false);
+ await fs.writeFile(path.join(dir,'snapshot.json'),JSON.stringify(data));await autoExtract(dir,{client:{},extract:async()=>{throw Error('simulated provider outage');}});data=JSON.parse(await fs.readFile(path.join(dir,'snapshot.json'),'utf8'));await acknowledgeClassification(db,data,isComplete);assert.equal((await db.query('SELECT status FROM classification.jobs ORDER BY id DESC LIMIT 1')).rows[0].status,'partial');assert.equal(data.events.find(e=>e.id==='reviewed').reviewedAt,'2026-01-01');
+
+ await db.query("UPDATE public.filter_rules SET enabled=true WHERE type='exclude'");
+ await db.query("INSERT INTO public.sources(id,name,type,is_overseas) VALUES(2,'外网渠道','mp2rss_mp',true)");
+ for(const [n,kind,state,source,manual] of [[90,'mp2rss_mp','rejected',1,false],[91,'wechat','rejected',1,false],[92,'mp2rss_mp','accepted',1,false],[93,'mp2rss_mp','rejected',1,true],[94,'mp2rss_mp','rejected',2,false]])await db.query('INSERT INTO public.articles(id,title,content,link,source_id,source_type,published_at,filter_status,manual_classify) VALUES($1,$2,$3,$4,$5,$6,now(),$7,$8)',[n,'海上风电筛选测试','海上风电正文用于限定范围的重新分类。','https://example.invalid/'+n,source,kind,state,manual]);
+ const scope={targeted:true,sourceType:'mp2rss_mp',filterStatus:'rejected',overseas:'false',search:'筛选测试'};
+ const scoped=await previewClassification(db,scope);assert.equal(scoped.total,2);assert.equal(scoped.manual,1);assert.equal(scoped.intelligence,null);
+ const oldOutside=JSON.stringify(data.documents.find(d=>d.id==='old2'));
+ await assert.rejects(()=>enqueueClassification(db,{...scope,filterStatus:'accepted',version:scoped.version,previewToken:scoped.previewToken}),/预览/);
+ const scopedJob=await enqueueClassification(db,{...scope,version:scoped.version,previewToken:scoped.previewToken});await reconcileClassification(db,data);
+ assert.deepEqual((await db.query('SELECT article_id FROM classification.audit WHERE job_id=$1 ORDER BY article_id',[scopedJob.id])).rows.map(x=>x.article_id),[90,93]);
+ assert.equal((await db.query('SELECT filter_status FROM public.articles WHERE id=91')).rows[0].filter_status,'rejected');
+ assert.equal((await db.query('SELECT filter_status FROM public.articles WHERE id=93')).rows[0].filter_status,'rejected');
+ assert.equal(JSON.stringify(data.documents.find(d=>d.id==='old2')),oldOutside);
+ assert.ok(data.documents.find(d=>d.url.endsWith('/90')).classificationManaged);
+
+ // The reclassification preview uses the same alias expansion as list filters.
+ await db.query("INSERT INTO public.articles(id,title,content,link,source_id,filter_status,matched_topic) VALUES(140,'alias fixture','body','https://example.invalid/140',1,'accepted','海洋新能源'),(141,'alias fixture','body','https://example.invalid/141',1,'accepted','海上风电')");
+ for(const matchedTopic of ['海洋新能源','海上风电'])assert.equal((await previewClassification(db,{targeted:true,matchedTopic,search:'alias fixture'})).total,2);
+ const title='Semantic fixture',body='offshore carbon storage project provides explicit marine evidence';
+ await db.query("INSERT INTO public.articles(id,title,content,link,source_id,filter_status) VALUES(130,$1,$2,'https://example.invalid/130',1,'pending')",[title,'<p>'+body+'</p>']);
+ const compiled={rules:[],version:'semantic-test'},decision={status:'unmatched',positive:[],negative:[],version:compiled.version};
+ await queueSemantic(db,{id:130,title,content:'<p>'+body+'</p>'},compiled,decision);
+ const fail=await processSemanticQueue(db,{limit:100,model:'queue-test',client:{chat:{completions:{create:async()=>{throw Error('offline');}}}}});
+ assert.ok(fail.failed>0);assert.equal((await db.query('SELECT filter_status FROM public.articles WHERE id=130')).rows[0].filter_status,'pending');
+ await db.query("UPDATE classification.semantic_queue SET next_retry_at=now() WHERE article_id=130");
+ let modelCalls=0;const client={chat:{completions:{create:async()=>{modelCalls++;return {choices:[{message:{content:JSON.stringify({relevant:true,topic:'\u6d77\u6d0b\u4f4e\u78b3',reason:'Marine storage',evidenceId:'p1'})}}]};}}}};
+ await processSemanticQueue(db,{limit:100,model:'queue-test',client});
+ assert.equal((await db.query('SELECT filter_status FROM public.articles WHERE id=130')).rows[0].filter_status,'accepted');assert.equal(modelCalls,1);
+ await db.query("UPDATE public.articles SET filter_status='pending' WHERE id=130");
+ await queueSemantic(db,{id:130,title,content:'<p>'+body+'</p>'},compiled,decision);await processSemanticQueue(db,{limit:100,model:'queue-test',client});assert.equal(modelCalls,1);
+ await db.query("UPDATE public.articles SET filter_status='pending',manual_classify=true WHERE id=130");
+ await queueSemantic(db,{id:130,title,content:'<p>'+body+'</p>'},compiled,decision);await processSemanticQueue(db,{limit:100,model:'queue-test',client});assert.equal(modelCalls,1);assert.equal((await db.query('SELECT filter_status FROM public.articles WHERE id=130')).rows[0].filter_status,'pending');
+ console.log('PASS: isolated database / preview / stale-version rejection / atomic MP + legacy classification / manual protection / backfill / missing body / re-admission / chart exclusion / duplicate prevention / extraction retry status');
+}finally{await pool.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);await pool.end();await fs.rm(dir,{recursive:true,force:true});}

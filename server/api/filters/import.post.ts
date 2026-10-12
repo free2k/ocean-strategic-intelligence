@@ -1,3 +1,4 @@
+import {canonicalTopic,topicDefinition} from '../../../intelligence/industry-topics.mjs';
 import { useDB, schema } from '~/server/db';
 
 /**
@@ -12,11 +13,12 @@ export default defineEventHandler(async (event) => {
   let importedCount = 0;
 
   // 正向规则格式
+  if(body?.topics&&Object.keys(body.topics).some(t=>!topicDefinition(t)))throw createError({statusCode:400,message:'Unknown domain in imported rules'});
   if (body?.topics) {
     for (const [topic, config] of Object.entries(body.topics) as [string, any][]) {
       await db.insert(schema.filterRules).values({
         type: 'include',
-        topic,
+        topic:canonicalTopic(topic),
         description: config.description || null,
         titleKeywords: config.includeTitle || [],
         contentKeywords: config.includeContent || [],

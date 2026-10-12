@@ -1,0 +1,12 @@
+const fs=require('fs');
+let f='pages/wechat/subscription-articles.vue',s=fs.readFileSync(f,'utf8');s=s.replace('<details v-if="a.reason" class="text-xs text-gray-500 mt-3"><summary class="cursor-pointer">查看分类依据</summary><p class="mt-2">{{a.reason}}</p></details>','<MpClassificationReason :article="a"/>');fs.writeFileSync(f,s);
+f='components/MpSubscriptionsHome.vue';s=fs.readFileSync(f,'utf8');s=s.replace('const articleLink=',`const pendingFor=(id:string)=>data.value?.queue?.jobs?.find((j:any)=>j.action==='sync'&&(!j.target||j.target===id)||j.action==='batch_sync'&&j.request?.includes(id));
+const queuePosition=(id:string)=>Math.max(0,(data.value?.queue?.jobs||[]).findIndex((j:any)=>j.id===id));
+const articleLink=`);
+s=s.replace('>订阅账号</p><p class="text-2xl font-semibold mt-1">{{accounts.length}}</p>', '>订阅账号</p><p class="text-2xl font-semibold mt-1">{{accounts.length}}</p><p class="text-xs text-gray-500 mt-1">公众号 {{accounts.filter((s:any)=>s.payload.platform===\'mp\').length}} · X {{accounts.filter((s:any)=>s.payload.platform===\'x\').length}}</p>');
+s=s.replace('>自动同步</p>','>公众号 / X 采集</p>').replace('下次 {{date(data?.state?.nextRunAt)}}','全量采集计划 {{date(data?.state?.nextRunAt)}}');
+s=s.replace('<section v-if="view===\'accounts\'"', '<p class="text-xs text-gray-500">公众号与 X 每轮全量采集结束后间隔 30 分钟；智库外部来源巡检为另一项 6 小时任务。手动同步进入队列，执行器约每分钟检查一次。</p>\n  <section v-if="view===\'accounts\'"');
+s=s.replace('最近同步 {{date(s.last_sync)}}','上次完成同步 {{date(s.last_sync)}}');
+s=s.replace('<p v-if="s.error" class="text-sm text-orange-500 mt-2">','<p v-if="pendingFor(s.id)" class="text-xs text-primary-500 mt-2">{{pendingFor(s.id).status===\'running\'?\'正在同步\':\'等待执行\'}} · 任务 #{{pendingFor(s.id).id}}<span v-if="pendingFor(s.id).status===\'queued\'"> · 前方 {{queuePosition(pendingFor(s.id).id)}} 个任务</span></p><p v-if="s.error" class="text-sm text-orange-500 mt-2">');
+s=s.replace(':disabled="busy" @click="action({action:\'sync\',id:s.id})"', ':disabled="busy||!!pendingFor(s.id)" @click="action({action:\'sync\',id:s.id})"');
+s=s.replace('<p v-if="j.error" class="text-orange-500 mt-2">','<p v-if="j.status===\'queued\'" class="text-sm text-gray-500 mt-2">前方 {{queuePosition(j.id)}} 个任务；等待执行器下一轮检查或当前任务结束。完成后才更新账号的同步时间。</p><p v-if="j.error" class="text-orange-500 mt-2">');fs.writeFileSync(f,s);

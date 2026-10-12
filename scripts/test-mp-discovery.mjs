@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';import {verifyWechat,parseWechatIdentity} from '../server/integrations/wechat-identity.mjs';import {discoverAccount} from '../server/integrations/mp-discovery.mjs';import {runBatch} from '../server/integrations/mp2rss-batch.mjs';
+const url='https://mp.weixin.qq.com/s/test',html='<h1 id="activity-name">海上风电</h1><a id="js_name">中国能源报</a><script>var biz="MzAxMjM0NTY=";</script><div id="js_content">'+'海上能源研究项目。'.repeat(20)+'</div>';
+const fetchPage=async()=>({url,kind:'html',buffer:Buffer.from(html)});
+assert.equal((await verifyWechat('中国能源报',url,{fetchPage})).status,'verified');
+assert.equal((await verifyWechat('中国海油',url,{fetchPage})).status,'mismatch');
+assert.equal((await verifyWechat('中国能源报',url,{fetchPage:async()=>({url,kind:'html',buffer:Buffer.from('访问环境异常，请完成验证')})})).status,'unverified');
+assert.equal(parseWechatIdentity(html,url+'?__biz=Different123').conflict,true);
+const a=await discoverAccount('中国能源报',{search:async()=>({sources:[{url,title:'真实搜索来源'}]}),fetchPage});assert.equal(a.status,'verified');
+const none=await discoverAccount('中国能源报',{search:async()=>({sources:[],answer:'https://mp.weixin.qq.com/s/invented'}),fetchPage});assert.equal(none.status,'not_found');
+const ambiguous=await discoverAccount('同名账号',{search:async()=>({sources:[{url:url+'1'},{url:url+'2'}]}),verify:async(n,u)=>({status:'verified',url:u,biz:u})});assert.equal(ambiguous.status,'ambiguous');
+let posted=0;const pool={query:async()=>({rows:[]})};const result=await runBatch({id:1,action:'batch_verified_subscribe',request:[{name:'中国能源报',url,biz:'MzAxMjM0NTY='}]},pool,async()=>posted++,async()=>{},async()=>({status:'verified',biz:'Different123'}));assert.equal(posted,0);assert.equal(result[0].status,'failed');
+const yes=await runBatch({id:2,action:'batch_verified_subscribe',request:[{name:'中国能源报',url,biz:'MzAxMjM0NTY='}]},pool,async()=>posted++,async()=>{},async()=>({status:'verified',biz:'MzAxMjM0NTY='}));assert.equal(posted,1);assert.equal(yes[0].status,'completed');
+console.log('9 discovery/identity/reverification checks passed');
