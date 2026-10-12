@@ -6,7 +6,8 @@ const date=v=>{if(!v)return '暂无记录';const d=new Date(v);return Number.isN
 const day=v=>{if(!v||Number.isNaN(Date.parse(v)))return null;return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(v));};
 const urlLink=(url,label)=>/^https?:\/\//i.test(url||'')?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} ↗</a>`:esc(label);
 const phases=['pipeline','scanner','constellation'];
-let countdownTimer;
+let countdownTimer,workflowFrame;
+let workflowFocused=false;
 let phase=0,evidenceQuery='',evidencePageNumber=1,evidencePageSize=12;
 let data,view='sources',channel='all',search='',page=1,tab='channels',effect='pipeline',sector='',sourceFilter='',paused=false,finished=false,step=0,timer,charts=[],resize,toastTimer;
 const source=id=>data.sources.find(s=>s.id===id)?.name||id||'未标注渠道';
@@ -24,7 +25,7 @@ function industryTag(d){const t=matchedTopic(d);return `<span class="industry-ta
 
 function stat(label,value,note){return `<div class="stat"><span>${label}</span><b>${esc(value)}</b><small>${esc(note)}</small></div>`;}
 function toast(text){$('#toast').textContent=text;$('#toast').style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').style.display='none',3600);}
-function dispose(){clearInterval(countdownTimer);clearInterval(timer);charts.forEach(c=>c.dispose());charts=[];resize?.disconnect();}
+function dispose(){cancelAnimationFrame(workflowFrame);clearInterval(countdownTimer);clearInterval(timer);charts.forEach(c=>c.dispose());charts=[];resize?.disconnect();}
 function render(){dispose();view=location.hash==='#evidence'?'evidence':'sources';$('#page-title').textContent=view==='sources'?'全球信息感知 / '+({channels:'渠道管理',add:'添加订阅',jobs:'同步记录'}[tab]):'情报证据中心';document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('active',a.dataset.page===view));$('#app').innerHTML=view==='sources'?sourcesPage():evidencePage();if(view==='sources'){tickCollection();countdownTimer=setInterval(tickCollection,1000);}if(view==='evidence'&&!data.ruleError){finished=matchMedia('(prefers-reduced-motion: reduce)').matches;paused=false;step=0;phase=0;effect=phases[0];startReplay();}}
 function allChannels(){const subs=data.subscriptions.map(s=>({...s,type:s.platform==='x'?'x':'mp',name:s.name,count:Number(s.count||0),ready:Number(s.ready||0),historyCount:Number(s.historyCount||0),date:s.latest,url:'',status:s.enabled===false?'暂停':'已订阅',note:s.platform==='x'?'推文与外链文章':'公众号文章'}));const rss=(data.rss?.list||[]).map(s=>({...s,type:s.method==='rss'?'rss':'official',url:s.alias||s.url,date:s.checkedAt,ready:null,status:({ready:'检查成功',partial:'部分成功',failed:'访问失败',unverified:'待检查'})[s.status]||s.status||'待检查',note:s.scope||s.method||'RSS'}));return [...subs,...rss].sort((a,b)=>Number(b.count>0)-Number(a.count>0)||(Date.parse(b.date)||0)-(Date.parse(a.date)||0)||b.count-a.count||a.name.localeCompare(b.name,'zh-CN'));}
 
@@ -63,8 +64,10 @@ function completeWorkflow(){
  finished=true;clearInterval(timer);paintReplay();showSummary();
  if(watching&&!matchMedia('(prefers-reduced-motion: reduce)').matches)requestAnimationFrame(()=>$('#summary').scrollIntoView({behavior:'smooth',block:'start'}));
 }
-function startReplay(){clearInterval(timer);effect=phases[phase];paintReplay();if(finished){showSummary();return;}timer=setInterval(()=>{
- if(paused||document.hidden)return;
+function focusInitialWorkflow(){if(workflowFocused||matchMedia('(prefers-reduced-motion: reduce)').matches)return;workflowFrame=requestAnimationFrame(()=>{workflowFrame=requestAnimationFrame(()=>{const target=$('#stage')?.closest('.panel');if(!target?.isConnected)return;workflowFocused=true;target.scrollIntoView({behavior:'smooth',block:'start'});});});}
+function workflowVisible(){const box=$('#stage')?.getBoundingClientRect();return box&&Math.min(box.bottom,innerHeight)-Math.max(box.top,0)>=Math.min(120,box.height*.4);}
+function startReplay(){clearInterval(timer);effect=phases[phase];paintReplay();if(finished){showSummary();return;}focusInitialWorkflow();timer=setInterval(()=>{
+ if(paused||globalThis.document.hidden||!workflowVisible())return;
  if(step<samples().length-1)step++;
  else if(phase<2){phase++;effect=phases[phase];step=0;}
  else{completeWorkflow();return;}
