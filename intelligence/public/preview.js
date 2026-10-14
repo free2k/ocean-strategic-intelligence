@@ -33,3 +33,7 @@ export function formatDisplayDate(value,fallback='未提供'){
  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(date).map(p=>[p.type,p.value]));
  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`;
 }
+
+export function originalSourceLink(value){
+ try{const url=new URL(value);if(!['http:','https:'].includes(url.protocol))throw Error();return `<p class="original-source"><a href="${escapeHtml(url.href)}" target="_blank" rel="noopener noreferrer">打开原始来源 ↗</a></p>`;}catch{return '<p class="meta">此资料未保存可跳转的原始链接</p>';}
+}
