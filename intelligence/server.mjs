@@ -1,4 +1,10 @@
+import {IntakeDrafts} from './research/intake-drafts.mjs';
+import {FileRuntimeState} from './research/runtime-state.mjs';
+import {LedgerError,digest} from './research/ledger.mjs';
 import {snapshotRules} from './published-rules.mjs';
+import {ResearchLedger} from './research/ledger.mjs';
+import {FileResearchRepository,PostgresResearchRepository} from './research/repositories.mjs';
+import {serveResearchRead} from './research/routes.mjs';
 import {classifySnapshot} from './industry-classification.mjs';
 import {standardTopics,taxonomyVersion,domainPrompt} from './industry-topics.mjs';
 // MP_CLEAN_V1
@@ -23,6 +29,9 @@ import {Store} from './store.mjs';import {filterData,overview,countries,topics,r
 const root=path.dirname(fileURLToPath(import.meta.url)),dir=process.env.INTEL_DATA_DIR||path.join(root,'../.data/intelligence'),base=process.env.INTEL_BASE_PATH||'/';
 const store=new Store(dir,process.env.INTEL_DATABASE_URL||undefined);await store.init();if(process.argv.includes('--import')){await store.import(JSON.parse(await fs.readFile(path.join(dir,'snapshot.json'),'utf8')));console.log('Imported into',store.backend);await store.pool?.end();process.exit(0);}
 const client=process.env.INTEL_ENABLE_AI==='true'&&process.env.OPENAI_API_KEY?new OpenAI({apiKey:process.env.OPENAI_API_KEY,baseURL:process.env.OPENAI_BASE_URL,timeout:75000,maxRetries:0}):null;
+// Read-only opt-in: explicit migration/capture is required. Never bootstrap from current on GET.
+const researchLedger=process.env.INTEL_RESEARCH_BACKEND==='postgres'&&store.pool?new ResearchLedger(new PostgresResearchRepository(store.pool)):process.env.INTEL_RESEARCH_ARCHIVE?new ResearchLedger(new FileResearchRepository(process.env.INTEL_RESEARCH_ARCHIVE)):null;
+const intakeDrafts=new IntakeDrafts(new FileRuntimeState(path.join(dir,'intake-runtime')),store);
 const password=process.env.SITE_PASSWORD||'',sign=x=>createHmac('sha256',password).update(x).digest('hex');
 function equal(a,b){const x=Buffer.from(String(a)),y=Buffer.from(String(b));return x.length===y.length&&timingSafeEqual(x,y);}
 function auth(req){if(!password)return process.env.INTEL_ALLOW_NO_AUTH==='true';const cookie=req.headers.cookie||'';const token=cookie.match(/(?:^|;\s*)ocean_auth=([^;]+)/)?.[1]||cookie.match(/(?:^|;\s*)site_auth=([^;]+)/)?.[1];if(!token)return false;const [exp,sig]=token.split('.');return Number(exp)>Date.now()&&equal(sig||'',sign(exp));}
@@ -37,7 +46,7 @@ const limits=new Map();function limited(req,kind,max,ms){const key=(req.headers[
 const publicDoc=d=>{const {content,contentZh,embedding,chunks,extraction,...safe}=translatedDoc(d);return safe;};
 let writing=Promise.resolve();const serial=fn=>{const p=writing.then(fn);writing=p.catch(()=>{});return p;};
 const extracting=new Set();
-const scheduler=await createScheduler({store,dir,root,serial});
+const scheduler=await createScheduler({store,dir,root,serial,researchLedger:process.env.INTEL_RESEARCH_CAPTURE==='true'?researchLedger:null});
 const server=http.createServer(async(req,res)=>{res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('X-Frame-Options','DENY');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'");try{const url=new URL(req.url,'http://localhost'),route=url.pathname;
  if(req.method==='POST'){const origin=req.headers.origin;if(origin&&new URL(origin).host!==req.headers.host)return json(res,403,{error:'跨站请求已拒绝'});}
  if(route==='/api/health')return json(res,200,{ok:true,backend:store.backend,documents:store.data.documents.length});
@@ -45,6 +54,15 @@ const server=http.createServer(async(req,res)=>{res.setHeader('X-Content-Type-Op
  if(route==='/api/login'&&req.method==='POST'){if(limited(req,'login',10,600000))return json(res,429,{error:'尝试次数过多，请稍后重试'});const b=await body(req);if(!password||!equal(b.password||'',password))return json(res,401,{error:'访问密码不正确'});const exp=String(Date.now()+7*86400000);res.setHeader('Set-Cookie',['ocean_auth','site_auth'].map(name=>`${name}=${exp}.${sign(exp)}; HttpOnly; SameSite=Lax; Path=${name==='site_auth'?'/':base}; Max-Age=604800${req.headers['x-forwarded-proto']==='https'?'; Secure':''}`));return json(res,200,{ok:true});}
  if(route==='/api/logout'&&req.method==='POST'){res.setHeader('Set-Cookie',[`ocean_auth=; Path=${base}; Max-Age=0; HttpOnly; SameSite=Lax`,'site_auth=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax']);return json(res,200,{ok:true});}
  if(route.startsWith('/api/')&&!auth(req))return json(res,401,{error:'请先使用原站访问密码登录'});
+
+ if(route.startsWith('/api/intake-drafts')&&req.method==='POST'){
+  try{const b=await body(req,300000),actor='session_'+digest(req.headers.cookie||'local-no-auth').slice(0,20),match=route.match(/^\/api\/intake-drafts\/(draft_[a-f0-9-]+)\/(edit|confirm|load)$/);let result;
+   if(route==='/api/intake-drafts'){const upload=b.uploadId?await readUpload(dir,b.uploadId):null;result=await intakeDrafts.create({...b,upload},actor);}
+   else if(match){result=match[2]==='edit'?await intakeDrafts.edit(match[1],b,actor):match[2]==='load'?await intakeDrafts.get(match[1]):await serial(()=>intakeDrafts.confirm(match[1],b,actor));}
+   else return json(res,404,{error:'草稿接口不存在'});return json(res,200,result);
+  }catch(error){return json(res,error instanceof LedgerError?error.status:400,{code:error.code||'INTAKE_FAILED',message:error instanceof LedgerError?error.message:'附件尚无可用正文或草稿保存失败；原资料保留，可稍后重试。'});}
+ }
+ if(await serveResearchRead(req,res,url,researchLedger,scheduler.journal))return;
  if(route==='/api/collection'&&req.method==='GET')return json(res,200,scheduler.status());
  if(route==='/api/process'&&req.method==='POST'){if(scheduler.status().running)return json(res,409,{error:'处理任务正在运行'});void scheduler.run({processOnly:true});return json(res,202,{accepted:true});}
  if(route==='/api/collection'&&req.method==='POST'){if(scheduler.status().running)return json(res,409,{error:'采集任务正在运行'});void scheduler.run();return json(res,202,{accepted:true});}
@@ -83,6 +101,6 @@ const server=http.createServer(async(req,res)=>{res.setHeader('X-Content-Type-Op
  const citationIds=[...answer.matchAll(/\[(\d+)\]/g)].map(m=>Number(m[1]));const citationCheck=citationIds.length>0&&citationIds.every(n=>n>=1&&n<=refs.length);const record={id:'research_'+randomUUID(),question:q,answer,references:refs.map(({passage,...r})=>r),mode,generated,citationCheck,status:'已生成',createdAt:new Date().toISOString(),filters:b.filters||{},model:process.env.CHAT_MODEL};await store.saveResearch(record);return json(res,200,record);}
  if(route.startsWith('/api/'))return json(res,404,{error:'接口不存在'});
  if(route==='/industry-topics.mjs'&&req.method==='GET'){res.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8','Cache-Control':'no-cache'});res.end(await fs.readFile(path.join(root,'industry-topics.mjs')));return;}
- if(req.method!=='GET')return json(res,405,{error:'不支持的方法'});const file=route==='/'?'index.html':route.slice(1);if(!['change-signals.js','sensing.js','sensing.css','index.html','app.js','x-evidence-view.js','style.css','world.json','enhancements.js','preview.js','interactions.js','wave-energy.png','whale.png','statistical-views.js','country-map.js','globe.js','file-intake.js'].includes(file))return json(res,404,{error:'页面不存在'});const bytes=await fs.readFile(path.join(root,'public',file));res.writeHead(200,{'Content-Type':file.endsWith('.png')?'image/png':file.endsWith('.html')?'text/html; charset=utf-8':file.endsWith('.css')?'text/css; charset=utf-8':file.endsWith('.json')?'application/json':'text/javascript; charset=utf-8','Cache-Control':'no-cache'});res.end(bytes);
+ if(req.method!=='GET')return json(res,405,{error:'不支持的方法'});const file=route==='/'?'index.html':route.slice(1);if(!['country-ranking.mjs','research-layout.css','dossier-view.js','country-dossier.js','intake-draft.js','monitor-overview.js','object-browser.js','brief-view.js','research-replay.js','navigation.js','home.js','change-signals.js','sensing.js','sensing.css','index.html','app.js','x-evidence-view.js','style.css','world.json','enhancements.js','preview.js','interactions.js','wave-energy.png','whale.png','statistical-views.js','country-map.js','globe.js','file-intake.js'].includes(file))return json(res,404,{error:'页面不存在'});const bytes=await fs.readFile(path.join(root,'public',file));res.writeHead(200,{'Content-Type':file.endsWith('.png')?'image/png':file.endsWith('.html')?'text/html; charset=utf-8':file.endsWith('.css')?'text/css; charset=utf-8':file.endsWith('.json')?'application/json':'text/javascript; charset=utf-8','Cache-Control':'no-cache'});res.end(bytes);
  }catch(e){console.error('request failed',e.code||e.name);json(res,500,{error:'处理未完成，请稍后重试；原始资料已保留'});}});
 server.listen(Number(process.env.INTEL_PORT||3101),'127.0.0.1',()=>console.log('Ocean intelligence ready on loopback',process.env.INTEL_PORT||3101,store.backend));

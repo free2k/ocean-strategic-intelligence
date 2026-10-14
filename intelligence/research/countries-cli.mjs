@@ -1,0 +1,2 @@
+import path from 'node:path';import {ResearchLedger} from './ledger.mjs';import {FileResearchRepository} from './repositories.mjs';import {publishCountries} from './countries.mjs';
+const i=process.argv.indexOf('--archive');if(i<0)throw Error('Requires --archive PATH');const ledger=new ResearchLedger(new FileResearchRepository(path.resolve(process.argv[i+1])));console.log(JSON.stringify(await publishCountries(ledger,(await ledger.latest()).releaseId)));

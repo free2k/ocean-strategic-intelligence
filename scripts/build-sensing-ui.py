@@ -39,6 +39,9 @@ export function mountSensing(root,payload,selectedView){
 const life=new AbortController(),document={querySelector:s=>root.querySelector(s),querySelectorAll:s=>root.querySelectorAll(s),body:root.querySelector('.sensing-shell')},location={hash:selectedView==='library'?'#evidence':'#sources'};
 const listen=(type,callback)=>root.addEventListener(type,callback,{signal:life.signal});
 '''
+prefix="import {loadArchive,mountArchive} from './research-replay.js';\n"+prefix
+prefix=prefix.replace('const rawPromise=existing?', "if(view==='library'){const archived=await loadArchive(query);if(archived)return archived;}const rawPromise=existing?")
+prefix=prefix.replace('const life=new AbortController(),document=', "if(selectedView==='library'&&(payload.archive||payload.archiveError))return mountArchive(root,payload);const life=new AbortController(),document=")
 (root/'intelligence/public/sensing.js').write_text(prefix+src,encoding='utf-8')
 css=(root/'intelligence/layout-preview/style.css').read_text(encoding='utf-8').replace(':root',':host').replace('body.light','.sensing-shell.light').replace('body{','.sensing-shell{')
 css+='\n#app{padding:0;max-width:none}.sensing-shell{background:transparent}.intro{margin-top:10px}#page-title{display:block;color:var(--muted);margin-bottom:16px}\n'

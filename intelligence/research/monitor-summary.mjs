@@ -1,0 +1,13 @@
+import {readBatchReplay} from './replay.mjs';
+import {fail} from './ledger.mjs';
+import {readDossier} from './dossier-products.mjs';
+export async function readMonitorSummary(ledger,query={}){
+ for(const key of Object.keys(query))if(!['releaseId','snapshotId','topic','sourceId','from','to','country'].includes(key))fail('INVALID_SCOPE','不支持的变化汇总筛选条件');
+ const replay=await readBatchReplay(ledger,query),release=await ledger.resolveRelease({releaseId:replay.meta.releaseId}),batch=await ledger.batch(release.batchId),registry=release.objectRegistryId?await ledger.repository.read(release.objectRegistryId):null;
+ const docs=new Set(replay.data.documents.map(d=>d.id)),affected=new Set(batch.changes.filter(c=>docs.has(c.documentId)).map(c=>c.documentId));
+ const objects=(registry?.objects||[]).filter(o=>!o.mergedInto&&o.documentRefs.some(r=>r.snapshotId===release.snapshotId&&docs.has(r.documentId)));
+ const changedObjects=objects.filter(o=>o.documentRefs.some(r=>r.snapshotId===release.snapshotId&&affected.has(r.documentId)));
+ const assessments=[];for(const ref of release.dossierProducts||[]){if(ref.scope.kind!=='object'||!objects.some(o=>o.id===ref.scope.objectId))continue;const product=await readDossier(ledger,release,ref.scope);if(product&&product.inputVersions.every(v=>docs.has(v.documentId)))assessments.push({objectId:ref.scope.objectId,subject:product.subject,productId:product.productId,overview:product.content.overview,phaseComparisons:product.phaseComparisons});}
+ const comparisons=(registry?.events||[]).flatMap(e=>{const versions=e.versions.filter(v=>docs.has(v.documentId));if(versions.length<2)return [];const after=versions.at(-1),before=versions.at(-2);if(after.snapshotId!==release.snapshotId||!affected.has(after.documentId))return [];return [{eventId:e.id,title:after.title,before:{title:before.title,summary:before.summary,reference:before},after:{title:after.title,summary:after.summary,reference:after},kind:'saved_record_difference'}];});
+ return {data:{kind:replay.data.kind,documents:docs.size,objects:objects.length,affectedDocuments:affected.size,affectedObjects:changedObjects.length,changes:replay.data.counts.changes,comparisons:comparisons.slice(0,20),comparisonCount:comparisons.length,assessments,datedPhaseChanges:assessments.reduce((n,a)=>n+a.phaseComparisons.filter(c=>c.status==='dated_evidence_change').length,0),interpretation:'资料版本变化，不等同于实际项目阶段变化；无前版则不补造对比',assessmentStatus:assessments.length?'partial':'not_published'},meta:replay.meta};
+}

@@ -1,0 +1,14 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {parseArgs} from 'node:util';
+import {ResearchLedger} from './ledger.mjs';
+import {FileResearchRepository} from './repositories.mjs';
+import {snapshotRules} from '../published-rules.mjs';
+const {values}=parseArgs({options:{source:{type:'string'},archive:{type:'string'},baseline:{type:'boolean',default:false},expected:{type:'string'}}});
+if(!values.source||!values.archive)throw Error('Required: --source SNAPSHOT.json --archive ISOLATED_DIRECTORY [--baseline | --expected RELEASE_ID]');
+const source=path.resolve(values.source),archive=path.resolve(values.archive);
+if(source.startsWith(archive+path.sep)||archive===path.dirname(source))throw Error('Use a separate derived archive directory');
+const data=JSON.parse(await fs.readFile(source,'utf8'));snapshotRules(data);
+const ledger=new ResearchLedger(new FileResearchRepository(archive));
+const release=await ledger.publish(data,{baseline:values.baseline,expectedReleaseId:values.baseline?null:values.expected,trigger:values.baseline?'migration_baseline':'explicit_snapshot_capture'});
+console.log(JSON.stringify({releaseId:release.releaseId,snapshotId:release.snapshotId,productStatus:release.productStatus,unchanged:release.unchanged||false}));

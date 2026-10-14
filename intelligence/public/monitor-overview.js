@@ -1,0 +1,29 @@
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const changes={baseline:'迁移基线',new_document:'首次收录',body_updated:'正文修订',classification_changed:'分类调整',structure_changed:'结构化更新'};
+export function mountMonitorOverview(flow,summary,{query=''}={}){
+ const life=new AbortController();let phase=0,paused=matchMedia('(prefers-reduced-motion: reduce)').matches,elapsed=0,ready=false,scopeSequence=0;
+ function paint(){flow.querySelectorAll('.monitor-flow-node').forEach((n,i)=>{n.classList.toggle('active',i===phase);n.classList.toggle('complete',i<phase);});const b=flow.querySelector('[data-flow=pause]');if(b){b.textContent=paused?'继续':'暂停';b.disabled=!ready||elapsed>=12;}const progress=flow.querySelector('progress');if(progress)progress.value=elapsed;}
+ function set(result,error){
+  ready=false;phase=0;elapsed=0;
+  const o=result?.data,events=(o?.events||[]).flatMap(e=>e.versions.slice().reverse().map(v=>({...v,eventId:e.id}))).sort((a,b)=>String(b.observedAt).localeCompare(String(a.observedAt))),latest=events[0];
+  const previous=latest?events.find(v=>v.eventId===latest.eventId&&(v.bodyVersionId!==latest.bodyVersionId||v.snapshotId!==latest.snapshotId)):null;
+  const fact=o?.facts.find(f=>f.versions.some(v=>v.documentId===latest?.documentId&&v.bodyVersionId===latest?.bodyVersionId));
+  ready=!!latest;
+  const evidence=latest?`<button data-flow-evidence="${esc(latest.documentId)}" data-body="${esc(latest.bodyVersionId)}" data-release="${esc(latest.releaseId)}">核对来源版本 ↗</button>`:'';
+  flow.innerHTML=`<div class="panel-head"><div><small>F01 / 成果形成过程</small><h2>从原文证据到产业变化</h2><p class="meta">${o?`当前对象：${esc(o.name)} · 固定发布版本`:'选择对象后查看证据链'} · 已存结果回放</p></div><div class="tools"><button data-flow="pause">暂停</button><button data-flow="replay" ${ready?'':'disabled'}>重放过程</button></div></div>${ready?`<div class="monitor-flow">${[
+   ['来源 / 证据',fact?esc(fact.quote.slice(0,160)):'原记录没有可核对的连续证据片段',evidence],
+   ['产业事件',esc(latest.title),`<small>发生日期：${esc(latest.occurredAt||'未明确')}</small>`],
+   ['企业 / 项目',esc(o.name),`<small>${esc(o.type)} · 保留稳定身份</small>`],
+   ['本轮变化 / 研判',esc((latest.changeTypes||[]).map(t=>changes[t]||t).join('、')||'未记录变更类型'),'<small>此处为资料变化；产业研判尚未发布</small>']
+  ].map(([title,text,extra],i)=>`<article class="monitor-flow-node"><small>0${i+1} / ${title}</small><p>${text}</p>${extra}</article>`).join('')}</div><progress max="12" value="0" aria-label="证据链回放进度"></progress>`:`<p role="status">${esc(error||'当前对象没有可回放的事件链。保留已有档案，不补造处理过程。')}</p>`}`;
+  summary.innerHTML=`<small>F03 / 当前对象变化摘要</small><div class="monitor-summary-grid"><article><h3>变化事实与前后差异</h3>${previous?`<p>同一事件保留多个版本，可核对前后记录。</p><details><summary>查看版本差异</summary><p>前：${esc(previous.summary||previous.title)}</p><p>后：${esc(latest.summary||latest.title)}</p></details>`:`<p>${latest?.changeTypes?.includes('baseline')?'当前为迁移时已存在的记录，没有可比较的前一版本。':'尚无同一事件的前后版本，不推断产业阶段变化。'}</p>`}</article><article><h3>分析提示与证据</h3><p>${fact?'存在可回溯原文片段；分析结论仍需审核。':'尚未取得可核对的事件证据，不能形成变化判断。'}</p>${evidence}</article><article><h3>后续观察与未确定处</h3><p>补充项目阶段、实际发生日期和后续原文；没有新报道不代表活动停滞。</p><small>本区随当前对象与版本变化，不代表全行业统计。</small></article></div>`;
+  summary.insertAdjacentHTML('afterbegin','<div id="monitor-scope-summary"><p>正在读取同版本全范围汇总…</p></div>');
+  loadScope(result?.meta?.releaseId);paint();
+ }
+ async function loadScope(releaseId){const ticket=++scopeSequence,box=summary.querySelector('#monitor-scope-summary');try{const p=new URLSearchParams(query);if(releaseId)p.set('releaseId',releaseId);const response=await fetch('api/research/monitor-summary?'+p,{signal:life.signal}),body=await response.json();if(life.signal.aborted||ticket!==scopeSequence)return;if(!response.ok)throw Error(body.message||'汇总读取失败');const d=body.data;box.innerHTML=`<h3>当前筛选范围 · ${d.kind==='migration_baseline'?'迁移基线':'本处理批次'}</h3><div class="monitor-summary-grid"><article>资料范围 <b>${d.documents}</b> 篇 / 对象 <b>${d.objects}</b> 个</article><article>本批次涉及 <b>${d.affectedDocuments}</b> 篇资料 / <b>${d.affectedObjects}</b> 个对象</article><article>可比较的同一事件版本 <b>${d.comparisonCount}</b> 组</article></div><p class="meta">${esc(d.interpretation)}</p><p>当前范围已有 ${d.assessments?.length||0} 个对象的保存研判；原文日期支持的阶段变化 ${d.datedPhaseChanges||0} 组。只统计输入资料完整落在当前范围内的成果。</p>${d.comparisons.length?`<details><summary>核对前后记录（最多展示20组）</summary>${d.comparisons.map(c=>`<article><h4>${esc(c.title)}</h4><p>前：${esc(c.before.summary||c.before.title)}</p><p>后：${esc(c.after.summary||c.after.title)}</p><button data-flow-evidence="${esc(c.before.reference.documentId)}" data-body="${esc(c.before.reference.bodyVersionId)}" data-release="${esc(c.before.reference.releaseId)}">前版原文</button><button data-flow-evidence="${esc(c.after.reference.documentId)}" data-body="${esc(c.after.reference.bodyVersionId)}" data-release="${esc(c.after.reference.releaseId)}">后版原文</button></article>`).join('')}</details>`:''}`;}catch(error){if(!life.signal.aborted&&ticket===scopeSequence)box.textContent=error.message;}}
+
+ const click=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.flow==='pause')paused=!paused;if(b.dataset.flow==='replay'){elapsed=0;phase=0;paused=false;}if(b.dataset.flowEvidence){document.querySelector('#object-host')?.dispatchEvent(new CustomEvent('object-evidence',{detail:{documentId:b.dataset.flowEvidence,bodyVersionId:b.dataset.body,releaseId:b.dataset.release}}));}paint();};
+ flow.addEventListener('click',click,{signal:life.signal});summary.addEventListener('click',click,{signal:life.signal});
+ const timer=setInterval(()=>{if(!ready||paused||document.hidden||elapsed>=12)return;const rect=flow.getBoundingClientRect();if(rect.bottom<0||rect.top>innerHeight)return;elapsed=Math.min(12,elapsed+.25);phase=Math.min(3,Math.floor(elapsed/3));paint();},250);
+ set();return {set,dispose(){life.abort();clearInterval(timer);}};
+}
