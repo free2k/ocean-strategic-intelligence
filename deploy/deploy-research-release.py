@@ -49,7 +49,7 @@ try:
  run(['pm2','save']);report={'published':True,'release':str(release),'previous':str(previous),'backup':str(backup),'caseStudies':len(checked['data']['caseStudies']),'swedenCases':checked['data']['countryCaseCoverage'].get('SE'),'norwayCases':checked['data']['countryCaseCoverage'].get('NO'),'sourceRecordsOverwritten':False,'researchCapture':'explicit historical publication, collection preserved'}
  (backup/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report))
 except Exception:
- switch(previous);run(['pm2','restart','ocean-intelligence','--update-env'],{**env,**flags,'INTEL_RESEARCH_BACKEND':'','INTEL_RESEARCH_CAPTURE':'false'});raise
+ switch(previous);run(['pm2','restart','ocean-intelligence','--update-env'],{**env,**flags,'INTEL_RESEARCH_BACKEND':flags.get('INTEL_RESEARCH_BACKEND',''),'INTEL_RESEARCH_CAPTURE':flags.get('INTEL_RESEARCH_CAPTURE','false')});raise
 finally:
  if stage.poll() is None:stage.terminate();stage.wait(timeout=15)
  log.close()

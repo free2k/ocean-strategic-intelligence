@@ -9,5 +9,6 @@ export async function publishHistoricalBatch(ledger,product){
 }
 export async function readHistoricalBatches(ledger,query={}){
  if(Object.keys(query).some(k=>!['releaseId','snapshotId','topic'].includes(k)))fail('INVALID_SCOPE','回填成果仅支持版本与领域筛选');const release=await ledger.resolveRelease(query),rows=(await Promise.all((release.historicalProducts||[]).map(r=>ledger.repository.read(r.productId)))).filter(p=>p.snapshotId===release.snapshotId&&(!query.topic||query.topic===p.topic));
- return {data:rows,meta:{releaseId:release.releaseId,ready:rows.filter(p=>p.status==='ready').length,failed:rows.filter(p=>p.status!=='ready').length,inputDocuments:new Set(rows.flatMap(p=>p.inputDocumentIds)).size,scope:'当前工作资料快照；片段批次成果，不等于全库研判完成'}};
+ const snapshot=await ledger.snapshot(release.snapshotId),scopeEntries=snapshot.entries.filter(e=>!query.topic||e.classification?.primary===query.topic),accepted=scopeEntries.filter(e=>e.classification?.status==='accepted');
+ return {data:rows,meta:{releaseId:release.releaseId,ready:rows.filter(p=>p.status==='ready').length,failed:rows.filter(p=>p.status!=='ready').length,inputDocuments:new Set(rows.flatMap(p=>p.inputDocumentIds)).size,snapshotDocuments:scopeEntries.length,acceptedDocuments:accepted.length,bodyReadyDocuments:accepted.filter(e=>(e.body.contentZh||e.body.content||'').trim().length>=80).length,scope:'当前工作资料快照；片段批次成果，不等于全库研判完成'}};
 }

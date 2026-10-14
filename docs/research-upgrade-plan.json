@@ -773,17 +773,55 @@
         "countryCase": 1,
         "countryPickerCounts": "events and verified cases separately",
         "briefDomains": 6,
-        "liveBrowser": true
+        "liveBrowser": true,
+        "priorityDossiers": 2,
+        "refreshedBriefs": 6
       },
       "backfill": {
-        "status": "running",
-        "scope": "436-document published snapshot; 228 accepted body-ready documents in prior 90 complete Beijing days; not the entire raw article database",
-        "jobs": 82,
-        "readyProductsRequire": "exact source validation and independent semantic review",
-        "priorityObjects": [
-          "北方之光",
-          "Equinor"
-        ]
+        "status": "evaluated_with_review_gaps",
+        "audit": {
+          "auditedAt": "2026-10-14T18:20:06.489Z",
+          "releaseId": "release_701b6ebe03640d313df808a58bb5c7e0773b1924ec32da742947362d025412c7",
+          "sourceDocumentRowsUnchanged": true,
+          "scope": {
+            "releaseId": "release_701b6ebe03640d313df808a58bb5c7e0773b1924ec32da742947362d025412c7",
+            "ready": 86,
+            "failed": 7,
+            "inputDocuments": 253,
+            "snapshotDocuments": 436,
+            "acceptedDocuments": 269,
+            "bodyReadyDocuments": 253,
+            "scope": "当前工作资料快照；片段批次成果，不等于全库研判完成"
+          },
+          "phases": {
+            "recent_90_days": {
+              "batches": 82,
+              "ready": 80,
+              "pending": 2,
+              "documents": 228
+            },
+            "expanded_history": {
+              "batches": 11,
+              "ready": 6,
+              "pending": 5,
+              "documents": 25
+            }
+          },
+          "briefs": 6,
+          "refreshedBriefs": 6,
+          "priorityDossiers": 2,
+          "countryCases": 1,
+          "caseCoverage": {
+            "NO": 1,
+            "SE": 1
+          },
+          "sourceWritesByAnalysis": 0,
+          "knownLimits": [
+            "Not all original articles are mapped into this published snapshot",
+            "Seven batches remain withheld pending evidence/semantic review",
+            "No automatic publication of later collection runs has been enabled"
+          ]
+        }
       },
       "capturePolicy": "Current collection remains enabled; research publication is explicit, not automatic until version migration is validated"
     }
