@@ -1,0 +1,265 @@
+{
+  "evidenceCoverage": [
+    {
+      "status": "accepted",
+      "total": 82,
+      "outside_current_audit": 2
+    },
+    {
+      "status": "excluded",
+      "total": 34,
+      "outside_current_audit": 34
+    },
+    {
+      "status": "unmatched",
+      "total": 252,
+      "outside_current_audit": 252
+    }
+  ],
+  "observedAt": "2026-10-15T09:19:00.669Z",
+  "stats": {
+    "articles": 6273,
+    "vectorized": 867,
+    "content_null": 1394,
+    "sources": 105,
+    "chunks": 384192,
+    "chunk_articles": 867
+  },
+  "publicStates": [
+    {
+      "status": "accepted",
+      "count": 1604
+    },
+    {
+      "status": "pending",
+      "count": 3103
+    },
+    {
+      "status": "rejected",
+      "count": 1566
+    }
+  ],
+  "sourceTypes": [
+    {
+      "type": "rss",
+      "count": 5
+    },
+    {
+      "type": "rss_archived",
+      "count": 6
+    },
+    {
+      "type": "wechat",
+      "count": 44
+    },
+    {
+      "type": "mp2rss_mp",
+      "count": 40
+    },
+    {
+      "type": "mp2rss_x",
+      "count": 10
+    }
+  ],
+  "articleTypes": [
+    {
+      "source_type": "rss",
+      "count": 283
+    },
+    {
+      "source_type": "wechat",
+      "count": 4348
+    },
+    {
+      "source_type": "mp2rss_x",
+      "count": 779
+    },
+    {
+      "source_type": "mp2rss_mp",
+      "count": 863
+    }
+  ],
+  "urlReconcile": {
+    "article_urls": 6273,
+    "mp_urls": 1642,
+    "working_urls": 461,
+    "mp_only": 0,
+    "working_only": 229,
+    "working_public_overlap": 232
+  },
+  "subscriptions": [
+    {
+      "platform": "mp",
+      "present": true,
+      "count": 40
+    },
+    {
+      "platform": "x",
+      "present": true,
+      "count": 10
+    }
+  ],
+  "bridge": {
+    "eligible": 209,
+    "delivered": 209
+  },
+  "workingStates": [
+    {
+      "status": "unmatched",
+      "count": 23
+    },
+    {
+      "status": "unclassified",
+      "count": 149
+    },
+    {
+      "status": "accepted",
+      "count": 289
+    }
+  ],
+  "workSources": [
+    {
+      "method": "csv",
+      "count": 1
+    },
+    {
+      "method": "api",
+      "count": 53
+    },
+    {
+      "method": "authenticated-xlsx",
+      "count": 3
+    },
+    {
+      "method": "web-index",
+      "count": 1
+    },
+    {
+      "method": "web",
+      "count": 14
+    },
+    {
+      "method": "web-pdf",
+      "count": 1
+    },
+    {
+      "method": "web-table",
+      "count": 1
+    },
+    {
+      "method": "rss",
+      "count": 8
+    }
+  ],
+  "categories": [
+    {
+      "is_overseas": true,
+      "matched_topic": "海洋低碳领域",
+      "count": 26
+    },
+    {
+      "is_overseas": false,
+      "matched_topic": "海洋油气装备",
+      "count": 464
+    },
+    {
+      "is_overseas": true,
+      "matched_topic": "海洋装备",
+      "count": 14
+    },
+    {
+      "is_overseas": false,
+      "matched_topic": "海洋多能融合",
+      "count": 21
+    },
+    {
+      "is_overseas": true,
+      "matched_topic": "海洋油气装备",
+      "count": 118
+    },
+    {
+      "is_overseas": true,
+      "matched_topic": "海洋能源资源宏观政策",
+      "count": 62
+    },
+    {
+      "is_overseas": true,
+      "matched_topic": "海上风电",
+      "count": 7
+    },
+    {
+      "is_overseas": true,
+      "matched_topic": "海洋油气",
+      "count": 188
+    },
+    {
+      "is_overseas": false,
+      "matched_topic": "海洋新能源",
+      "count": 90
+    },
+    {
+      "is_overseas": false,
+      "matched_topic": "海洋低碳",
+      "count": 6
+    },
+    {
+      "is_overseas": false,
+      "matched_topic": "宏观政策",
+      "count": 25
+    },
+    {
+      "is_overseas": false,
+      "matched_topic": "海洋能源资源宏观政策",
+      "count": 193
+    },
+    {
+      "is_overseas": false,
+      "matched_topic": "多能融合",
+      "count": 1
+    },
+    {
+      "is_overseas": true,
+      "matched_topic": "海洋新能源",
+      "count": 88
+    },
+    {
+      "is_overseas": true,
+      "matched_topic": "海洋低碳",
+      "count": 2
+    },
+    {
+      "is_overseas": false,
+      "matched_topic": "海洋油气",
+      "count": 219
+    },
+    {
+      "is_overseas": false,
+      "matched_topic": "海上风电",
+      "count": 27
+    },
+    {
+      "is_overseas": false,
+      "matched_topic": "海洋低碳领域",
+      "count": 14
+    },
+    {
+      "is_overseas": false,
+      "matched_topic": "海洋装备",
+      "count": 39
+    }
+  ],
+  "audit": {
+    "counts": {
+      "total": 6502,
+      "accepted": 1684,
+      "excluded": 1566,
+      "pending": 3252
+    },
+    "mpCounts": {
+      "total": 1642,
+      "accepted": 209,
+      "excluded": 242,
+      "pending": 1191
+    }
+  }
+}

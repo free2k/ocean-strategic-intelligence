@@ -64,3 +64,16 @@ test('published history is paged without duplicates and rejects unpublished curs
  const second=await read('?cursor='+first.body.nextCursor);assert.equal(second.body.data.length,2);assert.equal(second.body.nextCursor,null);assert.equal(new Set([...first.body.data,...second.body.data].map(r=>r.releaseId)).size,22);
  assert.notEqual((await read('?cursor=release_'+'a'.repeat(64))).status,200);assert.equal((await read('?country=CN')).status,400);
 });
+
+test('rules reader is pinned to the requested release and does not expose editable current rules',async t=>{
+ const {ledger,data,release}=await setup(t,[doc('d','海洋油气')]);
+ attachPublishedRules(data,{id:2,config:{rules:[{id:9,type:'include',topic:'海洋装备',title_keywords:['平台']} ]}});
+ const second=await ledger.publish(data,{expectedReleaseId:release.releaseId});
+ async function read(releaseId){let status,body;await serveResearchRead({method:'GET',headers:{}},{writeHead:s=>status=s,end:s=>body=JSON.parse(s)},new URL('http://localhost/api/research/rules?releaseId='+releaseId),ledger);assert.equal(status,200);return body;}
+ const old=await read(release.releaseId),latest=await read(second.releaseId);
+ assert.equal(old.data.rules.length,0);
+ assert.equal(latest.data.rules[0].title_keywords[0],'平台');
+ assert.equal(old.data.domains.length,6);
+ assert.equal(latest.data.domains.length,6);
+ assert.equal(latest.meta.releaseId,second.releaseId);
+});

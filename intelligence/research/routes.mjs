@@ -1,3 +1,5 @@
+import {standardTopics,marineContextPattern,supplementalRules} from '../industry-topics.mjs';
+import {compileRules} from '../industry-classification.mjs';
 import {readHistoricalBatches} from './historical-products.mjs';
 import {readCountries} from './countries.mjs';
 import {readProductCatalog} from './product-catalog.mjs';
@@ -14,7 +16,7 @@ export async function serveResearchRead(req,res,url,ledger,journal=null){
  const match=route.match(/^\/api\/document\/([^/]+)\/versions\/([^/]+)$/);
  const batch=route.match(/^\/api\/batches\/([^/]+)$/);
  const object=route.match(/^\/api\/research\/objects\/([^/]+)$/);
- if(!match&&!batch&&!object&&!['/api/research/historical','/api/research/products','/api/research/countries','/api/research/monitor-summary','/api/batches','/api/research/releases','/api/snapshots/latest-version','/api/research/summary','/api/research/replay','/api/research/briefs','/api/research/objects'].includes(route))return false;
+ if(!match&&!batch&&!object&&!['/api/research/rules','/api/research/historical','/api/research/products','/api/research/countries','/api/research/monitor-summary','/api/batches','/api/research/releases','/api/snapshots/latest-version','/api/research/summary','/api/research/replay','/api/research/briefs','/api/research/objects'].includes(route))return false;
  try{
   if(req.method!=='GET')fail('METHOD_NOT_ALLOWED','Only GET is supported',405);
   if(route==='/api/batches'||batch?.[1].startsWith('task_')){
@@ -37,6 +39,13 @@ export async function serveResearchRead(req,res,url,ledger,journal=null){
   if(route==='/api/research/briefs'){send(res,200,await readBriefs(ledger,Object.fromEntries(url.searchParams)));return true;}
   for(const key of url.searchParams.keys())if(!allowed.has(key)&&!(route==='/api/research/replay'&&['topic','sourceId','from','to','country'].includes(key)))fail('UNSUPPORTED_SCOPE','此基础接口暂不支持该筛选参数：'+key);
   const versions=Object.fromEntries(url.searchParams);
+  if(route==='/api/research/rules'){
+   const {release,snapshot}=await ledger.resolve(versions);
+   const config=snapshot.ruleConfig;
+   if(!Array.isArray(config?.rules))fail('RULES_UNAVAILABLE','此版本未保存匹配规则',503);
+   const policyMatches=compileRules(config).version===snapshot.ruleVersion;
+   send(res,200,{data:{rules:config.rules,domains:standardTopics,policyMatches,supplementalRules:policyMatches?supplementalRules:[],marineContextPattern:policyMatches?marineContextPattern:null},meta:{releaseId:release.releaseId,publishedAt:release.publishedAt,ruleVersion:snapshot.ruleVersion}});return true;
+  }
   if(route==='/api/research/products'){send(res,200,await readProductCatalog(ledger,versions));return true;}
   if(route==='/api/research/replay'){const result=await readBatchReplay(ledger,versions),etag='"'+result.meta.releaseId+':'+result.meta.scope.scopeHash+'"';send(res,req.headers['if-none-match']===etag?304:200,req.headers['if-none-match']===etag?null:result,{ETag:etag});return true;}
   if(batch){const release=await ledger.resolveRelease(versions);if(release.batchId!==batch[1])fail('VERSION_CONFLICT','Batch is not part of the selected release',409);send(res,200,{data:await ledger.batch(batch[1]),meta:{releaseId:release.releaseId,snapshotId:release.snapshotId}});return true;}

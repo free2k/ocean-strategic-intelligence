@@ -22,3 +22,5 @@ test('object publication dates use inclusive Beijing days and reject invalid dat
  await assert.rejects(()=>readObjects(ledger,{from:'2026-02-30'}),{code:'INVALID_SCOPE'});await assert.rejects(()=>readObjects(ledger,{from:'2026-10-15',to:'2026-10-14'}),{code:'INVALID_SCOPE'});
  await assert.rejects(()=>readObjects(ledger,{from:'2026-10-15'},rows.data[0].id),{code:'OBJECT_SCOPE_MISMATCH'});
 });
+
+test('period document IDs constrain object lists and cannot open objects outside the report',async t=>{const {ledger}=await setup(t);const all=await readObjects(ledger);assert.equal((await readObjects(ledger,{},null,new Set())).total,0);await assert.rejects(readObjects(ledger,{},all.data[0].id,new Set()),e=>e.code==='OBJECT_SCOPE_MISMATCH');assert.equal((await readObjects(ledger,{},null,new Set(['d']))).total,2);});

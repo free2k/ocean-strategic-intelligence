@@ -281,23 +281,24 @@ async function startVectorizeRange() {
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4" v-if="stats">
               <div>
                 <div class="text-2xl font-bold">{{ stats.totalArticles }}</div>
-                <div class="text-sm text-gray-500">文章总数</div>
+                <div class="text-sm text-gray-500">全渠道文章总数（去重）</div>
               </div>
               <div>
                 <div class="text-2xl font-bold text-green-600">{{ stats.vectorizedArticles }}</div>
-                <div class="text-sm text-gray-500">已向量化</div>
+                <div class="text-sm text-gray-500">原文章库已向量化（篇）</div>
               </div>
               <div>
                 <div class="text-2xl font-bold">{{ stats.totalSources }}</div>
-                <div class="text-sm text-gray-500">来源渠道</div>
+                <div class="text-sm text-gray-500">原渠道登记（条）</div>
               </div>
               <div>
                 <div class="text-2xl font-bold">{{ stats.totalChunks }}</div>
-                <div class="text-sm text-gray-500">知识片段</div>
+                <div class="text-sm text-gray-500">原文章库知识片段（个）</div>
               </div>
             </div>
           </UCard>
 
+          <p v-if="stats" class="text-sm text-gray-500">全渠道：已纳入 {{ stats.classification.accepted }} + 已排除 {{ stats.classification.excluded }} + 待筛选 {{ stats.classification.pending }} = {{ stats.totalArticles }} 篇。向量化、片段与渠道登记单独统计。数据时间 {{ new Date(stats.observedAt).toLocaleString('zh-CN', {timeZone:'Asia/Shanghai'}) }}（北京时间）。</p>
           <!-- 向量化管理 -->
           <UCard>
             <template #header>

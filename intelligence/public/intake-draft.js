@@ -1,11 +1,12 @@
+const requestKey=()=>globalThis.crypto?.randomUUID?crypto.randomUUID():Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join('');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function openIntakeDraft(dialog,host,{topics=[],countries=[]}){
- let draft=null,key=crypto.randomUUID(),uploadId=null,busy=false,lastDraft=null;try{lastDraft=sessionStorage.getItem('last-intake-draft');}catch{}
+ let draft=null,key=requestKey(),uploadId=null,busy=false,lastDraft=null;try{lastDraft=sessionStorage.getItem('last-intake-draft');}catch{}
  const api=async(path,body)=>{const r=await fetch('api/intake-drafts'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),v=await r.json();if(!r.ok)throw Error(v.message||v.error||'保存失败');return v;};
  host.innerHTML='<h2>补充资料</h2><p>先保存原始资料，再编辑并确认事件。未知日期、国家和链接可留空。</p><label>自由文字<textarea id="intake-text" rows="10" maxlength="60000" placeholder="粘贴原文，无需固定模板"></textarea></label><p>或上传附件（沿用现有格式与大小限制）</p><input id="intake-file" type="file" accept=".txt,.md,.csv,.pdf,.docx,.pptx,.xlsx,.png,.jpg,.jpeg,.webp"><div id="intake-editor"></div><p id="intake-status" role="status"></p><button id="intake-save-source">保存来源并编辑草稿</button>';
  if(lastDraft)host.insertAdjacentHTML('afterbegin','<button id="intake-resume">恢复上次草稿</button>');if(!dialog.open)dialog.showModal();
  const status=msg=>{const el=host.querySelector('#intake-status');if(el)el.textContent=msg;};
- host.querySelector('#intake-file').onchange=()=>{uploadId=null;key=crypto.randomUUID();status('附件已变更，保存时将使用当前文件。');};
+ host.querySelector('#intake-file').onchange=()=>{uploadId=null;key=requestKey();status('附件已变更，保存时将使用当前文件。');};
  host.onclick=async e=>{const b=e.target.closest('button');if(!b||busy)return;try{busy=true;b.disabled=true;
   if(b.id==='intake-save-source'||b.id==='intake-resume'){
    const file=host.querySelector('#intake-file').files[0];if(b.id!=='intake-resume'&&file&&!uploadId){if(file.size>12*1024*1024)throw Error('文件不能超过12MB');const bytes=new Uint8Array(await file.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));const response=await fetch('api/uploads',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:file.name,base64:btoa(binary)})}),saved=await response.json();if(!response.ok)throw Error(saved.error||'附件保存失败');uploadId=saved.id;status('原附件已保存，正在解析；稍后再点击保存来源继续。');return;}

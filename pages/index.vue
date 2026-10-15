@@ -5,7 +5,7 @@ const colorMode = useColorMode();
 const isDark = computed(() => colorMode.value === 'dark');
 
 const { data: stats } = await useFetch('/api/stats');
-const { data: categories } = await useFetch('/api/stats/categories');
+const categories = computed(() => stats.value?.categories);
 
 const domesticChartRef = ref<HTMLElement | null>(null);
 const overseasChartRef = ref<HTMLElement | null>(null);
@@ -158,18 +158,26 @@ onUnmounted(() => {
         <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">文章总数</div>
       </div>
       <div class="bg-white/80 dark:bg-gray-800/60 backdrop-blur border border-gray-200 dark:border-gray-700/50 rounded-xl p-5 text-center shadow-sm">
-        <div class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{{ stats.vectorizedArticles }}</div>
-        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">已向量化</div>
+        <div class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{{ stats.classification.accepted }}</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">已纳入</div>
       </div>
       <div class="bg-white/80 dark:bg-gray-800/60 backdrop-blur border border-gray-200 dark:border-gray-700/50 rounded-xl p-5 text-center shadow-sm">
-        <div class="text-3xl font-bold text-cyan-600 dark:text-cyan-400">{{ stats.totalSources }}</div>
-        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">来源渠道</div>
+        <div class="text-3xl font-bold text-cyan-600 dark:text-cyan-400">{{ stats.classification.excluded }}</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">已排除</div>
       </div>
       <div class="bg-white/80 dark:bg-gray-800/60 backdrop-blur border border-gray-200 dark:border-gray-700/50 rounded-xl p-5 text-center shadow-sm">
-        <div class="text-3xl font-bold text-violet-600 dark:text-violet-400">{{ stats.totalChunks }}</div>
-        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">知识片段</div>
+        <div class="text-3xl font-bold text-violet-600 dark:text-violet-400">{{ stats.classification.pending }}</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">待筛选</div>
       </div>
     </div>
+
+    <section v-if="stats" class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+      <p>全部采集来源 · 原文链接去重 · 文章总数 = 已纳入 + 已排除 + 待筛选</p>
+      <p>数据时间：{{ new Date(stats.observedAt).toLocaleString('zh-CN', {timeZone:'Asia/Shanghai'}) }}（北京时间）</p>
+      <details><summary class="cursor-pointer">检索处理与来源登记（单独统计）</summary><p>原文章库已向量化 {{ stats.vectorizedArticles }} 篇 · 知识片段 {{ stats.totalChunks }} 个 · 原渠道登记 {{ stats.totalSources }} 条。处理进度与登记条数不计入文章分类。</p></details>
+      <p>下方仅统计已纳入文章，每篇按主领域计一次。来源地域未标记：{{ categories?.unknown?.reduce((n: number, c: any) => n+c.count, 0) }} 篇（不强行归入国内或外网）。</p>
+      <p v-if="categories?.unknown?.length">未标记来源地域的行业分布：{{ categories.unknown.map((c: any) => c.name+' '+c.count+' 篇').join('；') }}</p>
+    </section>
 
     <!-- 分类占比图表 -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

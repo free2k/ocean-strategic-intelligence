@@ -1,3 +1,4 @@
+import {cachedAudit,auditBridge} from '../../intelligence/classification-audit.mjs';
 import {queueSemantic} from '../../intelligence/semantic-classification.mjs';
 // MP_CLEAN_V1
 import {initClassification,decideArticle} from '../../intelligence/classification-jobs.mjs';
@@ -43,10 +44,9 @@ export async function status(){await init();let configured=true;try{connection()
  const list=(await pool.query(`SELECT s.*,coalesce(c.count,0)::int AS count,coalesce(c.ready,0)::int AS ready,c.latest FROM mp2rss.subscriptions s LEFT JOIN (SELECT subscription_id,count(*) count,count(*) FILTER(WHERE payload->>'contentStatus'='complete') ready,max(payload->>'publishedAt') latest FROM mp2rss.items GROUP BY subscription_id)c ON c.subscription_id=s.id ORDER BY s.payload->>'platform',s.payload->>'name'`)).rows;
  const history=await subscriptionHistory(pool,list);
  const jobs=(await pool.query('SELECT * FROM mp2rss.jobs ORDER BY id DESC LIMIT 12')).rows;const state=(await pool.query("SELECT payload FROM mp2rss.state WHERE id='sync'")).rows[0]?.payload||{};
- let bridge={eligible:0,delivered:0,translated:0,extracted:0};
- if((await pool.query("SELECT to_regclass('ocean_intel.documents') AS t")).rows[0].t)bridge=(await pool.query(`SELECT count(*)::int eligible,count(d.id)::int delivered,count(d.id) FILTER(WHERE d.payload->>'language'='zh' OR d.payload->>'translationVersion'=d.payload->>'versionId')::int translated,count(d.id) FILTER(WHERE d.payload->'autoExtraction'->>'status'='completed')::int extracted FROM mp2rss.items i LEFT JOIN ocean_intel.documents d ON d.payload->>'url'=i.payload->>'url' AND d.payload->>'providerHash'=i.content_hash WHERE i.classification->>'status'='accepted' AND i.payload->>'contentStatus'='complete'`)).rows[0];
  const pendingJobs=(await pool.query("SELECT id,action,target,request,status,created_at,started_at FROM mp2rss.jobs WHERE status IN ('queued','running') ORDER BY CASE WHEN status='running' THEN 0 WHEN action='batch_verified_subscribe' THEN 1 ELSE 2 END,id")).rows;
- return {configured,intervalMinutes:30,state,list,jobs,bridge,history,queue:{jobs:pendingJobs,pollSeconds:60,waiting:pendingJobs.filter(j=>j.status==='queued').length}};}
+ const audit=await cachedAudit(pool),classification=audit.mpCounts,bridge=auditBridge(audit.documents);
+ return {classification,observedAt:audit.observedAt,metricVersion:audit.metricVersion,scope:'mp2rss',configured,intervalMinutes:30,state,list,jobs,bridge,history,queue:{jobs:pendingJobs,pollSeconds:60,waiting:pendingJobs.filter(j=>j.status==='queued').length}};}
 export async function update(id,body){await init();if(body.enabled===false||body.articles===false)throw Error('已订阅账号默认采集文章');if(body.posts!==undefined&&typeof body.posts!=='boolean')throw Error('开关参数必须为布尔值');return(await pool.query('UPDATE mp2rss.subscriptions SET enabled=true,posts=coalesce($2,posts),articles=true WHERE id=$1 RETURNING id',[id,body.posts??null])).rows[0];}
 export async function execute(){await init();const guard=await pool.connect();try{if(!(await guard.query('SELECT pg_try_advisory_lock(73201910) AS locked')).rows[0].locked)return {busy:true};
  await initClassification(pool);
