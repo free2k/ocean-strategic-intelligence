@@ -16,6 +16,30 @@ test('replay selects at most six with primary-domain coverage and explicit basel
  const docs=standardTopics.flatMap((topic,i)=>[doc('a'+i,topic.id),doc('b'+i,topic.id)]),{ledger}=await setup(t,docs),result=await readBatchReplay(ledger);
  assert.equal(result.data.kind,'migration_baseline');assert.equal(result.data.samples.length,6);assert.equal(new Set(result.data.samples.map(s=>s.topic)).size,6);assert.equal(result.data.counts.changes.new_document,0);assert.equal(result.data.playback.phases.reduce((n,p)=>n+p.seconds,0),12);assert.equal(result.meta.replayOnly,true);
 });
+test('each primary domain picks its newest saved-body evidence, not its smallest ID',async t=>{
+ const docs=standardTopics.flatMap(topic=>[
+  {...doc('a-old-'+topic.id,topic.id),publishedAt:'2026-10-08T00:00:00Z'},
+  {...doc('z-new-'+topic.id,topic.id),publishedAt:'2026-10-14T00:00:00Z'},
+  {...doc('b-missing-body-'+topic.id,topic.id),publishedAt:'2026-10-15T00:00:00Z',content:''},
+  {...doc('c-unknown-date-'+topic.id,topic.id),publishedAt:null}
+ ]);
+ const {ledger}=await setup(t,docs),result=await readBatchReplay(ledger);
+ assert.deepEqual(result.data.samples.map(s=>s.documentId),standardTopics.map(t=>'z-new-'+t.id));
+ assert.equal(result.data.omittedFromReplay,6);
+});
+test('same-date candidates are deterministic and a sparse batch does not borrow older-batch articles',async t=>{
+ const {ledger,data,release}=await setup(t,[
+  {...doc('b','海洋油气'),publishedAt:'2026-10-14T00:00:00Z'},
+  {...doc('a','海洋油气'),publishedAt:'2026-10-14T00:00:00Z'},
+  {...doc('other-domain','海洋装备'),publishedAt:'2026-10-15T00:00:00Z'}
+ ]);
+ assert.equal((await readBatchReplay(ledger)).data.samples[0].documentId,'a');
+ data.documents[0].content='本批次补充正文';
+ const next=await ledger.publish(data,{expectedReleaseId:release.releaseId});
+ const result=await readBatchReplay(ledger,{releaseId:next.releaseId});
+ assert.deepEqual(result.data.samples.map(s=>s.documentId),['b']);
+ assert.equal(result.data.documents.length,3);
+});
 test('only affected documents enter replay; old evidence remains pinned after a newer release',async t=>{
  const {ledger,data,release}=await setup(t,[doc('d1','海洋油气'),doc('d2','海洋装备')]);data.documents[0].content='第二版正文';const second=await ledger.publish(data,{expectedReleaseId:release.releaseId});const result=await readBatchReplay(ledger,{releaseId:second.releaseId});assert.deepEqual(result.data.samples.map(s=>s.documentId),['d1']);assert.equal(result.data.counts.snapshotClassification.total,2);assert.equal(result.data.counts.processedClassification.total,1);
  data.documents[0].content='第三版正文';await ledger.publish(data,{expectedReleaseId:second.releaseId});const again=await readBatchReplay(ledger,{releaseId:second.releaseId});assert.deepEqual(again,result);const sample=again.data.samples[0],original=await ledger.document(sample.documentId,sample.bodyVersionId,{releaseId:second.releaseId});assert.equal(original.data.content,'第二版正文');assert.ok(sample.evidenceUrl.includes(second.releaseId));

@@ -37,3 +37,15 @@ export function formatDisplayDate(value,fallback='未提供'){
 export function originalSourceLink(value){
  try{const url=new URL(value);if(!['http:','https:'].includes(url.protocol))throw Error();return `<p class="original-source"><a href="${escapeHtml(url.href)}" target="_blank" rel="noopener noreferrer">打开原始来源 ↗</a></p>`;}catch{return '<p class="meta">此资料未保存可跳转的原始链接</p>';}
 }
+
+// Reading presentation only; the saved source remains available unchanged.
+export function articleBody(text){return `<article class="reading-article markdown">${markdown(text||'此版本未保存正文')}</article><details class="reading-raw"><summary>查看保存的纯文本</summary><pre>${escapeHtml(text||'此版本未保存正文')}</pre></details>`;}
+export function groupReferences(refs=[]){const groups=new Map();for(const r of refs){const key=JSON.stringify([r.documentId,r.bodyVersionId,r.releaseId]);if(!groups.has(key))groups.set(key,{...r,quotes:[]});const g=groups.get(key);if(r.quote&&!g.quotes.includes(r.quote))g.quotes.push(r.quote);}return [...groups.values()];}
+export function enhanceReader(dialog){
+ if(!dialog)return;dialog.classList.add('reader-dialog');
+ let footer=dialog.querySelector('.reader-footer');if(!footer){footer=document.createElement('div');footer.className='reader-footer';footer.innerHTML='<span>原文阅读 · Esc 可关闭</span><button type="button">关闭预览</button>';footer.querySelector('button').onclick=()=>dialog.close();dialog.append(footer);}
+ const body=dialog.querySelector('#detail-body,#dialog-content,#object-evidence');if(body)body.scrollTop=0;
+ if(dialog.dataset.readerBound)return;dialog.dataset.readerBound='true';
+ dialog.addEventListener('click',e=>{if(!dialog.classList.contains('reader-dialog')||e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();});
+ dialog.addEventListener('close',()=>{dialog.classList.remove('reader-dialog');dialog.querySelector('.reader-footer')?.remove();});
+}

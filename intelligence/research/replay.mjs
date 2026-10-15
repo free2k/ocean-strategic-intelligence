@@ -2,6 +2,9 @@ import {standardTopics,canonicalTopic} from '../industry-topics.mjs';
 import {countClassification,fail,digest} from './ledger.mjs';
 import {normalizeScope} from './scope.mjs';
 
+const publicationTime=value=>{const time=Date.parse(value);return Number.isFinite(time)?time:-Infinity;};
+const newestFirst=(a,b)=>publicationTime(b.publishedAt)-publicationTime(a.publishedAt)||a.documentId.localeCompare(b.documentId);
+
 // Read recorded decisions only. Replay must never run today's rules over old bodies.
 export async function readBatchReplay(ledger,versions={}){
  const {release,snapshot}=await ledger.resolve(versions),batch=await ledger.batch(release.batchId);
@@ -15,17 +18,18 @@ export async function readBatchReplay(ledger,versions={}){
   const topic=canonicalTopic(c.primary||positive.find(p=>topics.has(canonicalTopic(p.topic)))?.topic);
   const keyword=k=>typeof k==='string'?k:typeof k?.keyword==='string'?k.keyword:'';
   const hasPositive=positive.some(p=>p.keywords?.some(k=>keyword(k).trim()));
-  if(!topics.has(topic)||!hasPositive||!['accepted','excluded'].includes(c.status)||c.status==='excluded'&&!negative.some(k=>keyword(k).trim()))return null;
+  const hasSavedBody=[e.body.contentZh,e.body.content].some(text=>typeof text==='string'&&text.trim());
+  if(!hasSavedBody||!topics.has(topic)||!hasPositive||!['accepted','excluded'].includes(c.status)||c.status==='excluded'&&!negative.some(k=>keyword(k).trim()))return null;
   return {documentId:e.documentId,bodyVersionId:e.bodyVersionId,classificationVersionId:e.classificationVersionId,title:e.body.titleZh||e.body.title,sourceId:e.body.sourceId,publishedAt:e.body.publishedAt,topic,classification:c,changeTypes:changed.get(e.documentId).types,
    evidenceUrl:`/api/document/${encodeURIComponent(e.documentId)}/versions/${e.bodyVersionId}?releaseId=${encodeURIComponent(release.releaseId)}`};
- }).filter(Boolean).sort((a,b)=>a.documentId.localeCompare(b.documentId));
+ }).filter(Boolean).sort(newestFirst);
  const selected=[];
- // First cover primary domains; fill remaining slots by channel/status/change diversity.
+ // Cover primary domains with their newest evidenced article in this batch only.
  for(const topic of standardTopics){const candidate=candidates.find(c=>c.classification.status==='accepted'&&canonicalTopic(c.classification.primary)===topic.id);if(candidate)selected.push(candidate);}
  while(selected.length<6){
   const remaining=candidates.filter(c=>!selected.includes(c));if(!remaining.length)break;
   const score=c=>Number(!selected.some(s=>s.sourceId===c.sourceId))+Number(!selected.some(s=>s.classification.status===c.classification.status))+Number(!selected.some(s=>s.topic===c.topic))+Number(c.changeTypes.some(type=>!selected.some(s=>s.changeTypes.includes(type))));
-  remaining.sort((a,b)=>score(b)-score(a)||a.documentId.localeCompare(b.documentId));selected.push(remaining[0]);
+  remaining.sort((a,b)=>score(b)-score(a)||newestFirst(a,b));selected.push(remaining[0]);
  }
  const affected=entries.filter(e=>changed.has(e.documentId)),asDocs=rows=>rows.map(e=>({id:e.documentId,industry:e.classification?{...e.classification,primary:e.classification.primary?canonicalTopic(e.classification.primary):null}:null}));
  const counts={affectedDocuments:affected.length,changes:Object.fromEntries(Object.keys(batch.counts.changes).map(type=>[type,affected.filter(e=>changed.get(e.documentId).types.includes(type)).length])),processedClassification:countClassification(asDocs(affected)),snapshotClassification:countClassification(asDocs(entries))};
