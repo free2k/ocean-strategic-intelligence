@@ -1,4 +1,5 @@
 import {escapeHtml as esc} from './preview.js';
+import {canonicalTopic} from './industry-topics.mjs';
 
 const palette=['#78cfc3','#a997ee','#7db9dd','#e0b874','#d998af','#82b995'];
 export function periodChartData(job){
@@ -6,7 +7,7 @@ export function periodChartData(job){
  for(let t=Date.parse(job.range.from+'T00:00:00Z');t<=Date.parse(job.range.to+'T00:00:00Z');t+=86400000)days.push(new Date(t).toISOString().slice(0,10));
  const domains=job.domains.map(d=>({name:d.name,topic:d.topic,count:0,daily:days.map(()=>0),sources:new Map()})),sources=new Map(),hours=new Map();
  for(const entry of job.documents||[]){
-  const domain=domains.find(d=>d.topic===entry.classification?.primary);
+  const domain=domains.find(d=>canonicalTopic(d.topic)===canonicalTopic(entry.classification?.primary));
   if(!domain)continue;
   const source=entry.sourceName||'未记录来源',date=new Date(Date.parse(entry.body.publishedAt)+8*3600000);
   if(!Number.isFinite(+date))continue;

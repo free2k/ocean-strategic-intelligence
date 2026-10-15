@@ -24,4 +24,5 @@ test('charts reconcile source, industry, dates and Beijing hours for each saved 
  const documents=[doc('oil','2026-10-09T16:00:00Z','A'),doc('wind','2026-10-16T15:59:59Z','B'),doc('oil','2026-10-16T16:00:00Z','outside')];
  const data=periodChartData({range,domains,documents});assert.equal(data.total,2);assert.deepEqual(data.domains.map(d=>d.count),[1,1]);assert.equal(data.days.length,7);assert.deepEqual(data.hours,[[0,0,1],[6,23,1]]);assert.equal(data.sources.reduce((n,s)=>n+s[1],0),2);assert.equal(data.domains.flatMap(d=>d.daily).reduce((a,b)=>a+b,0),2);
  assert.equal(periodChartData({range,domains,documents:documents.slice(0,1)}).total,1);
+ assert.equal(periodChartData({range,domains:[{name:'海洋新能源',topic:'海上风电'}],documents:[doc('海洋新能源','2026-10-10T01:00:00Z','A')]}).total,1);
 });
