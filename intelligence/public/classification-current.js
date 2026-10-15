@@ -13,7 +13,8 @@ export function mountCurrentClassification(root,payload){
  document.body.classList.add('classification-current-view');
  const reportHost=document.createElement('section');$('#app').before(reportHost);const disposeReports=mountPeriodReports(reportHost);
  const replayHost=reportHost;replayHost.id='evidence-replay';
- const nav=document.createElement('div');nav.className='tools';nav.innerHTML='<button data-audit-mode="history">清洗流程演示</button><button data-audit-mode="current">查看全部文章与分类 ↓</button>';replayHost.before(nav);
+ const nav=document.createElement('div'); // Legacy navigation stays detached; article list remains below.
+
 
  let filters={group:'',topic:'',source:'',status:'',search:''};
  function shell(){if(!inventory&&!error){$('#page-title').textContent='情报证据中心';$('#app').innerHTML='<section class="panel" aria-busy="true"><h2>全部文章与分类依据</h2><p role="status">正在读取文章列表与分类统计，上方清洗演示可独立查看。</p></section>';return;}if(error||!inventory){$('#app').innerHTML=`<section class="panel"><h2>文章列表暂不可用</h2><p>${esc(error||'未获得数据')}</p><button id="audit-refresh">重试</button></section>`;return;}
