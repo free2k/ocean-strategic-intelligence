@@ -30,7 +30,7 @@ export function buildObjects(snapshot,batch,release,previous=null){
    // Ambiguous changed assertions remain separate candidates, never asserted as real-world change.
    const id=result.eventMap[key]||'event_'+digest({documentId:entry.documentId,type:event.type,occurredAt:event.eventDate||null,objects:ids,assertions:quotes.length?quotes:normalized(event.title)});result.eventMap[key]=id;
    let item=events.get(id);if(!item){item={id,firstSeenAt:at,legacyIds:[],versions:[],objectIds:ids};events.set(id,item);}item.legacyIds=uniq([...item.legacyIds,event.id]);item.objectIds=uniq([...item.objectIds,...ids]);
-   const version={...ref(entry),title:event.title,type:event.type,summary:event.summary,occurredAt:event.eventDate||null,dateBasis:event.dateBasis||'发生日期未明确',status:event.status||'candidate',observedAt:at,changeTypes:batch.baseline?['baseline']:changes.get(entry.documentId)||[],evidenceIds:event.evidenceIds||[]};
+   const version={...ref(entry),title:event.title,type:event.type,summary:event.summary,occurredAt:event.eventDate||null,dateQuote:event.dateQuote||null,dateEvidenceIds:event.dateEvidenceIds||[],dateBasis:event.dateBasis||'发生日期未明确',status:event.status||'candidate',observedAt:at,changeTypes:batch.baseline?['baseline']:changes.get(entry.documentId)||[],evidenceIds:event.evidenceIds||[]};
    const versionKey=digest({body:entry.bodyVersionId,structure:entry.structureVersionId,event});if(!item.versions.some(v=>v.versionKey===versionKey))item.versions.push({...version,versionKey});
    for(const oid of ids){const o=objects.get(oid);o.eventIds=uniq([...o.eventIds,id]);attach(o,entry,event.evidenceIds);}
   }
