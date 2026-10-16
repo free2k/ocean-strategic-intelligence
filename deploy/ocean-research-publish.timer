@@ -1,0 +1,8 @@
+[Unit]
+Description=Refresh research archives after workspace processing
+[Timer]
+OnBootSec=45s
+OnUnitInactiveSec=60s
+AccuracySec=5s
+[Install]
+WantedBy=timers.target
