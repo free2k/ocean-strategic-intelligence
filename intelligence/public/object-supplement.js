@@ -1,0 +1,24 @@
+import {escapeHtml as esc} from './preview.js';
+import {objectFields} from './object-fields.js';
+export function mountObjectSupplement(host,object,releaseId,onUpdate){
+ const life=new AbortController();let timer,items=[],requestId=null,uploadId=null;
+ host.innerHTML='<button data-object-upload>上传资料 · AI 补充信息</button><dialog class="object-supplement-dialog"><div class="panel-head"><h3>AI 补充对象信息</h3><button data-supplement-close>关闭 ×</button></div><div class="object-supplement-content"></div></dialog>';
+ const dialog=host.querySelector('dialog'),box=host.querySelector('.object-supplement-content');
+ const api=async(path,data)=>{const r=await fetch('api/'+path,{signal:life.signal,...(data?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}:{})});const v=await r.json();if(!r.ok)throw Error(v.error||'请求失败');return v;};
+ const query=new URLSearchParams({objectId:object.id,releaseId});
+ function latest(){const fields={};for(const j of items)if(j.status==='completed')for(const f of j.fields)fields[f.field]||={...f,jobId:j.id,createdAt:j.createdAt};return fields;}
+ async function refresh(){clearTimeout(timer);try{items=(await api('object-supplements?'+query)).items;if(life.signal.aborted)return;onUpdate(latest());renderHistory();if(items.some(j=>j.status==='running'))timer=setTimeout(refresh,2500);}catch(e){if(!life.signal.aborted){const status=box.querySelector('[data-supplement-status]');if(status)status.textContent=e.message;}}}
+ function renderHistory(){const el=box.querySelector('[data-supplement-history]');if(!el)return;el.innerHTML=items.map(j=>`<section class="object-supplement-record"><h4>${esc(j.upload?.name||'补充文字资料')} · ${esc(new Date(j.createdAt).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false}))}</h4><p>${j.status==='running'?'AI 正在识别，完成后自动保存并更新对象概况。':j.status==='failed'?esc(j.error):j.fields.length?'已保存 · AI 识别，未经人工确认':'未找到可明确绑定到当前对象的字段依据，原资料已保存。'}</p>${j.fields.map(f=>`<p><strong>${esc(f.field)}：</strong>${esc(f.value)}</p><blockquote>${esc(f.quote)}</blockquote>`).join('')}${j.upload?`<a href="api/uploads/${encodeURIComponent(j.upload.id)}/file" target="_blank" rel="noopener">下载原文件 ↗</a>`:''}<details><summary>查看本次识别正文</summary><pre>${esc(j.text)}</pre></details></section>`).join('')||'<p>尚无补充记录。</p>';}
+ function open(){box.innerHTML=`<p>补充对象：<strong>${esc(object.name)}</strong>（${esc(object.type)}）</p><p>自动识别：${objectFields(object.type).map(esc).join('、')}。仅保存有明确原文依据的字段。</p><label>上传资料<input data-supplement-file type="file" accept=".png,.jpg,.jpeg,.webp,.pdf,.docx,.pptx,.xlsx,.txt,.md,.csv"></label><p class="muted">支持图片、PDF、Office 文档及文本，最大12MB；PDF最多20页，扫描页最多6页。</p><label>或粘贴资料正文<textarea data-supplement-text rows="7" placeholder="粘贴包含对象名称及属性的原文；选择文件时优先读取文件。"></textarea></label><button data-supplement-identify>AI 识别并补充</button><p data-supplement-status role="status">结果自动保存至此对象，按最新补充记录显示，历史记录保留。补充属性不改变已发布简报的文章范围。</p><h3>补充记录与原文依据</h3><div data-supplement-history></div>`;renderHistory();dialog.showModal();}
+ host.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;if(b.hasAttribute('data-object-upload')){open();return;}if(b.hasAttribute('data-supplement-close')){dialog.close();return;}if(!b.hasAttribute('data-supplement-identify'))return;
+  const status=box.querySelector('[data-supplement-status]'),file=box.querySelector('[data-supplement-file]').files[0],text=box.querySelector('[data-supplement-text]').value;b.disabled=true;
+  try{if(file){if(file.size>12*1024*1024)throw Error('文件不能超过12MB');if(!uploadId){status.textContent='正在上传并识别正文…';const base64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=reject;reader.readAsDataURL(file);});uploadId=(await api('uploads',{name:file.name,base64,purpose:'object-fields'})).id;}
+    let upload;for(let n=0;n<240;n++){upload=await api('uploads/'+uploadId+'/status');if(upload.status!=='processing')break;await new Promise(r=>setTimeout(r,2000));if(life.signal.aborted)return;}if(upload?.status!=='completed')throw Error(upload?.error||'正文识别仍在处理中，可稍后再次点击继续。');
+   }else if(text.trim().length<15)throw Error('请选择文件，或粘贴至少15字的资料正文。');
+   requestId||=Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,'0')).join('');
+   await api('object-supplements',{objectId:object.id,releaseId,requestId,uploadId:file?uploadId:null,text:file?'':text});status.textContent='资料已保存，AI 正在识别对象属性；可以关闭窗口，稍后查看结果。';requestId=null;uploadId=null;await refresh();
+  }catch(e){if(!life.signal.aborted)status.textContent=e.message||'识别请求失败';}finally{if(b.isConnected)b.disabled=false;}
+ },{signal:life.signal});
+ host.addEventListener('change',e=>{if(e.target.matches('[data-supplement-file],[data-supplement-text]')){requestId=null;uploadId=null;}},{signal:life.signal});
+ refresh();return()=>{life.abort();clearTimeout(timer);dialog.close();};
+}

@@ -49,3 +49,7 @@ body.classification-current-view .filters,body.classification-current-view #asof
 #period-details{margin-top:20px}#period-details>summary{cursor:pointer;padding:12px;font-weight:600}#period-details .archive-bar{grid-template-columns:100px minmax(0,1fr) 45px}#period-details .period-settings{margin:20px 0}#period-details .archive-bar span{white-space:nowrap}
 
 .period-chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.period-chart-grid>section{min-width:0}.period-chart{height:360px;width:100%}@media(max-width:850px){.period-chart-grid{grid-template-columns:1fr}.period-chart{height:380px}}
+
+.object-supplement-dialog{width:min(900px,92vw);max-height:85vh;overflow:auto;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:24px}.object-supplement-dialog textarea{width:100%;box-sizing:border-box}.object-supplement-dialog label{display:block;margin:16px 0}.object-supplement-dialog pre{white-space:pre-wrap;overflow-wrap:anywhere}.object-supplement-record{border-top:1px solid var(--line);padding:16px 0}#object-supplement-entry{display:flex;justify-content:flex-end;margin:12px 0}
+
+.object-detail-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
