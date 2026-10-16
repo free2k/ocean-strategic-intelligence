@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';import path from 'node:path';import OpenAI fro
 import {chunks,normalizeExtraction,mergeRecords,relationTypes,topics} from './core.mjs';
 export const pipelineVersion='auto-evidence-v1';
 export const extractionTimeoutMs=180000;
+export const extractionConcurrency=4;
 export function extractionError(error){
  const status=Number.isInteger(error?.status)?error.status:null;
  const name=String(error?.name||''),code=String(error?.code||error?.cause?.code||''),message=String(error?.message||'');
@@ -59,7 +60,7 @@ export async function autoExtract(dir,{client,extract=extractArticle,clock=()=>n
  if(!client&&process.env.INTEL_ENABLE_AI==='true'&&process.env.OPENAI_API_KEY)client=new OpenAI({apiKey:process.env.OPENAI_API_KEY,baseURL:process.env.OPENAI_BASE_URL,timeout:extractionTimeoutMs,maxRetries:0});
  const pending=data.documents.filter(d=>!d.manual&&(!d.industry||d.industry.status==='accepted')&&!isComplete(d)&&(!d.autoExtraction?.nextRetryAt||d.autoExtraction.versionId!==d.versionId||d.autoExtraction.nextRetryAt<=now));
  const queue=limit>0?pending.slice(0,limit):pending;let index=0;
- if(client)await Promise.all([0,1].map(async()=>{while(index<queue.length){const d=queue[index++];const attempts=d.autoExtraction?.versionId===d.versionId?(d.autoExtraction.attempts||0)+1:1;d.autoExtraction={status:'running',versionId:d.versionId,pipelineVersion,attempts,startedAt:clock()};await checkpoint();
+ if(client)await Promise.all(Array.from({length:extractionConcurrency},async()=>{while(index<queue.length){const d=queue[index++];const attempts=d.autoExtraction?.versionId===d.versionId?(d.autoExtraction.attempts||0)+1:1;d.autoExtraction={status:'running',versionId:d.versionId,pipelineVersion,attempts,startedAt:clock()};await checkpoint();
   try{if(!d.content?.trim())throw new Error('empty_content');const result=await extract(client,d);applyExtraction(data,d,result,clock());d.autoExtraction.method='自动模型提取';}
   catch(error){const at=clock(),failure=extractionError(error);d.autoExtraction={...d.autoExtraction,...failure,status:'failed',error:'自动提取未完成，原文与既有结果保留',nextRetryAt:new Date(Date.parse(at)+Math.min(24,2**Math.min(attempts-1,5))*3600000).toISOString()};data.errors.push({sourceId:d.sourceId,documentId:d.id,stage:'auto-extraction',...failure,error:d.autoExtraction.error,at});}
   await checkpoint();
