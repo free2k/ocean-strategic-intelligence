@@ -2,6 +2,25 @@ import {domainPrompt} from './industry-topics.mjs';
 import fs from 'node:fs/promises';import path from 'node:path';import OpenAI from 'openai';
 import {chunks,normalizeExtraction,mergeRecords,relationTypes,topics} from './core.mjs';
 export const pipelineVersion='auto-evidence-v1';
+export const extractionTimeoutMs=180000;
+export function extractionError(error){
+ const status=Number.isInteger(error?.status)?error.status:null;
+ const name=String(error?.name||''),code=String(error?.code||error?.cause?.code||''),message=String(error?.message||'');
+ let type='unknown';
+ if(status===429)type='rate_limit';
+ else if(status===401||status===403)type='authentication';
+ else if(/timeout|timed out/i.test(name+' '+message)||['ETIMEDOUT','UND_ERR_CONNECT_TIMEOUT','UND_ERR_HEADERS_TIMEOUT'].includes(code))type='timeout';
+ else if(status>=500)type='upstream_server';
+ else if(status>=400)type='request_rejected';
+ else if(message==='truncated')type='output_truncated';
+ else if(message==='schema')type='invalid_schema';
+ else if(message==='unsupported_quotes')type='evidence_validation';
+ else if(message==='empty_content')type='empty_content';
+ else if(error instanceof SyntaxError)type='invalid_json';
+ else if(/connection|network|fetch failed/i.test(name+' '+message)||['ECONNRESET','ECONNREFUSED','ENOTFOUND','EAI_AGAIN'].includes(code))type='network';
+ // Store only bounded categories and HTTP status, never provider payloads or credentials.
+ return {errorType:type,httpStatus:status};
+}
 const structured=['events','relations','observations'];
 const protectedRow=r=>r.manual||r.reviewedAt||r.method==='官方原文规则校验';
 export function isComplete(d){return d.autoExtraction?.versionId===d.versionId&&d.autoExtraction?.pipelineVersion===pipelineVersion&&d.autoExtraction?.status==='completed'&&(d.autoExtraction?.classificationRevision||null)===(d.extractionRevision||null);}
@@ -37,12 +56,12 @@ export async function autoExtract(dir,{client,extract=extractArticle,clock=()=>n
  const file=path.join(dir,'snapshot.json'),data=JSON.parse(await fs.readFile(file,'utf8'));data.errors||=[];
  const save=async()=>{const tmp=file+'.extract.tmp';await fs.writeFile(tmp,JSON.stringify(data));await fs.rename(tmp,file);};let saving=Promise.resolve();const checkpoint=()=>saving=saving.then(save);
  const now=clock();for(const d of data.documents.filter(canAdopt))d.autoExtraction={status:'completed',versionId:d.versionId,pipelineVersion,completedAt:now,method:'采集阶段已提取',attempts:0};
- if(!client&&process.env.INTEL_ENABLE_AI==='true'&&process.env.OPENAI_API_KEY)client=new OpenAI({apiKey:process.env.OPENAI_API_KEY,baseURL:process.env.OPENAI_BASE_URL,timeout:90000,maxRetries:0});
+ if(!client&&process.env.INTEL_ENABLE_AI==='true'&&process.env.OPENAI_API_KEY)client=new OpenAI({apiKey:process.env.OPENAI_API_KEY,baseURL:process.env.OPENAI_BASE_URL,timeout:extractionTimeoutMs,maxRetries:0});
  const pending=data.documents.filter(d=>!d.manual&&(!d.industry||d.industry.status==='accepted')&&!isComplete(d)&&(!d.autoExtraction?.nextRetryAt||d.autoExtraction.versionId!==d.versionId||d.autoExtraction.nextRetryAt<=now));
  const queue=limit>0?pending.slice(0,limit):pending;let index=0;
  if(client)await Promise.all([0,1].map(async()=>{while(index<queue.length){const d=queue[index++];const attempts=d.autoExtraction?.versionId===d.versionId?(d.autoExtraction.attempts||0)+1:1;d.autoExtraction={status:'running',versionId:d.versionId,pipelineVersion,attempts,startedAt:clock()};await checkpoint();
   try{if(!d.content?.trim())throw new Error('empty_content');const result=await extract(client,d);applyExtraction(data,d,result,clock());d.autoExtraction.method='自动模型提取';}
-  catch{const at=clock();d.autoExtraction={...d.autoExtraction,status:'failed',error:'自动提取未完成，原文与既有结果保留',nextRetryAt:new Date(Date.parse(at)+Math.min(24,2**Math.min(attempts-1,5))*3600000).toISOString()};data.errors.push({sourceId:d.sourceId,documentId:d.id,stage:'auto-extraction',error:d.autoExtraction.error,at});}
+  catch(error){const at=clock(),failure=extractionError(error);d.autoExtraction={...d.autoExtraction,...failure,status:'failed',error:'自动提取未完成，原文与既有结果保留',nextRetryAt:new Date(Date.parse(at)+Math.min(24,2**Math.min(attempts-1,5))*3600000).toISOString()};data.errors.push({sourceId:d.sourceId,documentId:d.id,stage:'auto-extraction',...failure,error:d.autoExtraction.error,at});}
   await checkpoint();
  }}));
  await saving;data.processing={...processingSummary(data),checkedAt:clock(),modelEnabled:!!client};data.generatedAt=clock();await checkpoint();return data.processing;

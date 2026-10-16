@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import os from 'node:os';import path from 'node:path';
-import {autoExtract,applyExtraction,mergeProcessedSnapshot,processingSummary,isComplete} from '../auto-extract.mjs';
+import {autoExtract,applyExtraction,mergeProcessedSnapshot,processingSummary,isComplete,extractionError,extractionTimeoutMs} from '../auto-extract.mjs';
 const empty=()=>({entities:[],events:[],relations:[],observations:[],evidence:[],rejected:[]});
 const seed=()=>({documents:[{id:'d',versionId:'v',content:'Shell operates Project Alpha in Norway.',language:'en',sourceId:'shell',extractionVersion:'rules-v1'}],sources:[],events:[{id:'rule',documentId:'d',countries:['US'],status:'candidate'}],relations:[],observations:[],evidence:[],entities:[],series:[]});
 const result=()=>({...empty(),entities:[{id:'shell',name:'Shell',type:'公司',evidenceIds:['proof']}],events:[{id:'model',documentId:'d',countries:['NO'],entityIds:['shell'],evidenceIds:['proof'],status:'extracted'}],evidence:[{id:'proof',documentId:'d',quote:'Shell operates Project Alpha in Norway.'}]});
@@ -21,4 +21,10 @@ test('long articles are processed beyond the first model input window',async()=>
  const {extractArticle}=await import('../auto-extract.mjs');const document={...seed().documents[0],content:'a'.repeat(16000)+'END_OF_ORIGINAL'};const received=[];
  const client={chat:{completions:{create:async input=>{received.push(JSON.parse(input.messages[1].content).content);return{choices:[{finish_reason:'stop',message:{content:JSON.stringify({entities:[],events:[],relations:[],metrics:[]})}}]};}}}};
  await extractArticle(client,document);assert.ok(received.length>1);assert.ok(received.at(-1).endsWith('END_OF_ORIGINAL'));assert.ok(received.every(x=>x.length<=14000));
+});
+
+test('extraction waits 180 seconds and classifies safe failure metadata',async()=>{
+ assert.equal(extractionTimeoutMs,180000);
+ for(const [error,type] of [[Object.assign(new Error('secret'),{status:429}),'rate_limit'],[Object.assign(new Error('Request timed out'),{name:'APIConnectionTimeoutError'}),'timeout'],[new Error('truncated'),'output_truncated'],[new Error('schema'),'invalid_schema'],[new Error('unsupported_quotes'),'evidence_validation'],[new SyntaxError('private response'),'invalid_json'],[Object.assign(new Error('secret'),{status:503}),'upstream_server']])assert.equal(extractionError(error).errorType,type);
+ const f=await fixture();await autoExtract(f.dir,{client:{},extract:async()=>{throw Object.assign(new Error('secret token'),{status:429});}});const saved=await f.read();assert.equal(saved.documents[0].autoExtraction.errorType,'rate_limit');assert.equal(saved.errors.at(-1).httpStatus,429);assert.ok(!JSON.stringify(saved).includes('secret token'));
 });
