@@ -23,6 +23,12 @@ export function decideArticle(a,compiled){
  }
  return {decision,content,inputHash:digest([title,content]),ready:!!content,manual:!!decision.manual};
 }
+// Compare business classifications, not historical aliases. Manual decisions are immutable.
+export function classificationChanged(article,decision){
+ if(article.manual_classify||article.classify_method==='manual'||decision.manual)return false;
+ const before=article.filter_status==='accepted'?'accepted':article.filter_status==='rejected'?'excluded':'unmatched';
+ return before!==decision.status||(canonicalTopic(article.matched_topic)||null)!==(canonicalTopic(decision.primary)||null);
+}
 export async function articleRows(db,scope,lock=false,after=0){return (await db.query(`SELECT a.id,a.title,CASE WHEN i.id IS NULL THEN a.content ELSE NULL END content,a.link,a.source_id,a.published_at,a.filter_status,a.matched_topic,a.reject_reason,a.manual_classify,a.classify_method,s.name source_name,s.type source_kind,
  i.id item_id,i.subscription_id,i.payload->>'content' mp_content,i.classification mp_classification
  FROM public.articles a LEFT JOIN public.sources s ON s.id=a.source_id LEFT JOIN mp2rss.items i ON i.article_id=a.id
@@ -37,7 +43,7 @@ function addSummary(target,part){for(const key of Object.keys(part)){if(key==='s
 async function summarizeAll(db,scope,compiled){const result=summarize([],compiled);for await(const rows of articleBatches(db,scope))addSummary(result,summarize(rows,compiled));return result;}
 export function summarize(rows,compiled){const summary={total:0,mp2rss:0,legacy:0,manual:0,changed:0,newlyAccepted:0,removed:0,accepted:0,excluded:0,candidate:0,missingBody:0,eligible:0};const samples=[];
  for(const a of rows){const {decision:d,ready,manual}=decideArticle(a,compiled);summary.total++;summary[a.item_id?'mp2rss':'legacy']++;if(manual)summary.manual++;summary[d.status==='accepted'?'accepted':d.status==='excluded'?'excluded':'candidate']++;if(!ready)summary.missingBody++;if(ready&&d.status==='accepted')summary.eligible++;
- const old=a.filter_status==='accepted'?'accepted':a.filter_status==='rejected'?'excluded':'unmatched';if(old!==d.status||a.matched_topic!==d.primary){summary.changed++;if(samples.length<12)samples.push({id:a.id,title:a.title,before:old,after:d.status,topic:d.primary,reason:d.reason});}if(old!=='accepted'&&d.status==='accepted')summary.newlyAccepted++;if(old==='accepted'&&d.status!=='accepted')summary.removed++;
+ const old=a.filter_status==='accepted'?'accepted':a.filter_status==='rejected'?'excluded':'unmatched';if(classificationChanged(a,d)){summary.changed++;if(samples.length<12)samples.push({id:a.id,title:a.title,before:old,after:d.status,topic:d.primary,reason:d.reason});}if(old!=='accepted'&&d.status==='accepted')summary.newlyAccepted++;if(old==='accepted'&&d.status!=='accepted')summary.removed++;
  }return {...summary,samples};}
 export async function previewClassification(db,value){await initClassification(db);const scope=scopeOf(value),config=await currentRules(db),compiled=compileRules(config),token=digest([compiled.version,scope]);const cached=(await db.query("SELECT payload FROM classification.previews WHERE token=$1 AND created_at>now()-interval '5 minutes'",[token])).rows[0];if(cached)return cached.payload;
  const summary=await summarizeAll(db,scope,compiled);let intelligence={total:0,changed:0};if(!scope.targeted&&(await db.query("SELECT to_regclass('ocean_intel.documents') t")).rows[0].t){let after='';while(true){const rows=(await db.query('SELECT id,payload FROM ocean_intel.documents WHERE id>$1 ORDER BY id LIMIT 20',[after])).rows;if(!rows.length)break;for(const {payload:d} of rows){intelligence.total++;if(d.manual||d.industry?.manual)continue;const next=classifyRecord(d,compiled);if(next.status!==d.industry?.status||next.primary!==d.industry?.primary)intelligence.changed++;}after=rows.at(-1).id;}}

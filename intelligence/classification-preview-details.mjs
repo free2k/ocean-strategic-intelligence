@@ -1,9 +1,9 @@
-import {articleBatches,currentRules,decideArticle,textBody} from './classification-jobs.mjs';
+import {articleBatches,currentRules,decideArticle,textBody,classificationChanged} from './classification-jobs.mjs';
 import {compileRules} from './industry-classification.mjs';
 const snapshots=new Map();
 export function changeDetail(a,decision){
  const before=a.filter_status==='accepted'?'accepted':a.filter_status==='rejected'?'excluded':'unmatched';
- if(before===decision.status&&a.matched_topic===decision.primary)return null;
+ if(!classificationChanged(a,decision))return null;
  const content=textBody(a.mp_content??a.content),title=a.title||'';
  const hits=[...(decision.positive||[]).flatMap(p=>(p.keywords||[]).map(k=>({...k,topic:p.topic,kind:'正向'}))),...(decision.negative||[]).map(k=>({...k,kind:'反向'}))];
  return {id:a.id,title,url:a.link,before,beforeTopic:a.matched_topic,after:decision.status,topic:decision.primary,reason:decision.reason,primaryBasis:decision.primaryBasis,source:a.source_name,publishedAt:a.published_at,evidence:hits.map(k=>{const body=k.field==='标题'?title:k.field==='正文'?content:title+'\n'+content,index=body.toLocaleLowerCase().indexOf(String(k.keyword).toLocaleLowerCase());return {...k,quote:index<0?'':body.slice(Math.max(0,index-90),index+String(k.keyword).length+150)};})};
