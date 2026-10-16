@@ -8,6 +8,10 @@ import {spawn} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 
 export function nextCollectionTime(nextRun,now,completedFull=false){const planned=Date.parse(nextRun||'');return new Date(completedFull||!Number.isFinite(planned)?now+6*3600000:Math.max(now+30000,planned)).toISOString();}
+export function workerTimeoutMs(name,value=process.env.INTEL_PIPELINE_TIMEOUT_HOURS){
+ if(!['enrich.mjs','pipeline-worker.mjs'].includes(name))return 12*60000;
+ const hours=Number(value||12);return (Number.isFinite(hours)&&hours>=1&&hours<=24?hours:12)*3600000;
+}
 export function workerStage(name){if(name==='reconcile-classification.mjs')return 'classifying';if(name==='pipeline-worker.mjs')return 'structuring';if(name==='import-mp2rss.mjs')return 'body_preparation';return 'collecting';}
 export async function createScheduler({store,dir,root,serial,researchLedger=null,researchJournal=null,executeWorker=null}){
  const enabled=process.env.INTEL_SCHEDULE==='true',intervalMs=6*3600000,file=path.join(dir,'collection-status.json');
@@ -19,7 +23,7 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
  const persist=async()=>{const tmp=file+'.'+randomUUID()+'.tmp';await fs.writeFile(tmp,JSON.stringify(state));await fs.rename(tmp,file);};
  const runScript=executeWorker||((name,stage)=>new Promise((resolve,reject)=>{
   const p=spawn(process.execPath,[path.join(root,name)],{cwd:path.dirname(root),env:{...process.env,INTEL_DATA_DIR:stage,IEA_DATA_HOME:process.env.IEA_DATA_HOME||path.join(dir,'iea'),INTEL_MAX_PER_SOURCE:'4',INTEL_ENRICH_LIMIT:process.env.INTEL_ENRICH_LIMIT||'0'},stdio:['ignore','ignore','ignore']});
-  const timeout=setTimeout(()=>p.kill(),['enrich.mjs','pipeline-worker.mjs'].includes(name)?2*3600000:12*60000);
+  const timeout=setTimeout(()=>p.kill(),workerTimeoutMs(name));
   p.on('error',()=>{clearTimeout(timeout);reject(new Error('worker_start_failed'));});p.on('exit',code=>{clearTimeout(timeout);code===0?resolve():reject(new Error('worker_failed'));});
  }));
  const arm=(completedFull=false)=>{clearTimeout(timer);if(enabled){state.nextRun=nextCollectionTime(state.nextRun,Date.now(),completedFull);timer=setTimeout(()=>run(),Date.parse(state.nextRun)-Date.now());timer.unref();}};

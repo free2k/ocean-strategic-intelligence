@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {workerTimeoutMs} from '../scheduler.mjs';
+test('pipeline has a bounded configurable budget while collection keeps its short timeout',()=>{assert.equal(workerTimeoutMs('pipeline-worker.mjs',''),12*3600000);assert.equal(workerTimeoutMs('pipeline-worker.mjs','6'),6*3600000);for(const v of ['0','-1','25','NaN','Infinity'])assert.equal(workerTimeoutMs('pipeline-worker.mjs',v),12*3600000);assert.equal(workerTimeoutMs('collect.mjs','12'),12*60000);});
