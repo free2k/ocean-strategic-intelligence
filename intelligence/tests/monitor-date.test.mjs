@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {monitorDate} from '../public/monitor-overview.js';
+test('monitor dates convert UTC to Beijing and preserve date-only precision',()=>{assert.equal(monitorDate('2026-10-13T09:39:13.000Z'),'2026/10/13 17:39（北京时间）');assert.equal(monitorDate('2026-10-13T18:39:13Z'),'2026/10/14 02:39（北京时间）');assert.equal(monitorDate('2026-10-13'),'2026/10/13');assert.equal(monitorDate(null),'未记录');assert.equal(monitorDate('invalid'),'未记录');});

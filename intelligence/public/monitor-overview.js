@@ -1,4 +1,11 @@
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function monitorDate(value){
+ if(!value)return '未记录';
+ if(/^\d{4}-\d{2}-\d{2}$/.test(value))return value.replaceAll('-','/');
+ const date=new Date(value);if(!Number.isFinite(date.getTime()))return '未记录';
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(date).map(p=>[p.type,p.value]));
+ return `${parts.year}/${parts.month}/${parts.day} ${parts.hour}:${parts.minute}（北京时间）`;
+}
 const changes={baseline:'迁移基线',new_document:'首次收录',body_updated:'正文修订',classification_changed:'分类调整',structure_changed:'结构化更新'};
 export function mountMonitorOverview(flow,summary,{query=''}={}){
  const life=new AbortController();let phase=0,paused=matchMedia('(prefers-reduced-motion: reduce)').matches,elapsed=0,ready=false,scopeSequence=0;
@@ -12,7 +19,7 @@ export function mountMonitorOverview(flow,summary,{query=''}={}){
   const evidence=latest?`<button data-flow-evidence="${esc(latest.documentId)}" data-body="${esc(latest.bodyVersionId)}" data-release="${esc(latest.releaseId)}">核对来源版本 ↗</button>`:'';
   flow.innerHTML=`<div class="panel-head"><div><small>F01 / 成果形成过程</small><h2>从原文证据到产业变化</h2><p class="meta">${o?`当前对象：${esc(o.name)} · 固定发布版本`:'选择对象后查看证据链'} · 已存结果回放</p></div><div class="tools"><button data-flow="pause">暂停</button><button data-flow="replay" ${ready?'':'disabled'}>重放过程</button></div></div>${ready?`<div class="monitor-flow">${[
    ['来源 / 证据',fact?esc(fact.quote.slice(0,160)):'原记录没有可核对的连续证据片段',evidence],
-   ['产业事件',esc(latest.title),`<small>${latest.occurredAt?'事件发生日期：'+esc(latest.occurredAt):'发生日期未明确'}</small><small>报道发布日期：${esc(latest.publishedAt||'未记录')}</small>${latest.dateQuote?'<details><summary>事件日期原文依据</summary><blockquote>'+esc(latest.dateQuote)+'</blockquote><small>模型提取，未经人工确认</small></details>':''}`],
+   ['产业事件',esc(latest.title),`<dl class="monitor-dates"><div><dt>事件发生日期</dt><dd>${latest.occurredAt?esc(monitorDate(latest.occurredAt)):'发生日期未明确'}</dd></div><div><dt>报道发布日期</dt><dd>${esc(monitorDate(latest.publishedAt))}</dd></div></dl>${latest.dateQuote?'<details><summary>事件日期原文依据</summary><blockquote>'+esc(latest.dateQuote)+'</blockquote><small>模型提取，未经人工确认</small></details>':''}`],
    ['企业 / 项目',esc(o.name),`<small>${esc(o.type)} · 保留稳定身份</small>`],
    ['本轮变化 / 研判',esc((latest.changeTypes||[]).map(t=>changes[t]||t).join('、')||'未记录变更类型'),'<small>此处为资料变化；产业研判尚未发布</small>']
   ].map(([title,text,extra],i)=>`<article class="monitor-flow-node"><small>0${i+1} / ${title}</small><p>${text}</p>${extra}</article>`).join('')}</div><progress max="12" value="0" aria-label="证据链回放进度"></progress>`:`<p role="status">${esc(error||'当前对象没有可回放的事件链。保留已有档案，不补造处理过程。')}</p>`}`;
