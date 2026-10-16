@@ -2,6 +2,7 @@ import pg from 'pg';
 import {PostgresResearchRepository} from './repositories.mjs';
 import {publishWorkspace} from './publish-workspace.mjs';
 // Must be launched under the same flock as collection; never read a staged snapshot.
+process.env.INTEL_DATABASE_URL ||= process.env.DATABASE_URL;
 if(!process.env.INTEL_DATABASE_URL)throw Error('INTEL_DATABASE_URL required');
 const pool=new pg.Pool({connectionString:process.env.INTEL_DATABASE_URL,max:2,connectionTimeoutMillis:10000});
 try{
