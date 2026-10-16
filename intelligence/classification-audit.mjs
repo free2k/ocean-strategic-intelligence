@@ -12,7 +12,7 @@ export function mergeAudit({articles=[],mp=[],evidence=[],working=[],sources=[],
  // imported working copies. Preserve competing decisions for inspection, never reclassify here.
  const winner=[...candidates].reverse().find(x=>x.manual)||[...candidates].reverse().find(x=>x.classification)||candidates.at(-1);
  map.set(k,{...old,...row,classification:winner.classification,manual:winner.manual,classificationOrigin:winner.origin,classificationRecords:candidates,origins:[...new Set([...(old?.origins||[]),origin])],sourceIds:[...new Set([...(old?.sourceIds||[]),row.sourceId].filter(Boolean))]});}
- for(const d of working)add({...d,classification:d.industry||d.classification||null,sourceName:names.get(d.sourceId)||d.sourceId,channelGroup:'other',workingId:d.id,region:'unknown'},'working');
+ for(const d of working)add({...d,classification:d.industry||d.classification||null,sourceName:names.get(d.sourceId)||d.sourceId,channelGroup:d.manual?'manual':'other',workingId:d.id,region:'unknown'},'working');
  for(const a of articles){const old=map.get(articleKey(a.link)),manual=a.manual_classify||a.classify_method==='manual';const c=manual?{status:a.filter_status==='accepted'?'accepted':a.filter_status==='rejected'?'excluded':'unmatched',primary:a.matched_topic,method:'manual',manual:true,reason:a.reject_reason||'人工分类记录'}:a.classification||{status:a.filter_status==='accepted'?'accepted':a.filter_status==='rejected'?'excluded':'unmatched',primary:a.matched_topic,method:a.classify_method==='keyword'?'rules':a.classify_method,reason:a.reject_reason||'未保存详细判断依据'};
  add({id:'article:'+a.id,auditArticleId:a.id,url:a.link,title:a.title,content:a.content||old?.content||'',sourceId:old?.sourceId||'article_source_'+a.source_id,sourceName:a.source_name||old?.sourceName||'未记录渠道',publishedAt:a.published_at,classification:c,channelGroup:'other',manual:!!manual,region:a.is_overseas===true?'overseas':a.is_overseas===false?'domestic':'unknown'},'articles');}
  for(const r of evidence){const p=r.payload||{},url=r.url||p.url,old=map.get(articleKey(url));let host='未记录原始站点';try{host=new URL(url).hostname;}catch{}
@@ -23,6 +23,7 @@ export function mergeAudit({articles=[],mp=[],evidence=[],working=[],sources=[],
 }
 export function auditBridge(rows){const eligible=rows.filter(d=>d.channelGroup==='mp2rss'&&auditState(d.classification)==='accepted'&&d.bodyComplete),delivered=eligible.filter(d=>d.synced);return {eligible:eligible.length,delivered:delivered.length,translated:delivered.filter(d=>d.language==='zh'||d.translationVersion===d.versionId&&!!d.versionId).length,extracted:delivered.filter(d=>d.autoExtraction?.status==='completed').length};}
 const caches=new WeakMap();
+export function invalidateAudit(pool){if(pool)caches.delete(pool);}
 export async function cachedAudit(pool){let c=caches.get(pool);if(!c){c={};caches.set(pool,c);}if(c.value&&Date.now()-c.at<15000)return c.value;if(!c.pending)c.pending=readAudit(pool).then(v=>{c.value=v;c.at=Date.now();return v;}).finally(()=>{c.pending=null;});return c.pending;}
 // A single read transaction observes all classification states; no import or classification is run.
 export async function readAudit(pool){const db=await pool.connect();try{await db.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');const observedAt=(await db.query('SELECT now() AS at')).rows[0].at;

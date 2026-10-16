@@ -1,0 +1,25 @@
+import {escapeHtml as esc,enhanceReader} from './preview.js';
+// Both interfaces use the same Nuxt database APIs, never a second rules file.
+async function request(path,body,method='POST'){
+ const r=await fetch('/api/filters'+path,body===undefined?{}:{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+ const type=r.headers.get('content-type')||'';
+ if(!type.includes('json'))throw Error('规则管理服务暂不可用，请通过完整网站访问此页面。');
+ const value=await r.json();if(!r.ok)throw Error(value.message||value.error||'规则请求失败');return value;
+}
+const words=value=>value.split(/[\n、,，]+/).map(x=>x.trim()).filter(Boolean);
+export async function openRuleEditor(root,published){
+ const $=s=>root.querySelector(s),dialog=$('#detail'),host=$('#dialog-content');let impact=null,busy=false;const dirty=new Set();
+ $('#dialog-title').textContent='行业规则与重新分类';host.oninput=null;host.onsubmit=null;host.innerHTML='<p role="status">正在读取共享规则…</p>';enhanceReader(dialog);dialog.showModal();
+ try{
+ const data=await request('');if(!dialog.open)return;
+ host.innerHTML=`<p>与旧版共用同一份数据库规则。保存修改更新规则草稿；预览并提交重新分类后才应用到历史文章。已发布简报保留原版本，人工分类保留。</p><p>最近生效版本包含 ${published?.rules?.length||0} 条规则；下方为当前可编辑草稿。</p><div id="rule-feedback" role="status"></div>${data.rules.map(r=>`<details class="rule-domain"><summary>${esc(r.topic||'通用反向规则')} · ${r.type==='exclude'?'反向排除':'正向匹配'}</summary><form data-rule="${esc(r.id)}"><label>说明<textarea name="description">${esc(r.description||'')}</textarea></label><label>标题关键词（每行一个）<textarea name="titleKeywords">${esc((r.titleKeywords||[]).join('\n'))}</textarea></label><label>正文关键词（每行一个）<textarea name="contentKeywords">${esc((r.contentKeywords||[]).join('\n'))}</textarea></label><label>组合规则（每行一组，组内用逗号分隔）<textarea name="groups">${esc((r.groups||[]).map(g=>g.join('，')).join('\n'))}</textarea></label><label>优先级<input name="priority" type="number" value="${Number(r.priority)||0}"></label><label><input type="checkbox" name="enabled" ${r.enabled?'checked':''}>启用</label><label><input type="checkbox" name="requireAll" ${r.requireAll?'checked':''}>要求全部命中</label><button type="submit">保存这条规则</button><span role="status" data-saved></span></form></details>`).join('')}<h3>按当前规则重新分类</h3><label>处理范围<select id="rule-scope"><option value="all">全部历史文章与工作库</option><option value="pending">仅待分类文章</option></select></label><p>此范围独立于文章列表筛选；重新分类沿用现有语义判断、提取和发布流程。</p><button id="rule-impact">预览影响范围</button><div id="rule-impact-result"></div><button id="rule-run" disabled>按预览范围重新分类</button><button id="rule-jobs">刷新任务状态</button><div id="rule-job-results" role="status"></div>`;
+ const feedback=message=>{$('#rule-feedback').textContent=message;};
+ const invalidate=()=>{impact=null;$('#rule-run').disabled=true;$('#rule-impact-result').textContent='';};
+ host.oninput=event=>{invalidate();const form=event.target.closest('[data-rule]');if(form){dirty.add(form.dataset.rule);form.querySelector('[data-saved]').textContent='未保存';}};
+ host.onsubmit=async event=>{const form=event.target;if(!form.matches('[data-rule]'))return;event.preventDefault();if(busy)return;busy=true;const button=form.querySelector('button');button.disabled=true;try{const f=new FormData(form);await request('/'+form.dataset.rule,{description:f.get('description'),titleKeywords:words(f.get('titleKeywords')),contentKeywords:words(f.get('contentKeywords')),groups:f.get('groups').split('\n').map(words).filter(x=>x.length),priority:Number(f.get('priority')),enabled:f.has('enabled'),requireAll:f.has('requireAll')},'PUT');dirty.delete(form.dataset.rule);invalidate();form.querySelector('[data-saved]').textContent='已保存';feedback('共享规则已保存，旧版入口可见。请预览影响范围后提交重新分类。');}catch(e){feedback(e.message);}finally{busy=false;button.disabled=false;}};
+ const jobs=async()=>{const result=await request('/reprocess');$('#rule-job-results').innerHTML=(result.jobs||[]).map(j=>`<p>任务 #${esc(j.id)} · 规则 ${esc(j.version)} · ${esc(({queued:'排队中',classifying:'分类中',processing:'下游处理中',partial:'部分完成',completed:'已完成'})[j.status]||j.status)}${j.error?' · '+esc(j.error):''}</p>`).join('')||'<p>暂无任务</p>';};
+ $('#rule-impact').onclick=async()=>{if(busy)return;if(dirty.size){feedback('请先保存已修改的规则，再预览影响范围。');return;}busy=true;invalidate();try{const pending=$('#rule-scope').value==='pending';impact=(await request('/reprocess?preview=1&pendingOnly='+pending+'&targeted='+pending)).preview;$('#rule-impact-result').textContent=`规则版本 ${impact.version}：文章 ${impact.total} 篇，预计变更 ${impact.changed} 篇，保留人工分类 ${impact.manual} 篇。${impact.intelligence?'工作库另涉及 '+impact.intelligence.total+' 篇。':''}`;$('#rule-run').disabled=false;}catch(e){feedback(e.message);}finally{busy=false;}};
+ $('#rule-run').onclick=async()=>{if(busy||!impact)return;busy=true;$('#rule-run').disabled=true;try{await request('/reprocess',{...impact.scope,version:impact.version,previewToken:impact.previewToken});invalidate();feedback('重新分类任务已提交。完成后刷新文章列表查看结果。');await jobs();}catch(e){invalidate();feedback(e.message);}finally{busy=false;}};
+ $('#rule-jobs').onclick=()=>jobs().catch(e=>feedback(e.message));
+ }catch(e){host.textContent=e.message;}
+}
