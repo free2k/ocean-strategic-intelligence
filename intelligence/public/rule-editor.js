@@ -30,7 +30,7 @@ export async function openRuleEditor(root,published,sourceDocuments=[]){
  if(item){box.querySelector('[data-impact-prev]').onclick=()=>showDetail(box,token,v.page-1);box.querySelector('[data-impact-next]').onclick=()=>showDetail(box,token,v.page+1);box.querySelector('[data-impact-go]').onclick=()=>{const page=Number(box.querySelector('[data-impact-page]').value);if(Number.isSafeInteger(page)&&page>=1&&page<=v.total)showDetail(box,token,page);};}
  }catch(e){if(!box.isConnected||impact?.previewToken!==token)return;detailValid=false;syncSubmit();const message=e.name==='TimeoutError'?'明细读取超过 20 秒，已停止等待。后台繁忙时可稍后重试，无需重新计算汇总。':/connect|timeout/i.test(e.message)?'明细服务连接超时，请稍后重试。':e.message;actionFeedback('汇总已完成，但变更明细未加载成功；暂不可提交。');box.innerHTML='<p role="alert">'+esc(message)+'</p><button data-impact-retry>重试读取明细</button>';box.querySelector('button').onclick=()=>showDetail(box,token,page);}}
  const jobBox=$('#rule-job-results');let stopped=false,refreshing=false,timer;
- const stop=()=>{stopped=true;disposeTask();style.remove();clearTimeout(timer);dialog.removeEventListener('close',stop);};
+ const stop=()=>{if(stopped)return;stopped=true;disposeTask();clearTimeout(timer);dialog.removeEventListener('close',stop);};
  progressSessions.set(host,stop);dialog.addEventListener('close',stop,{once:true});
  const stageNames={'collect.mjs':'订阅来源采集','official-sources.mjs':'官方来源采集','expanded-sources.mjs':'扩展来源采集','open-datasets.mjs':'开放数据采集','iea-datasets.mjs':'IEA 数据采集','import-mp2rss.mjs':'订阅文章入库','reconcile-classification.mjs':'规则分类与语义复核','pipeline-worker.mjs':'指标提取与成果处理','import-eia.mjs':'EIA 数据导入','import-series.mjs':'统计序列导入'};
  const date=value=>value?new Date(value).toLocaleString('zh-CN',{hour12:false}):'尚未开始';
