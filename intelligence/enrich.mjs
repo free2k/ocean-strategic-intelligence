@@ -1,13 +1,14 @@
-﻿import fs from 'node:fs/promises';import path from 'node:path';import {createHash} from 'node:crypto';import OpenAI from 'openai';
+import fs from 'node:fs/promises';import path from 'node:path';import {createHash} from 'node:crypto';import OpenAI from 'openai';
 import {extractionError} from './auto-extract.mjs';
 const hash=s=>createHash('sha256').update(s).digest('hex');
-const normalize=s=>String(s||'').replace(/&#(?:39|8217);|&(?:rsquo|lsquo);/g,"'").replace(/[‘’]/g,"'").replace(/&amp;/g,'&').replace(/&quot;|&#34;/g,'"').replace(/\s+/g,' ').trim().toLowerCase();
+const normalize=s=>String(s||'').replace(/&#(?:0*39|8217);|&(?:rsquo|lsquo);/g,"'").replace(/[‘’]/g,"'").replace(/&amp;/g,'&').replace(/&quot;|&#34;/g,'"').replace(/\s+/g,' ').trim().toLowerCase();
 export function translationBody(doc){
  const original=String(doc.content||''),lines=original.split(/\r?\n/).map(x=>x.trim()).filter(Boolean),title=normalize(doc.title);
- const start=title?lines.findIndex(x=>normalize(x)===title):-1;
+ const matches=title?lines.map((x,i)=>normalize(x)===title?i:-1).filter(i=>i>=0):[];
+ const start=matches.find(i=>/^By\s|^Published$/i.test(lines[i+1]||''))??matches.at(-1)??-1;
  let end=-1,method='whitespace-only';
  if(start>=0){
-  if(lines.some(x=>/^More Top Reads From Oilprice\.com$/i.test(x)))end=lines.findIndex((x,i)=>i>start&&/^More Top Reads From Oilprice\.com$/i.test(x));
+  if(lines.some(x=>/Oilprice\.com/i.test(x))&&lines.some(x=>/^More Top Reads From Oilprice\.com$|^Download The Free Oilprice App Today$/i.test(x)))end=lines.findIndex((x,i)=>i>start&&/^More Top Reads From Oilprice\.com$|^Download The Free Oilprice App Today$/i.test(x));
   else if(lines.some(x=>/^Subscribe to Offshore Engineer$/i.test(x)))end=lines.findIndex((x,i)=>i>start&&/^Related Offshore News$/i.test(x));
  }
  // Only cut when both the exact article title and a known trailing section are present.
