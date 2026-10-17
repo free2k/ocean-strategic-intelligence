@@ -1,3 +1,4 @@
+import {deliveryRevision,acknowledgeDelivery} from './intelligence-delivery.mjs';
 import {acknowledgeClassification} from './classification-jobs.mjs';
 import {mergeProcessedSnapshot,isComplete} from './auto-extract.mjs';
 import {TaskJournal} from './research/task-journal.mjs';
@@ -30,7 +31,7 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
  async function run({processOnly=false}={}){
   if(state.running)return false;
   // Claim before awaiting the process lock so concurrent requests cannot both enter.
-  state.running=true;let guard,task,completedFull=false;
+  state.running=true;let guard,task,delivery,completedFull=false;
   try{
    if(process.platform==='linux'){
     guard=spawn('flock',['-n','/opt/ocean-intelligence/eia-daily.lock',process.execPath,'-e','process.stdout.write("locked\\n");process.stdin.resume();'],{stdio:['pipe','pipe','ignore']});
@@ -39,7 +40,8 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
    }
    if(publication&&state.taskId){const previous=await publication.recover(state.taskId);if(previous.status==='deferred'&&previous.checkpointHash){state.result='deferred';state.error='上一批资料发布待恢复：'+previous.reason;return false;}}
    if(publication){const latest=await researchLedger.latest();if(!latest){state.result='deferred';state.error='研究版本库尚无明确迁移基线，请先捕获基线';return false;}task=await journal.create({trigger:processOnly?'process_only':'scheduled_collection',expectedReleaseId:latest.releaseId});}
-   state={...state,running:true,taskId:task?.id||null,startedAt:new Date().toISOString(),steps:[],error:null};await persist();
+   delivery=await deliveryRevision(store.pool);
+   state={...state,running:true,runMode:processOnly?'processing':'collection',result:null,taskId:task?.id||null,startedAt:new Date().toISOString(),steps:[],error:null};await persist();
    const stage=path.join(dir,'jobs',task?.id||randomUUID());await fs.mkdir(stage,{recursive:true});await fs.writeFile(path.join(stage,'snapshot.json'),JSON.stringify(store.data));
    const scripts=processOnly?['import-mp2rss.mjs','reconcile-classification.mjs','pipeline-worker.mjs']:['collect.mjs','official-sources.mjs','expanded-sources.mjs','open-datasets.mjs','iea-datasets.mjs','import-mp2rss.mjs','reconcile-classification.mjs',...(process.env.INTEL_EIA_EXTERNAL==='true'?[]:[process.env.EIA_API_KEY?'import-eia.mjs':'import-series.mjs']),'pipeline-worker.mjs'];
    for(const script of scripts){
@@ -50,6 +52,7 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
    }
    const candidate=JSON.parse(await fs.readFile(path.join(stage,'snapshot.json'),'utf8'));if(!Array.isArray(candidate.documents)||!candidate.documents.length)throw Error('invalid_snapshot');
    const partial=state.steps.some(s=>s.status==='failed')||candidate.sources?.some(s=>s.status==='failed')||candidate.errors?.some(e=>e.at&&e.at>=state.startedAt);
+   state.currentStep='merging';await persist();
    // Place attachment artifacts before exposing a snapshot that references them.
    for(const f of await fs.readdir(stage))if(/\.(html|pdf|json|csv)$/.test(f)&&f!=='snapshot.json')await fs.copyFile(path.join(stage,f),path.join(dir,f));
    await serial(async()=>{
@@ -59,6 +62,7 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
     if(task){if(publicationHash(store.data)!==task.checkpointHash)throw Error('source_snapshot_changed_during_commit');task=await publication.finish(task);}
     if(store.pool)await acknowledgeClassification(store.pool,store.data,isComplete);
    });
+   await acknowledgeDelivery(store.pool,delivery);
    state.lastRun=new Date().toISOString();if(!processOnly)state.lastCollectionRun=state.lastRun;state.result=partial?'partial':'completed';state.documents=store.data.documents.length;completedFull=!processOnly;
    if(task){state.releaseId=task.releaseId;state.batchId=task.batchId;}
   }catch(e){

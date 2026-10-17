@@ -13,7 +13,7 @@ export async function queueSemantic(db,a,compiled,decision,jobId=null){
  if(decision.manual||decision.status!=='unmatched'||!plain(a.content)){await db.query("UPDATE classification.semantic_queue SET status='stale' WHERE article_id=$1 AND status IN ('pending','failed')",[a.id]);return decision;}
  const queued={...decision,semantic:{status:'pending',reason:'规则未确定行业，等待 Qwen 语义复核'}};
  await db.query(`INSERT INTO classification.semantic_queue(article_id,input_hash,version,config,decision,job_id) VALUES($1,$2,$3,$4,$5,$6)
- ON CONFLICT(article_id) DO UPDATE SET input_hash=EXCLUDED.input_hash,version=EXCLUDED.version,config=EXCLUDED.config,decision=EXCLUDED.decision,job_id=EXCLUDED.job_id,status='pending',attempts=0,next_retry_at=now(),error=NULL,updated_at=now()`,[a.id,inputHash(a.title,a.content),compiled.version,compiled,decision,jobId]);return queued;
+ ON CONFLICT(article_id) DO UPDATE SET input_hash=EXCLUDED.input_hash,version=EXCLUDED.version,config=EXCLUDED.config,decision=EXCLUDED.decision,job_id=EXCLUDED.job_id,status='pending',attempts=0,next_retry_at=now(),error=NULL,updated_at=now() WHERE semantic_queue.input_hash IS DISTINCT FROM EXCLUDED.input_hash OR semantic_queue.version IS DISTINCT FROM EXCLUDED.version`,[a.id,inputHash(a.title,a.content),compiled.version,compiled,decision,jobId]);const saved=(await db.query('SELECT status,decision FROM classification.semantic_queue WHERE article_id=$1',[a.id])).rows[0];return saved?.status==='completed'?saved.decision:queued;
 }
 export async function semanticDecision(record,base,compiled,{client,model=process.env.CHAT_MODEL||'qwen-plus'}={}){
  if(base.manual||base.status!=='unmatched')return base;
@@ -32,7 +32,7 @@ export async function semanticDecision(record,base,compiled,{client,model=proces
  return {...base,status:value.relevant?'accepted':'unmatched',primary:value.relevant?value.topic:null,topics:value.relevant?[value.topic]:[],primaryBasis:'Qwen 根据正文证据进行海洋能源相关性和行业语义复核',method:'llm',reason:value.reason.slice(0,1200),semantic:{status:'completed',model,revision,taxonomyVersion,quote,reason:value.reason.slice(0,1200),reviewedAt:new Date().toISOString(),inputTruncated:content.length>excerpt.length},ruleReason:base.reason};
 }
 export async function processSemanticQueue(pool,{limit=6,client,model=process.env.CHAT_MODEL||'qwen-plus'}={}){
- await initSemantic(pool);const guard=await pool.connect();let locked=false;const result={completed:0,failed:0,stale:0};
+ await initSemantic(pool);const guard=await pool.connect();let locked=false;const result={completed:0,accepted:0,failed:0,stale:0};
  try{locked=(await guard.query('SELECT pg_try_advisory_lock(73201914) locked')).rows[0].locked;if(!locked)return result;
  await guard.query("UPDATE classification.semantic_queue SET status='pending',next_retry_at=now() WHERE status='running'");
  const rows=(await guard.query("SELECT * FROM classification.semantic_queue WHERE status IN ('pending','failed') AND next_retry_at<=now() ORDER BY updated_at LIMIT $1",[limit])).rows;
@@ -53,7 +53,7 @@ export async function processSemanticQueue(pool,{limit=6,client,model=process.en
  if(q.job_id)await guard.query('UPDATE classification.audit SET after_state=$3 WHERE job_id=$1 AND article_id=$2',[q.job_id,a.id,decision]);
  await guard.query('INSERT INTO classification.articles(article_id,classification,input_hash,job_id) VALUES($1,$2,$3,$4) ON CONFLICT(article_id) DO UPDATE SET classification=EXCLUDED.classification,input_hash=EXCLUDED.input_hash,job_id=EXCLUDED.job_id,updated_at=now()',[a.id,decision,q.input_hash,q.job_id]);
  await guard.query("UPDATE classification.semantic_queue SET status='completed',decision=$2,error=NULL,updated_at=now() WHERE article_id=$1",[a.id,decision]);
- await guard.query('COMMIT');result.completed++;
+ await guard.query('COMMIT');result.completed++;if(decision.status==='accepted')result.accepted++;
  }catch(e){await guard.query('ROLLBACK');const safe='语义复核暂未完成，保留候选并自动重试';await guard.query("UPDATE classification.semantic_queue SET status='failed',attempts=attempts+1,next_retry_at=now()+interval '10 minutes',error=$2,updated_at=now() WHERE article_id=$1 AND input_hash=$3 AND version=$4",[a.id,safe,q.input_hash,q.version]);result.failed++;}
  }
  return result;

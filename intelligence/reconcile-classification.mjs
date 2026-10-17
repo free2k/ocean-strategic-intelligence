@@ -20,7 +20,7 @@ export function reconcileDocument(doc,decision){
  return changed;
 }
 export async function reconcileClassification(pool,data,semanticOptions={}){
- await initClassification(pool);await applyClassificationJob(pool);await processSemanticQueue(pool,semanticOptions);
+ await initClassification(pool);await applyClassificationJob(pool);if(semanticOptions.limit>0||semanticOptions.client)await processSemanticQueue(pool,semanticOptions);
  const jobs=(await pool.query("SELECT * FROM classification.jobs WHERE status IN ('processing','partial','completed') ORDER BY id DESC")).rows;
  if(!jobs.length)throw Error('数据库尚无已生效分类规则，请先发布规则版本后生成快照');
  // A saved draft rule is not silently applied to the published intelligence snapshot.
