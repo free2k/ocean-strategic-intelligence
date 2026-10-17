@@ -6,14 +6,22 @@ const revision='marine-semantic-v3:'+taxonomyVersion;
 const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 export const plain=x=>String(x||'').replace(/<(script|style|head)\b[^>]*>[\s\S]*?<\/\1>/gi,' ').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
 export const inputHash=(title,content)=>hash([title,plain(content)]);
+// Calendar months and day boundaries use Beijing time; unknown dates remain eligible.
+export const semanticCutoffSql="((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Shanghai')::date - interval '3 months')::date";
+const expiredSql=`(a.published_at AT TIME ZONE 'Asia/Shanghai')::date < ${semanticCutoffSql}`;
+export async function expireSemanticQueue(db){
+ return (await db.query(`UPDATE classification.semantic_queue q SET status='expired',error=NULL,updated_at=now() FROM public.articles a WHERE a.id=q.article_id AND q.status IN ('pending','failed') AND ${expiredSql}`)).rowCount;
+}
 export async function initSemantic(db){await db.query(`CREATE SCHEMA IF NOT EXISTS classification;
  CREATE TABLE IF NOT EXISTS classification.semantic_queue(article_id integer PRIMARY KEY REFERENCES public.articles(id),input_hash text NOT NULL,version text NOT NULL,config jsonb NOT NULL,decision jsonb NOT NULL,job_id bigint,status text NOT NULL DEFAULT 'pending',attempts integer NOT NULL DEFAULT 0,next_retry_at timestamptz NOT NULL DEFAULT now(),error text,updated_at timestamptz NOT NULL DEFAULT now());
  CREATE TABLE IF NOT EXISTS classification.semantic_cache(key text PRIMARY KEY,decision jsonb NOT NULL,created_at timestamptz NOT NULL DEFAULT now());`);}
 export async function queueSemantic(db,a,compiled,decision,jobId=null){
  if(decision.manual||decision.status!=='unmatched'||!plain(a.content)){await db.query("UPDATE classification.semantic_queue SET status='stale' WHERE article_id=$1 AND status IN ('pending','failed')",[a.id]);return decision;}
+ const age=(await db.query(`SELECT ${expiredSql} AS expired FROM public.articles a WHERE a.id=$1`,[a.id])).rows[0];
+ if(age?.expired){await db.query("UPDATE classification.semantic_queue SET status='expired',error=NULL,updated_at=now() WHERE article_id=$1 AND status IN ('pending','failed')",[a.id]);return {...decision,semantic:{status:'expired',reason:'报道发布日期超过三个月，跳过 AI 复核'}};}
  const queued={...decision,semantic:{status:'pending',reason:'规则未确定行业，等待 Qwen 语义复核'}};
  await db.query(`INSERT INTO classification.semantic_queue(article_id,input_hash,version,config,decision,job_id) VALUES($1,$2,$3,$4,$5,$6)
- ON CONFLICT(article_id) DO UPDATE SET input_hash=EXCLUDED.input_hash,version=EXCLUDED.version,config=EXCLUDED.config,decision=EXCLUDED.decision,job_id=EXCLUDED.job_id,status='pending',attempts=0,next_retry_at=now(),error=NULL,updated_at=now() WHERE semantic_queue.input_hash IS DISTINCT FROM EXCLUDED.input_hash OR semantic_queue.version IS DISTINCT FROM EXCLUDED.version`,[a.id,inputHash(a.title,a.content),compiled.version,compiled,decision,jobId]);const saved=(await db.query('SELECT status,decision FROM classification.semantic_queue WHERE article_id=$1',[a.id])).rows[0];return saved?.status==='completed'?saved.decision:queued;
+ ON CONFLICT(article_id) DO UPDATE SET input_hash=EXCLUDED.input_hash,version=EXCLUDED.version,config=EXCLUDED.config,decision=EXCLUDED.decision,job_id=EXCLUDED.job_id,status='pending',attempts=0,next_retry_at=now(),error=NULL,updated_at=now() WHERE semantic_queue.input_hash IS DISTINCT FROM EXCLUDED.input_hash OR semantic_queue.version IS DISTINCT FROM EXCLUDED.version OR semantic_queue.status='expired'`,[a.id,inputHash(a.title,a.content),compiled.version,compiled,decision,jobId]);const saved=(await db.query('SELECT status,decision FROM classification.semantic_queue WHERE article_id=$1',[a.id])).rows[0];return saved?.status==='completed'?saved.decision:queued;
 }
 export async function semanticDecision(record,base,compiled,{client,model=process.env.CHAT_MODEL||'qwen-plus'}={}){
  if(base.manual||base.status!=='unmatched')return base;
@@ -35,6 +43,7 @@ export async function processSemanticQueue(pool,{limit=6,client,model=process.en
  await initSemantic(pool);const guard=await pool.connect();let locked=false;const result={completed:0,accepted:0,failed:0,stale:0};
  try{locked=(await guard.query('SELECT pg_try_advisory_lock(73201914) locked')).rows[0].locked;if(!locked)return result;
  await guard.query("UPDATE classification.semantic_queue SET status='pending',next_retry_at=now() WHERE status='running'");
+ result.expired=await expireSemanticQueue(guard);
  const rows=(await guard.query("SELECT * FROM classification.semantic_queue WHERE status IN ('pending','failed') AND next_retry_at<=now() ORDER BY updated_at LIMIT $1",[limit])).rows;
  for(const q of rows){
  const read=()=>guard.query("SELECT a.id,a.title,a.manual_classify,a.classify_method,a.filter_status,coalesce(i.payload->>'content',a.content) content,i.classification mp FROM public.articles a LEFT JOIN mp2rss.items i ON i.article_id=a.id WHERE a.id=$1",[q.article_id]);
