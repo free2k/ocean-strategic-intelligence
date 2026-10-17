@@ -15,12 +15,17 @@ export class StrategyRepository {
   async index(){
     await fs.mkdir(this.dir,{recursive:true,mode:0o700});
     let index={version:1,items:[],warnings:[]};
-    try {const saved=JSON.parse(await fs.readFile(path.join(this.dir,'_index.json'),'utf8'));if(Array.isArray(saved.items)&&saved.version===1)index=saved;}catch(e){if(e.code!=='ENOENT')index.warnings.push({code:'INDEX_REBUILT',message:'摘要索引损坏，已从不可变版本恢复'});}
+    try {const saved=JSON.parse(await fs.readFile(path.join(this.dir,'_index.json'),'utf8'));if(!Array.isArray(saved?.items)||saved.version!==1||saved.items.some(r=>!r||!validId(r.id)||typeof r.createdAt!=='string'||!r.method?.id)||saved.warnings!==undefined&&!Array.isArray(saved.warnings))throw Error('invalid index');index={...saved,warnings:saved.warnings||[]};}catch(e){if(e.code!=='ENOENT')index.warnings.push({code:'INDEX_REBUILT',message:'摘要索引损坏，已从不可变版本恢复'});}
     const files=(await fs.readdir(this.dir)).filter(f=>validId(f.slice(0,-5))&&f.endsWith('.json'));
-    const known=new Set(index.items.map(r=>r.id)),bad=new Set((index.warnings||[]).map(w=>w.file));let changed=false;
-    for(const f of files)if(!known.has(f.slice(0,-5))&&!bad.has(f)){
-      try{const r=JSON.parse(await fs.readFile(path.join(this.dir,f),'utf8'));if(!validRecord(r)||r.id!==f.slice(0,-5))throw Error('invalid record');index.items.push(summary(r));}
-      catch {index.warnings.push({code:'RECORD_QUARANTINED',file:f,message:'坏记录已从列表隔离，原文件保留供管理员恢复'});console.error('strategy record isolated',f);}
+    let changed=false;
+    const present=new Set(files);
+    for(const item of [...index.items])if(!present.has(item.id+'.json')){index.items=index.items.filter(r=>r.id!==item.id);index.warnings.push({code:'RECORD_MISSING',file:item.id+'.json',message:'索引引用的版本文件缺失，需管理员恢复'});changed=true;}
+    for(const f of files){
+      const id=f.slice(0,-5),old=index.items.find(r=>r.id===id),warning=index.warnings.find(w=>w.file===f),stat=await fs.stat(path.join(this.dir,f)),stamp={size:stat.size,mtime:stat.mtimeMs};
+      if((old||warning)?._storage?.size===stamp.size&&(old||warning)?._storage?.mtime===stamp.mtime)continue;
+      index.items=index.items.filter(r=>r.id!==id);index.warnings=index.warnings.filter(w=>w.file!==f);
+      try{const r=JSON.parse(await fs.readFile(path.join(this.dir,f),'utf8'));if(!validRecord(r)||r.id!==id)throw Error('invalid record');index.items.push({...summary(r),_storage:stamp});}
+      catch {index.warnings.push({code:'RECORD_QUARANTINED',file:f,_storage:stamp,message:'坏记录已从列表隔离，原文件保留供管理员恢复'});console.error('strategy record isolated',f);}
       changed=true;
     }
     // Legacy versions inherit only through an explicit parent link, never title similarity.
@@ -35,7 +40,7 @@ export class StrategyRepository {
   async page({page=1,pageSize=20,studyId}={}){
     if(!Number.isInteger(page)||page<1||!Number.isInteger(pageSize)||pageSize<1||pageSize>100)invalid('分页参数无效');
     const index=await this.index(),items=index.items.filter(r=>!studyId||r.studyId===studyId);
-    return {items:items.slice((page-1)*pageSize,page*pageSize),page,pageSize,total:items.length,totalStudies:new Set(index.items.map(r=>r.studyId)).size,warnings:index.warnings};
+    return {items:items.slice((page-1)*pageSize,page*pageSize).map(({_storage,...r})=>r),page,pageSize,total:items.length,totalStudies:new Set(index.items.map(r=>r.studyId)).size,warnings:index.warnings.map(({_storage,...w})=>w)};
   }
   async list(){const {items}=await this.index();return Promise.all(items.map(r=>this.get(r.id)));}
   async get(id){

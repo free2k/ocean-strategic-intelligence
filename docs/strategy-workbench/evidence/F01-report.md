@@ -2,11 +2,11 @@
 
 状态：已计算，待专业审阅
 
-研究主题：38ccd5ef-3cec-49b5-b846-be828da72d0a
+研究主题：dbb1fdfe-1773-4eec-bd9d-257306f9ee34
 
-版本：6ca3c67a-0d95-4c3a-9931-46932c7b5279；父版本：无
+版本：32ca80bd-bf5d-482e-842b-ad4f8232dac1；父版本：无
 
-方法：优劣解距离法 TOPSIS；引擎：1.1.0；参数版本：cfg-d9907b42be23ab3e
+方法：优劣解距离法 TOPSIS；引擎：1.1.0；参数版本：cfg-ed7ec7149bfe58ce
 
 ## 结果与诊断
 
@@ -451,16 +451,16 @@
 
 ```json
 {
-  "id": "6ca3c67a-0d95-4c3a-9931-46932c7b5279",
-  "versionId": "6ca3c67a-0d95-4c3a-9931-46932c7b5279",
-  "studyId": "38ccd5ef-3cec-49b5-b846-be828da72d0a",
+  "id": "32ca80bd-bf5d-482e-842b-ad4f8232dac1",
+  "versionId": "32ca80bd-bf5d-482e-842b-ad4f8232dac1",
+  "studyId": "dbb1fdfe-1773-4eec-bd9d-257306f9ee34",
   "parentId": null,
   "parentVersionId": null,
   "title": "交接包F01参考答案（工程演示，非业务结论）",
   "kind": "strategic-quantitative-study",
   "schemaVersion": 2,
   "status": "已计算，待专业审阅",
-  "createdAt": "2026-10-17T16:00:10.347Z",
+  "createdAt": "2026-10-17T16:16:04.092Z",
   "taskType": "evaluation",
   "templateId": null,
   "method": {
@@ -471,12 +471,12 @@
   },
   "methodCatalogVersion": "1.0.0",
   "engineVersion": "1.1.0",
-  "parameterVersion": "cfg-d9907b42be23ab3e",
+  "parameterVersion": "cfg-ed7ec7149bfe58ce",
   "parameters": {
     "facts": {
       "parameterClass": "fact",
       "snapshotRef": "inputSnapshot",
-      "numericInputHash": "de3c2f6aa8de4ee287945114fbcf5b7bd74ada006ab355dc2f55d1a729c18d7f"
+      "numericInputHash": "aae52e3ccf84984542957c1932ee6399811312f67cc3772800889fbfc4e82279"
     },
     "preferences": {
       "parameterClass": "preference",
@@ -485,16 +485,6 @@
         0.6
       ],
       "weightMethod": "manual",
-      "judgments": [
-        [
-          1,
-          1
-        ],
-        [
-          1,
-          1
-        ]
-      ],
       "author": "工程验收",
       "reason": "交接包F01的固定工程权重，单一判断样本"
     },
@@ -519,20 +509,20 @@
       },
       "checks": [
         {
-          "id": "constraint-94bac138-5faa-4b24-b814-878fcd0e81c6",
-          "objectId": "94bac138-5faa-4b24-b814-878fcd0e81c6",
+          "id": "constraint-3eefae70-49d9-43e1-8d1c-3c397f9fab4d",
+          "objectId": "3eefae70-49d9-43e1-8d1c-3c397f9fab4d",
           "status": "pass",
           "reason": "工程固定样本，未评估业务场地"
         },
         {
-          "id": "constraint-a2e3032e-279c-47f6-9101-7fdf220f64b2",
-          "objectId": "a2e3032e-279c-47f6-9101-7fdf220f64b2",
+          "id": "constraint-2192fe3d-5c04-4581-b445-7358f6367d9e",
+          "objectId": "2192fe3d-5c04-4581-b445-7358f6367d9e",
           "status": "pass",
           "reason": "工程固定样本，未评估业务场地"
         },
         {
-          "id": "constraint-45d91529-f3ed-4747-a59c-02c4278f8734",
-          "objectId": "45d91529-f3ed-4747-a59c-02c4278f8734",
+          "id": "constraint-ad67fdfc-6e91-42fe-8b63-f96599fdab95",
+          "objectId": "ad67fdfc-6e91-42fe-8b63-f96599fdab95",
           "status": "pass",
           "reason": "工程固定样本，未评估业务场地"
         }
@@ -556,20 +546,20 @@
   },
   "constraints": [
     {
-      "id": "constraint-94bac138-5faa-4b24-b814-878fcd0e81c6",
-      "objectId": "94bac138-5faa-4b24-b814-878fcd0e81c6",
+      "id": "constraint-3eefae70-49d9-43e1-8d1c-3c397f9fab4d",
+      "objectId": "3eefae70-49d9-43e1-8d1c-3c397f9fab4d",
       "status": "pass",
       "reason": "工程固定样本，未评估业务场地"
     },
     {
-      "id": "constraint-a2e3032e-279c-47f6-9101-7fdf220f64b2",
-      "objectId": "a2e3032e-279c-47f6-9101-7fdf220f64b2",
+      "id": "constraint-2192fe3d-5c04-4581-b445-7358f6367d9e",
+      "objectId": "2192fe3d-5c04-4581-b445-7358f6367d9e",
       "status": "pass",
       "reason": "工程固定样本，未评估业务场地"
     },
     {
-      "id": "constraint-45d91529-f3ed-4747-a59c-02c4278f8734",
-      "objectId": "45d91529-f3ed-4747-a59c-02c4278f8734",
+      "id": "constraint-ad67fdfc-6e91-42fe-8b63-f96599fdab95",
+      "objectId": "ad67fdfc-6e91-42fe-8b63-f96599fdab95",
       "status": "pass",
       "reason": "工程固定样本，未评估业务场地"
     }
@@ -578,7 +568,7 @@
     "comparable": true,
     "constraintsConfirmed": true,
     "declaredBy": "authenticated-researcher",
-    "declaredAt": "2026-10-17T16:00:10.347Z",
+    "declaredAt": "2026-10-17T16:16:04.092Z",
     "confirmed": true
   },
   "input": {
@@ -602,13 +592,13 @@
       "C"
     ],
     "objectIds": [
-      "94bac138-5faa-4b24-b814-878fcd0e81c6",
-      "a2e3032e-279c-47f6-9101-7fdf220f64b2",
-      "45d91529-f3ed-4747-a59c-02c4278f8734"
+      "3eefae70-49d9-43e1-8d1c-3c397f9fab4d",
+      "2192fe3d-5c04-4581-b445-7358f6367d9e",
+      "ad67fdfc-6e91-42fe-8b63-f96599fdab95"
     ],
     "indicators": [
       {
-        "indicatorId": "37eb3b7d-e554-4c57-b47f-20ad47e636a1",
+        "indicatorId": "5fd4c190-2370-4e23-a64e-cfd713887c2d",
         "name": "演示收益",
         "unit": "演示单位",
         "nature": "demo",
@@ -617,7 +607,7 @@
         "comparableScope": ""
       },
       {
-        "indicatorId": "93f7e100-cf1c-4681-b1af-fdc3df4067c6",
+        "indicatorId": "b1facbcc-26e2-4d88-a6b9-dee7c06a2d03",
         "name": "演示成本",
         "unit": "演示单位",
         "nature": "demo",
@@ -630,20 +620,10 @@
       "benefit",
       "cost"
     ],
+    "weightMethod": "manual",
     "weights": [
       0.4,
       0.6
-    ],
-    "weightMethod": "manual",
-    "judgments": [
-      [
-        1,
-        1
-      ],
-      [
-        1,
-        1
-      ]
     ],
     "cellEvidence": [
       {
@@ -654,9 +634,9 @@
         "quote": "",
         "page": "",
         "reviewedBy": "工程验收",
-        "reviewedAt": "2026-10-17T16:00:09.970Z",
-        "objectId": "94bac138-5faa-4b24-b814-878fcd0e81c6",
-        "indicatorId": "37eb3b7d-e554-4c57-b47f-20ad47e636a1",
+        "reviewedAt": "2026-10-17T16:16:03.706Z",
+        "objectId": "3eefae70-49d9-43e1-8d1c-3c397f9fab4d",
+        "indicatorId": "5fd4c190-2370-4e23-a64e-cfd713887c2d",
         "value": 1
       },
       {
@@ -667,9 +647,9 @@
         "quote": "",
         "page": "",
         "reviewedBy": "工程验收",
-        "reviewedAt": "2026-10-17T16:00:09.970Z",
-        "objectId": "94bac138-5faa-4b24-b814-878fcd0e81c6",
-        "indicatorId": "93f7e100-cf1c-4681-b1af-fdc3df4067c6",
+        "reviewedAt": "2026-10-17T16:16:03.706Z",
+        "objectId": "3eefae70-49d9-43e1-8d1c-3c397f9fab4d",
+        "indicatorId": "b1facbcc-26e2-4d88-a6b9-dee7c06a2d03",
         "value": 9
       },
       {
@@ -680,9 +660,9 @@
         "quote": "",
         "page": "",
         "reviewedBy": "工程验收",
-        "reviewedAt": "2026-10-17T16:00:09.970Z",
-        "objectId": "a2e3032e-279c-47f6-9101-7fdf220f64b2",
-        "indicatorId": "37eb3b7d-e554-4c57-b47f-20ad47e636a1",
+        "reviewedAt": "2026-10-17T16:16:03.706Z",
+        "objectId": "2192fe3d-5c04-4581-b445-7358f6367d9e",
+        "indicatorId": "5fd4c190-2370-4e23-a64e-cfd713887c2d",
         "value": 5
       },
       {
@@ -693,9 +673,9 @@
         "quote": "",
         "page": "",
         "reviewedBy": "工程验收",
-        "reviewedAt": "2026-10-17T16:00:09.970Z",
-        "objectId": "a2e3032e-279c-47f6-9101-7fdf220f64b2",
-        "indicatorId": "93f7e100-cf1c-4681-b1af-fdc3df4067c6",
+        "reviewedAt": "2026-10-17T16:16:03.706Z",
+        "objectId": "2192fe3d-5c04-4581-b445-7358f6367d9e",
+        "indicatorId": "b1facbcc-26e2-4d88-a6b9-dee7c06a2d03",
         "value": 5
       },
       {
@@ -706,9 +686,9 @@
         "quote": "",
         "page": "",
         "reviewedBy": "工程验收",
-        "reviewedAt": "2026-10-17T16:00:09.970Z",
-        "objectId": "45d91529-f3ed-4747-a59c-02c4278f8734",
-        "indicatorId": "37eb3b7d-e554-4c57-b47f-20ad47e636a1",
+        "reviewedAt": "2026-10-17T16:16:03.706Z",
+        "objectId": "ad67fdfc-6e91-42fe-8b63-f96599fdab95",
+        "indicatorId": "5fd4c190-2370-4e23-a64e-cfd713887c2d",
         "value": 9
       },
       {
@@ -719,9 +699,9 @@
         "quote": "",
         "page": "",
         "reviewedBy": "工程验收",
-        "reviewedAt": "2026-10-17T16:00:09.970Z",
-        "objectId": "45d91529-f3ed-4747-a59c-02c4278f8734",
-        "indicatorId": "93f7e100-cf1c-4681-b1af-fdc3df4067c6",
+        "reviewedAt": "2026-10-17T16:16:03.706Z",
+        "objectId": "ad67fdfc-6e91-42fe-8b63-f96599fdab95",
+        "indicatorId": "b1facbcc-26e2-4d88-a6b9-dee7c06a2d03",
         "value": 1
       }
     ],
@@ -751,13 +731,13 @@
       "C"
     ],
     "objectIds": [
-      "94bac138-5faa-4b24-b814-878fcd0e81c6",
-      "a2e3032e-279c-47f6-9101-7fdf220f64b2",
-      "45d91529-f3ed-4747-a59c-02c4278f8734"
+      "3eefae70-49d9-43e1-8d1c-3c397f9fab4d",
+      "2192fe3d-5c04-4581-b445-7358f6367d9e",
+      "ad67fdfc-6e91-42fe-8b63-f96599fdab95"
     ],
     "indicators": [
       {
-        "indicatorId": "37eb3b7d-e554-4c57-b47f-20ad47e636a1",
+        "indicatorId": "5fd4c190-2370-4e23-a64e-cfd713887c2d",
         "name": "演示收益",
         "unit": "演示单位",
         "nature": "demo",
@@ -766,7 +746,7 @@
         "comparableScope": ""
       },
       {
-        "indicatorId": "93f7e100-cf1c-4681-b1af-fdc3df4067c6",
+        "indicatorId": "b1facbcc-26e2-4d88-a6b9-dee7c06a2d03",
         "name": "演示成本",
         "unit": "演示单位",
         "nature": "demo",
@@ -779,20 +759,10 @@
       "benefit",
       "cost"
     ],
+    "weightMethod": "manual",
     "weights": [
       0.4,
       0.6
-    ],
-    "weightMethod": "manual",
-    "judgments": [
-      [
-        1,
-        1
-      ],
-      [
-        1,
-        1
-      ]
     ],
     "cellEvidence": [
       {
@@ -803,9 +773,9 @@
         "quote": "",
         "page": "",
         "reviewedBy": "工程验收",
-        "reviewedAt": "2026-10-17T16:00:09.970Z",
-        "objectId": "94bac138-5faa-4b24-b814-878fcd0e81c6",
-        "indicatorId": "37eb3b7d-e554-4c57-b47f-20ad47e636a1",
+        "reviewedAt": "2026-10-17T16:16:03.706Z",
+        "objectId": "3eefae70-49d9-43e1-8d1c-3c397f9fab4d",
+        "indicatorId": "5fd4c190-2370-4e23-a64e-cfd713887c2d",
         "value": 1
       },
       {
@@ -816,9 +786,9 @@
         "quote": "",
         "page": "",
         "reviewedBy": "工程验收",
-        "reviewedAt": "2026-10-17T16:00:09.970Z",
-        "objectId": "94bac138-5faa-4b24-b814-878fcd0e81c6",
-        "indicatorId": "93f7e100-cf1c-4681-b1af-fdc3df4067c6",
+        "reviewedAt": "2026-10-17T16:16:03.706Z",
+        "objectId": "3eefae70-49d9-43e1-8d1c-3c397f9fab4d",
+        "indicatorId": "b1facbcc-26e2-4d88-a6b9-dee7c06a2d03",
         "value": 9
       },
       {
@@ -829,9 +799,9 @@
         "quote": "",
         "page": "",
         "reviewedBy": "工程验收",
-        "reviewedAt": "2026-10-17T16:00:09.970Z",
-        "objectId": "a2e3032e-279c-47f6-9101-7fdf220f64b2",
-        "indicatorId": "37eb3b7d-e554-4c57-b47f-20ad47e636a1",
+        "reviewedAt": "2026-10-17T16:16:03.706Z",
+        "objectId": "2192fe3d-5c04-4581-b445-7358f6367d9e",
+        "indicatorId": "5fd4c190-2370-4e23-a64e-cfd713887c2d",
         "value": 5
       },
       {
@@ -842,9 +812,9 @@
         "quote": "",
         "page": "",
         "reviewedBy": "工程验收",
-        "reviewedAt": "2026-10-17T16:00:09.970Z",
-        "objectId": "a2e3032e-279c-47f6-9101-7fdf220f64b2",
-        "indicatorId": "93f7e100-cf1c-4681-b1af-fdc3df4067c6",
+        "reviewedAt": "2026-10-17T16:16:03.706Z",
+        "objectId": "2192fe3d-5c04-4581-b445-7358f6367d9e",
+        "indicatorId": "b1facbcc-26e2-4d88-a6b9-dee7c06a2d03",
         "value": 5
       },
       {
@@ -855,9 +825,9 @@
         "quote": "",
         "page": "",
         "reviewedBy": "工程验收",
-        "reviewedAt": "2026-10-17T16:00:09.970Z",
-        "objectId": "45d91529-f3ed-4747-a59c-02c4278f8734",
-        "indicatorId": "37eb3b7d-e554-4c57-b47f-20ad47e636a1",
+        "reviewedAt": "2026-10-17T16:16:03.706Z",
+        "objectId": "ad67fdfc-6e91-42fe-8b63-f96599fdab95",
+        "indicatorId": "5fd4c190-2370-4e23-a64e-cfd713887c2d",
         "value": 9
       },
       {
@@ -868,9 +838,9 @@
         "quote": "",
         "page": "",
         "reviewedBy": "工程验收",
-        "reviewedAt": "2026-10-17T16:00:09.970Z",
-        "objectId": "45d91529-f3ed-4747-a59c-02c4278f8734",
-        "indicatorId": "93f7e100-cf1c-4681-b1af-fdc3df4067c6",
+        "reviewedAt": "2026-10-17T16:16:03.706Z",
+        "objectId": "ad67fdfc-6e91-42fe-8b63-f96599fdab95",
+        "indicatorId": "b1facbcc-26e2-4d88-a6b9-dee7c06a2d03",
         "value": 1
       }
     ],
@@ -898,9 +868,9 @@
       "quote": "",
       "page": "",
       "reviewedBy": "工程验收",
-      "reviewedAt": "2026-10-17T16:00:09.970Z",
-      "objectId": "94bac138-5faa-4b24-b814-878fcd0e81c6",
-      "indicatorId": "37eb3b7d-e554-4c57-b47f-20ad47e636a1",
+      "reviewedAt": "2026-10-17T16:16:03.706Z",
+      "objectId": "3eefae70-49d9-43e1-8d1c-3c397f9fab4d",
+      "indicatorId": "5fd4c190-2370-4e23-a64e-cfd713887c2d",
       "value": 1
     },
     {
@@ -911,9 +881,9 @@
       "quote": "",
       "page": "",
       "reviewedBy": "工程验收",
-      "reviewedAt": "2026-10-17T16:00:09.970Z",
-      "objectId": "94bac138-5faa-4b24-b814-878fcd0e81c6",
-      "indicatorId": "93f7e100-cf1c-4681-b1af-fdc3df4067c6",
+      "reviewedAt": "2026-10-17T16:16:03.706Z",
+      "objectId": "3eefae70-49d9-43e1-8d1c-3c397f9fab4d",
+      "indicatorId": "b1facbcc-26e2-4d88-a6b9-dee7c06a2d03",
       "value": 9
     },
     {
@@ -924,9 +894,9 @@
       "quote": "",
       "page": "",
       "reviewedBy": "工程验收",
-      "reviewedAt": "2026-10-17T16:00:09.970Z",
-      "objectId": "a2e3032e-279c-47f6-9101-7fdf220f64b2",
-      "indicatorId": "37eb3b7d-e554-4c57-b47f-20ad47e636a1",
+      "reviewedAt": "2026-10-17T16:16:03.706Z",
+      "objectId": "2192fe3d-5c04-4581-b445-7358f6367d9e",
+      "indicatorId": "5fd4c190-2370-4e23-a64e-cfd713887c2d",
       "value": 5
     },
     {
@@ -937,9 +907,9 @@
       "quote": "",
       "page": "",
       "reviewedBy": "工程验收",
-      "reviewedAt": "2026-10-17T16:00:09.970Z",
-      "objectId": "a2e3032e-279c-47f6-9101-7fdf220f64b2",
-      "indicatorId": "93f7e100-cf1c-4681-b1af-fdc3df4067c6",
+      "reviewedAt": "2026-10-17T16:16:03.706Z",
+      "objectId": "2192fe3d-5c04-4581-b445-7358f6367d9e",
+      "indicatorId": "b1facbcc-26e2-4d88-a6b9-dee7c06a2d03",
       "value": 5
     },
     {
@@ -950,9 +920,9 @@
       "quote": "",
       "page": "",
       "reviewedBy": "工程验收",
-      "reviewedAt": "2026-10-17T16:00:09.970Z",
-      "objectId": "45d91529-f3ed-4747-a59c-02c4278f8734",
-      "indicatorId": "37eb3b7d-e554-4c57-b47f-20ad47e636a1",
+      "reviewedAt": "2026-10-17T16:16:03.706Z",
+      "objectId": "ad67fdfc-6e91-42fe-8b63-f96599fdab95",
+      "indicatorId": "5fd4c190-2370-4e23-a64e-cfd713887c2d",
       "value": 9
     },
     {
@@ -963,9 +933,9 @@
       "quote": "",
       "page": "",
       "reviewedBy": "工程验收",
-      "reviewedAt": "2026-10-17T16:00:09.970Z",
-      "objectId": "45d91529-f3ed-4747-a59c-02c4278f8734",
-      "indicatorId": "93f7e100-cf1c-4681-b1af-fdc3df4067c6",
+      "reviewedAt": "2026-10-17T16:16:03.706Z",
+      "objectId": "ad67fdfc-6e91-42fe-8b63-f96599fdab95",
+      "indicatorId": "b1facbcc-26e2-4d88-a6b9-dee7c06a2d03",
       "value": 1
     }
   ],
@@ -977,10 +947,10 @@
     "from": "",
     "to": ""
   },
-  "numericInputHash": "de3c2f6aa8de4ee287945114fbcf5b7bd74ada006ab355dc2f55d1a729c18d7f",
-  "evidenceHash": "3536a803d12620f585df98fa74816d804ed7ea10bc1cfbae1bb1bd58a018b388",
-  "configHash": "d9907b42be23ab3e972900c72b4022ccc73ede618aa5e57a5d63b6db7f62a0f1",
-  "dataHash": "681d7272f87ffab0be93d7bb28e428f6c5e0ba6725524dbe2873eefd7b6b011c",
+  "numericInputHash": "aae52e3ccf84984542957c1932ee6399811312f67cc3772800889fbfc4e82279",
+  "evidenceHash": "a055abeb385a145a7bab97103f653f4faff10d8841ae18dade706d0bf9e5aee5",
+  "configHash": "ed7ec7149bfe58ce2aa074b6d32eedd5fb7ae9d7cb089fcec36f3e78a0dc276a",
+  "dataHash": "ce395430ed5a0f3aafada27c24075d04c66e88258217276881f9e8bacb148652",
   "snapshotAt": "2026-10-17T08:00:00Z",
   "insightRevision": null,
   "calculation": {
@@ -1432,7 +1402,7 @@
   "runMode": "current",
   "revisionReason": null,
   "parameterAudit": null,
-  "requestId": "da848e83-d08e-4b49-a9bb-a016b299d627",
-  "requestHash": "bda178ae726f443bc67933e780480ba2df0056401d5f7a6dc2aca5cd684e6b31"
+  "requestId": "ba1ac885-da0b-4a62-bfab-c0c5497d3abb",
+  "requestHash": "f88316d3887aed574de276370368120a5062f04a463563fe5bce33111ca5b733"
 }
 ```

@@ -8,12 +8,12 @@
 
 ## 工程证据
 
-- `node --test intelligence/tests/*.test.mjs`：282项通过，0失败。包括既有模块回归、9组独立参考答案、来源/口径/硬约束、参数边界、持久化和认证HTTP集成。
+- `node --test intelligence/tests/*.test.mjs`：284项通过，0失败。包括既有模块回归、9组独立参考答案、来源/口径/硬约束、参数边界、持久化和认证HTTP集成。
 - `node scripts/strategy/browser-qa.mjs`：完整四步流程、F01数值、九点扫描、同请求重放、保存后目录刷新故障、两种导出、旧版重现、原问答引用/历史/TXT、退出清理通过。
 - `node scripts/strategy/browser-methods-qa.mjs`：22项方法均有中文可操作表单，空数据范围准确；500×30矩阵25行分页及刷新恢复通过。
 - `node scripts/strategy/browser-retry-qa.mjs`：服务端已提交但响应丢失，刷新浏览器后重试仍返回同一版本，通过。
 - 1440/1024/390宽度、深浅色、键盘页签均通过。表格在自身容器横滚，无整页横向溢出；截图位于evidence目录。
-- 腾讯云隔离发布目录：28项针对性测试通过；13条真实官方序列只读适配检查通过，浏览器伪造替代值未被使用，未写入演示研究。
+- 腾讯云隔离发布目录：30项针对性测试通过；13条真实官方序列只读适配检查通过，浏览器伪造替代值未被使用，未写入演示研究。
 
 每项AC的实际证据见evidence/acceptance-results.json。F01-input/output及报告为明确标注的工程演示值，不是业务事实。
 

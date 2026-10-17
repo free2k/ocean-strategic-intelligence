@@ -79,7 +79,7 @@
       "procedure": "重启后读取历史，下载JSON与中文Markdown",
       "expected": "快照、参数、结果、诊断、来源、版本完整",
       "result": "Engineering acceptance passed",
-      "evidence": "immutable versions, restart, legacy records, pagination; F01-report.md"
+      "evidence": "immutable versions, restart, legacy records, pagination; F01-report.md; cached corruption isolation and repaired-index recovery"
     },
     {
       "id": "AC11",

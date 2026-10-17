@@ -1,19 +1,26 @@
 #!/usr/bin/env python3
 """Code-only release. Never imports, migrates, replaces or restores business data."""
-import pathlib,json,hashlib,tarfile,subprocess,os,time,shutil,sys
+import pathlib,json,hashlib,tarfile,subprocess,os,time,shutil,sys,fcntl
 base=pathlib.Path('/opt/ocean-intelligence');incoming=base/'strategy-workbench-stage';backup=base/'backups/strategy-workbench-20261017';current=base/'current';old=current.resolve();manifest=json.loads((incoming/'manifest.json').read_text());release=base/'releases'/manifest['release'];node='/usr/bin/node-20'
 if '--stage-only' not in sys.argv and (not (backup/'data-backup.complete').exists() or not (backup/'database-counts.before.json').exists() or not (backup/'data-manifest.before.json').exists()):sys.exit('Verified file and database backups are required')
+if '--stage-only' not in sys.argv:
+ maintenance_guard=(base/'eia-daily.lock').open('a')
+ try:fcntl.flock(maintenance_guard,fcntl.LOCK_EX|fcntl.LOCK_NB)
+ except BlockingIOError:sys.exit('Existing processing holds the publication lock; service untouched')
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest() if p.is_file() else None
 for item in manifest['files']:
  rel=pathlib.PurePosixPath(item['path'])
  if rel.is_absolute() or '..' in rel.parts or rel.parts[0]!='intelligence':sys.exit('Unsafe release path')
  if sha(old/rel)!=item['previousSha256']:sys.exit('Parallel production change detected: '+str(rel))
 already_staged=release.exists() and (release/'.strategy-manifest.json').exists() and json.loads((release/'.strategy-manifest.json').read_text())==manifest
-if release.exists() and not already_staged:sys.exit('Release directory exists; choose a new version')
+if release.exists() and not already_staged:
+ if '--restage' in sys.argv and '--stage-only' in sys.argv and release!=old and ((release/'.strategy-manifest.json').exists() or (release/'.strategy-stage-owner').is_file() and (release/'.strategy-stage-owner').read_text()==manifest['release']):shutil.rmtree(release)
+ else:sys.exit('Release directory exists; choose a new version')
 if not already_staged:
  # Keep a complete program rollback copy; all persistence remains outside the release.
  with tarfile.open(backup/'program-before.tar.gz','w:gz') as archive:archive.add(old/'intelligence',arcname='intelligence')
  (backup/'previous-release.txt').write_text(str(old)+'\n');shutil.copytree(old,release,symlinks=True)
+ (release/'.strategy-stage-owner').write_text(manifest['release'])
  with tarfile.open(incoming/'program.tar.gz') as archive:
   expected={i['path'] for i in manifest['files']}
   for m in archive.getmembers():
@@ -31,7 +38,7 @@ if '--stage-only' in sys.argv:
  print(json.dumps({'status':'staged','release':str(release),'tests':'passed','productionChanged':False}));sys.exit(0)
 # Read-only authenticated readiness checks. The existing site secret never leaves the server.
 probe="""
-process.loadEnvFile('/opt/knowledge-base/.env');const {createHmac}=await import('node:crypto');const expiry=String(Date.now()+60000),token=expiry+'.'+createHmac('sha256',process.env.SITE_PASSWORD).update(expiry).digest('hex');const r=await fetch('http://127.0.0.1:3101/api/collection',{headers:{Cookie:'ocean_auth='+token}});if(!r.ok)throw Error('readiness authentication failed');const x=await r.json();if(x.running){console.log('busy');process.exit(75);}console.log('idle');
+process.loadEnvFile('/opt/knowledge-base/.env');const {createHmac}=await import('node:crypto');const expiry=String(Date.now()+60000),token=expiry+'.'+createHmac('sha256',process.env.SITE_PASSWORD).update(expiry).digest('hex');const r=await fetch('http://127.0.0.1:3101/api/collection',{headers:{Cookie:'ocean_auth='+token}});if(!r.ok)throw Error('readiness authentication failed');const x=await r.json();if(x.running){console.log('busy');process.exit(75);}const jobs=await(await fetch('http://127.0.0.1:3101/api/period-reports',{headers:{Cookie:'ocean_auth='+token}})).json();if(jobs.items?.some(j=>['queued','running'].includes(j.status))){console.log('busy');process.exit(75);}console.log('idle');
 """
 ready=subprocess.run([node,'--input-type=module','-e',probe],cwd=old,capture_output=True,text=True)
 if ready.returncode==75:sys.exit('Existing collection or processing is active; release staged, service untouched')
@@ -62,7 +69,8 @@ try:
    if healthy:break
  if not healthy:raise RuntimeError('New service health check failed')
  # Ensure the new protected API actually loaded, not just the old public health route.
- verify=probe.replace("/api/collection","/api/strategy/catalog").replace("if(x.running){console.log('busy');process.exit(75);}","if(x.methods?.length!==198||x.methods.filter(m=>m.status==='ready').length!==22)throw Error('catalog verification failed');")
+ verify=probe[:probe.index('const jobs=')]+"console.log('verified');"
+ verify=verify.replace("/api/collection","/api/strategy/catalog").replace("if(x.running){console.log('busy');process.exit(75);}","if(x.methods?.length!==198||x.methods.filter(m=>m.status==='ready').length!==22)throw Error('catalog verification failed');")
  if subprocess.run([node,'--input-type=module','-e',verify],cwd=release,capture_output=True).returncode:raise RuntimeError('New API verification failed')
 except BaseException:
  rollback=base/'current.strategy-rollback';rollback.unlink(missing_ok=True);rollback.symlink_to(old);os.replace(rollback,current);subprocess.run(['pm2','restart','ocean-intelligence'],stdout=subprocess.DEVNULL);raise

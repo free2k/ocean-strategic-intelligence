@@ -4,7 +4,7 @@
 
 | 接口 | 行为 |
 |---|---|
-| GET /api/strategy/catalog | 198条目录、独立引擎状态与数据状态、13类以上实际序列覆盖（以返回值为准）、三态推荐、12模板、参数治理、分页摘要 |
+| GET /api/strategy/catalog | 198条目录、独立引擎状态与数据状态、实际序列覆盖（以返回值为准）、三态推荐、12模板、参数治理、分页摘要 |
 | POST /api/strategy/match | 按任务与结构匹配MCDA/经济性/因果/优化等设计，返回理由及专属前提 |
 | POST /api/strategy/validate | 完整嵌套类型、逐格来源、硬约束和方法前提核验；可进行确定性诊断但不保存研究 |
 | POST /api/strategy/studies | 核定后计算并保存；requestId幂等；首次201，重放200，键与内容冲突409 |

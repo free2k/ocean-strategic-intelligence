@@ -19,9 +19,9 @@ export function resizeMatrix(d,rows,cols){
  d.matrixPage=Math.min(d.matrixPage,Math.floor((rows-1)/25));
 }
 export function requestFrom(d){
- const p=params(d);let input;
+ const p=params(d),weightMethod=d.method==='ahp-topsis'?'ahp':d.method==='entropy-topsis'?'entropy':['equal','manual','entropy','critic'].includes(d.method)?d.method:p.weightMethod;let input;
  if(d.datasetId)input={window:p.window};
- else if(matrixMethods.has(d.method))input={matrix:d.matrix.map(r=>r.map(number)),labels:d.objects.map(o=>o.label.trim()),objectIds:d.objects.map(o=>o.id),indicators:d.indicators.map(({direction,...v})=>v),directions:d.indicators.map(i=>i.direction),weights:p.weights.map(number),weightMethod:p.weightMethod,judgments:p.judgments.map(r=>r.map(number)),cellEvidence:d.evidence.flatMap((row,i)=>row.map((e,j)=>({...e,objectId:d.objects[i].id,indicatorId:d.indicators[j].indicatorId,value:number(d.matrix[i][j])}))),...(p.scanEnabled?{scan:{type:'nine-point',indicatorIndex:p.scanIndicator}}:{})};
+ else if(matrixMethods.has(d.method))input={matrix:d.matrix.map(r=>r.map(number)),labels:d.objects.map(o=>o.label.trim()),objectIds:d.objects.map(o=>o.id),indicators:d.indicators.map(({direction,...v})=>v),directions:d.indicators.map(i=>i.direction),weightMethod,...(weightMethod==='manual'?{weights:p.weights.map(number)}:{}),...(weightMethod==='ahp'?{judgments:p.judgments.map(r=>r.map(number))}:{}),cellEvidence:d.evidence.flatMap((row,i)=>row.map((e,j)=>({...e,objectId:d.objects[i].id,indicatorId:d.indicators[j].indicatorId,value:number(d.matrix[i][j])}))),...(p.scanEnabled?{scan:{type:'nine-point',indicatorIndex:p.scanIndicator}}:{})};
  else if(['growth','cagr','trend','moving'].includes(d.method))input={rows:d.rows.map(r=>({...r,value:number(r.value)})),window:p.window};
  else if(d.method==='ahp')input={judgments:d.judgments.map(r=>r.map(number))};
  else if(d.method==='npv')input={cashflows:d.cashflows.map(r=>number(r.value)),rate:number(p.rate)};
