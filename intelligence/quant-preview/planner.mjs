@@ -26,7 +26,7 @@ export function planTemplates(catalog){
   const years=new Map();rows.forEach(r=>years.set(r.period.slice(0,4),(years.get(r.period.slice(0,4))||0)+1));
   const constant=new Set(rows.map(r=>r.value)).size===1,zero=constant&&rows[0].value===0;
   const types=constant?['line']:[...(month?['heatmap']:[]),'line',...(month&&[...years.values()].some(n=>n>=5)?['boxplot']:[])];
-  generated.push({id:s.id==='eia-offshore-crude'?'oil-month':'series-'+key(s.id),industry:s.topic,title:s.name,types,constant,zero,renderer:'series',templateId:'timeline',unit:s.unit,rows,sources:sourcesFor([s.sourceId]),content:`${zero?'当前筛选范围内源字段均为0。零值已保留，但不能据此推断停产、无资源或没有活动；应结合字段口径核验。':constant?'当前范围数值无变化，保留原始记录。':''} ${s.note||''} ${s.frequency}统计；${s.unit}。仅比较本序列，不跨公司或口径合并。`,why:`检测到 ${rows.length} 个有效统计期、1个明确单位。${month?'月度结构适合年×月热力图；达到5个月的年度可展示箱线分布。':'按统计期绘制趋势。'}`,update:templateById.get('timeline').update});
+  generated.push({id:s.id==='eia-offshore-crude'?'oil-month':'series-'+key(s.id),seriesId:s.id,industry:s.topic,title:s.name,types,constant,zero,renderer:'series',templateId:'timeline',unit:s.unit,rows,sources:sourcesFor([s.sourceId]),content:`${zero?'当前筛选范围内源字段均为0。零值已保留，但不能据此推断停产、无资源或没有活动；应结合字段口径核验。':constant?'当前范围数值无变化，保留原始记录。':''} ${s.note||''} ${s.frequency}统计；${s.unit}。仅比较本序列，不跨公司或口径合并。`,why:`检测到 ${rows.length} 个有效统计期、1个明确单位。${month?'月度结构适合年×月热力图；达到5个月的年度可展示箱线分布。':'按统计期绘制趋势。'}`,update:templateById.get('timeline').update});
  }
  const accepted=[...new Map(catalog.documents.filter(d=>d.classification.status==='accepted').map(d=>[d.id,d])).values()];
  for(const topic of ['',...catalog.industries.map(i=>i.topic)]){

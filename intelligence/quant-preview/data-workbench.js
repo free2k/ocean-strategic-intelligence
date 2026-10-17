@@ -1,0 +1,119 @@
+import {formatDisplayDate} from '../preview.js';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const number=value=>typeof value==='number'?new Intl.NumberFormat('zh-CN',{maximumFractionDigits:6}).format(value):value??'—';
+const names={extraction:'原始提取快照',title:'原文标题',titleZh:'中文标题',summaryZh:'中文摘要',name:'名称 / 指标',nameZh:'中文名称',subject:'对象',object:'项目 / 对象',objectZh:'中文对象',metric:'指标',value:'数值',rawValue:'原始数值',unit:'单位',nature:'数据性质',period:'统计期',qualifier:'限定条件',status:'状态',statusZh:'中文状态',publishedAt:'发布日期',publicationDate:'正式发布日期',eventDate:'事件日期',topic:'行业',industry:'行业分类',classification:'行业分类',countries:'国家代码',country:'国家 / 区域',countryCode:'国家代码',project:'项目',type:'类型',authorization:'授权类型',resource:'资源类型',effectiveYear:'生效年份',lessee:'承租人',operator:'运营主体',capacityMW:'容量（MW）',technology:'技术',region:'区域',abstract:'摘要',projectType:'项目类型',scenario:'场景',scenarioZh:'中文场景',summary:'摘要',dateBasis:'日期依据',reviewNote:'审核说明',quote:'原文证据',quoteZh:'中文证据',start:'原文起始位置',scope:'覆盖范围',level:'渠道级别',note:'数据说明',frequency:'频率',sourceUrl:'来源地址',partial:'未结束统计期',label:'报告标题',checkedAt:'最近检查',reason:'说明',id:'记录编号',documentId:'文档编号',sourceId:'来源编号',versionId:'文档版本',evidenceIds:'证据编号',content:'原文正文',contentZh:'中文正文',from:'关系起点',to:'关系终点',sheet:'工作表',cell:'单元格',filename:'原始文件',contentHash:'原文件指纹',rows:'统计记录',refs:'参考来源'};
+const statusNames={accepted:'纳入分析',excluded:'已排除',unmatched:'待匹配',unclassified:'未分类',candidate:'候选',extracted:'已提取',verified:'已核对',rejected:'已排除',ready:'可用',partial:'部分可用',deleted:'回收站'};
+const stateNames={edited:'已修订',original:'原始记录',deleted:'已删除'};
+const safeLink=(url,label)=>/^https?:\/\//i.test(url||'')?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} ↗</a>`:'';
+const api=new URL('../api/insight-data',import.meta.url);
+const badge=r=>`<span class="dw-badge ${['accepted','verified','ready'].includes(r.status)?'good':['excluded','rejected'].includes(r.status)?'dim':'neutral'}">${esc(statusNames[r.status]||r.status)}</span>${r.recordStatus&&r.recordStatus!==r.status?`<span class="dw-badge neutral">${esc(statusNames[r.recordStatus]||r.recordStatusLabel)}</span>`:''}${r.state==='edited'?'<span class="dw-badge edited">已修订</span>':''}`;
+function csvDownload(url){const a=document.createElement('a');a.href=url;a.download='产业数据池.csv';a.click();}
+export function dataPoolQuery(sharedQuery='',state={}){
+ const p=new URLSearchParams(),shared=new URLSearchParams(sharedQuery);
+ for(const key of ['topic','country','sourceId','from','to'])if(shared.get(key))p.set(key,shared.get(key));
+ for(const key of ['kind','q','status','sort','order','state','page','pageSize','deleted'])if(state[key])p.set(key,state[key]);
+ return p;
+}
+export function mountDataWorkbench(host,{state={},sharedQuery='',onChange=()=>{}}={}){
+ const life=new AbortController();let request=null,detailRequest=null,result=null,selected=null,dialog=null,priorFocus=null,loading=false;
+ Object.assign(state,{kind:state.kind||'documents',page:state.page||1,pageSize:state.pageSize||25,view:state.view||(matchMedia('(max-width:600px)').matches?'cards':'table')});
+ const $=s=>host.querySelector(s),params=()=>dataPoolQuery(sharedQuery,state);
+ async function read(url,options={}){const response=await fetch(url,options),payload=await response.json();if(!response.ok)throw Error(payload.error||'读取失败，请重试');return payload;}
+ host.innerHTML=`<div class="dw-workbench"><div class="dw-heading"><div><span class="dw-eyebrow">DATA EXPLORER</span><h2>数据池 <span class="dw-live">${[...new URLSearchParams(sharedQuery).values()].some(Boolean)?'当前范围':'完整快照'}</span></h2></div><div class="dw-heading-actions"><button data-dw="trash" aria-pressed="false">回收站 <span id="dw-trash-count">0</span></button><button data-dw="export">导出 CSV ↗</button></div></div><div class="dw-notice" role="status" hidden></div><div class="dw-stats" aria-label="明细统计"><div><span>范围内记录</span><b id="dw-total">—</b></div><div><span>匹配记录</span><b id="dw-matched">—</b></div><div><span>人工修订</span><b id="dw-edited">—</b></div></div><div class="dw-layout"><nav class="dw-kinds" aria-label="明细类型"></nav><div class="dw-main"><form class="dw-filters"><label class="dw-search"><span>关键词</span><input name="q" type="search" placeholder="搜索标题、指标、对象、编号…" value="${esc(state.q)}"></label><label><span>状态</span><select name="status" aria-label="筛选状态"></select></label><label><span>修改状态</span><select name="state"><option value="">全部记录</option><option value="edited" ${state.state==='edited'?'selected':''}>人工修订</option><option value="original" ${state.state==='original'?'selected':''}>原始记录</option></select></label><div class="dw-filter-actions"><button type="submit" class="dw-primary">二次筛选</button><button type="button" data-dw="reset">重置</button></div></form><div class="dw-results-bar"><span id="dw-result-label" role="status">读取完整数据…</span><div class="dw-view-controls"><select name="sort" aria-label="排序"><option value="date">日期：近 → 远</option><option value="title">名称排序</option><option value="value">数值：高 → 低</option><option value="updatedAt">最近修订</option></select><button data-dw-view="table" aria-pressed="true" title="表格视图">▤ 列表</button><button data-dw-view="cards" aria-pressed="false" title="卡片视图">▦ 卡片</button></div></div><div id="dw-records" class="dw-records" aria-live="polite"></div><div class="dw-pagination"></div></div></div></div>`;
+ $('.dw-workbench [name=sort]').value=state.sort||'date';
+ function notice(message,error=false){const el=$('.dw-notice');el.hidden=!message;el.textContent=message;el.classList.toggle('error',error);}
+ if(state.notice){notice(state.notice);delete state.notice;}
+ function options(name,rows,placeholder){const el=$(`.dw-filters [name=${name}]`),value=state[name]||'';el.innerHTML=`<option value="">${placeholder}</option>${value&&!rows.some(r=>r.id===value)?`<option value="${esc(value)}" selected>${esc(statusNames[value]||value)}（本范围无匹配）</option>`:''}`+rows.map(r=>`<option value="${esc(r.id)}" ${r.id===value?'selected':''}>${esc(r.name)}</option>`).join('');}
+ function rowButtons(r){return `<div class="dw-row-actions"><button data-dw-open="${esc(r.key)}" data-kind="${r.kind}" title="查看完整记录">查看</button>${r.deleted?`<button data-dw-open="${esc(r.key)}" data-kind="${r.kind}" data-mode="restore">恢复</button>`:`<button data-dw-open="${esc(r.key)}" data-kind="${r.kind}" data-mode="edit">编辑</button><button class="dw-danger-link" data-dw-open="${esc(r.key)}" data-kind="${r.kind}" data-mode="delete">删除</button>`}</div>`;}
+ function renderRows(){
+  if(!result)return;const kinds=new Map(result.kinds.map(k=>[k.id,k.name]));
+  $('#dw-records').classList.toggle('dw-card-grid',state.view==='cards');
+  if(!result.items.length){$('#dw-records').innerHTML='<div class="dw-empty"><span>⌕</span><h3>没有匹配的记录</h3><p>调整筛选条件，或重置后查看全部数据。</p><button data-dw="reset">重置筛选</button></div>';return;}
+  if(state.view==='cards')$('#dw-records').innerHTML=result.items.map(r=>`<article class="dw-record-card"><div class="dw-card-top"><small>${esc(kinds.get(r.kind))}</small>${badge(r)}</div><button class="dw-record-title" data-dw-open="${esc(r.key)}" data-kind="${r.kind}">${esc(r.title)}</button><p>${esc(r.subtitle)}</p>${r.value!==null?`<div class="dw-card-value">${esc(number(r.value))}<small>${esc(r.unit)}</small></div>`:''}<div class="dw-card-meta"><span>${esc(r.topic||'未标注行业')}</span><span>${esc(r.date?formatDisplayDate(r.date):'无日期')}</span><span>${esc(r.source)}</span></div>${rowButtons(r)}</article>`).join('');
+  else $('#dw-records').innerHTML=`<div class="dw-table-scroll"><table class="dw-table"><thead><tr><th class="dw-number">#</th><th>记录 / 对象</th><th>行业与状态</th><th>数值</th><th>统计期 / 日期</th><th>来源</th><th class="dw-action-cell">操作</th></tr></thead><tbody>${result.items.map((r,i)=>`<tr><td class="dw-number">${(result.page-1)*result.pageSize+i+1}</td><td class="dw-title-cell"><span class="dw-type">${esc(kinds.get(r.kind))}${r.id?' · '+esc(r.id):''}</span><button class="dw-record-title" data-dw-open="${esc(r.key)}" data-kind="${r.kind}">${esc(r.title)}</button><small>${esc(r.subtitle)}</small></td><td><span class="dw-topic">${esc(r.topic||'未标注')}</span><div class="dw-badges">${badge(r)}</div></td><td class="dw-value">${esc(number(r.value))}<small>${esc(r.unit)}</small></td><td><time title="${esc(r.date)}">${esc(r.date?formatDisplayDate(r.date):'未提供')}</time></td><td class="dw-source-cell">${esc(r.source)}</td><td class="dw-action-cell">${rowButtons(r)}</td></tr>`).join('')}</tbody></table></div>`;
+ }
+ function renderResult(){
+  $('#dw-total').textContent=number(result.totalActive);$('#dw-matched').textContent=number(result.total);$('#dw-edited').textContent=number(result.editedCount);$('#dw-trash-count').textContent=result.deletedCount;
+  $('.dw-kinds').innerHTML=[{id:'all',name:'全部数据',count:result.totalActive},...result.kinds].map((k,i)=>`<button data-dw-kind="${k.id}" class="${state.kind===k.id?'active':''}" aria-pressed="${state.kind===k.id}"><span><i>${i===0?'◈':['▤','◉','⌁','▣','◇','◷','⬡','⇄','❝','◎','≋','▱','⋯'][(i-1)%13]}</i>${k.name}</span><b>${number(k.count)}</b></button>`).join('');
+  options('status',result.options.statuses.map(s=>({id:s,name:statusNames[s]||result.options.statusLabels?.[s]||s})),'全部状态');
+  $('[data-dw=trash]').setAttribute('aria-pressed',String(state.deleted==='true'));$('[data-dw=trash]').classList.toggle('active',state.deleted==='true');
+  $('#dw-result-label').textContent=`${state.deleted==='true'?'回收站 · ':''}${number(result.total)} 条记录 · 第 ${result.page} / ${result.pages} 页`;
+  host.querySelectorAll('[data-dw-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.dwView===state.view)));
+  renderRows();$('.dw-pagination').innerHTML=`<label>每页 <select name="pageSize" aria-label="每页记录数">${[25,50,100].map(n=>`<option ${n===result.pageSize?'selected':''}>${n}</option>`).join('')}</select> 条</label><div><button data-dw-page="1" ${result.page<=1?'disabled':''}>首页</button><button data-dw-page="${result.page-1}" ${result.page<=1?'disabled':''}>上一页</button><span>${result.page} / ${result.pages}</span><button data-dw-page="${result.page+1}" ${result.page>=result.pages?'disabled':''}>下一页</button><button data-dw-page="${result.pages}" ${result.page>=result.pages?'disabled':''}>末页</button></div>`;
+ }
+ async function load(){
+  request?.abort();request=new AbortController();const pending=request;loading=true;$('#dw-records').setAttribute('aria-busy','true');$('#dw-result-label').textContent='读取中…';
+  try{const next=await read(api.href+'?'+params(),{signal:pending.signal});if(life.signal.aborted||pending!==request)return;result=next;state.page=next.page;renderResult();}
+  catch(error){if(error.name!=='AbortError'&&!life.signal.aborted){notice(error.message,true);$('#dw-result-label').textContent='读取失败';if(!result)$('#dw-records').innerHTML='<div class="dw-empty"><button data-dw="retry">重新加载</button></div>';}}
+  finally{if(pending===request){loading=false;$('#dw-records').removeAttribute('aria-busy');}}
+ }
+ function fieldHtml(key,value){if(value===null||typeof value!=='object')return `<div class="dw-field"><dt>${esc(names[key]||key)}<small>${esc(key)}</small></dt><dd class="${typeof value==='number'?'dw-numeric':''}">${value===null?'<span class="muted">null</span>':typeof value==='string'&&/^https?:\/\//i.test(value)&&!value.includes('\n')?safeLink(value,value):esc(value===false?'false':value===true?'true':value===''?'（空文本）':value)}</dd></div>`;return `<details class="dw-json-field"><summary>${esc(names[key]||key)} <small>${esc(key)} · ${Array.isArray(value)?value.length+' 项':'对象'}</small></summary><pre>${esc(JSON.stringify(value,null,2))}</pre></details>`;}
+ function recordFields(record){return `<dl class="dw-fields">${Object.entries(record).map(([k,v])=>fieldHtml(k,v)).join('')}</dl>`;}
+ function editorField(key){
+  const value=selected.record[key],label=names[key]||key;
+  if(key==='topic'&&selected.kind==='documents')return '';
+  if(['industry','classification'].includes(key)){const v=value||{};return `<fieldset class="dw-classification"><legend>行业分类</legend><label><span>纳入状态</span><select name="${key}.status">${['accepted','excluded','unmatched'].map(s=>`<option value="${s}" ${s===v.status?'selected':''}>${statusNames[s]}</option>`).join('')}</select></label><label><span>所属行业</span><select name="${key}.primary"><option value="">未标注</option>${selected.topics.map(t=>`<option ${v.primary===t?'selected':''}>${esc(t)}</option>`).join('')}</select></label><label class="dw-wide"><span>分类依据</span><input name="${key}.reason" value="${esc(v.reason)}"></label></fieldset>`;}
+  if(key==='topic')return `<label><span>${label}</span><select name="${key}"><option value="">未标注</option>${value&&!selected.topics.includes(value)?`<option selected>${esc(value)}</option>`:''}${selected.topics.map(t=>`<option ${t===value?'selected':''}>${esc(t)}</option>`).join('')}</select></label>`;
+  if(key==='partial')return `<label><span>${label}</span><select name="${key}"><option value="false" ${!value?'selected':''}>否</option><option value="true" ${value?'selected':''}>是</option></select></label>`;
+  if(['countries'].includes(key))return `<label><span>${label}（JSON 数组）</span><input name="${key}" value="${esc(JSON.stringify(value||[]))}"></label>`;
+  const long=['summaryZh','summary','abstract','quote','quoteZh','scope','note','reason','reviewNote'].includes(key),numeric=['value','capacityMW','start'].includes(key),blank=value??'';
+  return `<label class="${long?'dw-wide':''}"><span>${label} <small>${esc(key)}</small></span>${long?`<textarea name="${key}" rows="${key==='quote'?5:3}" maxlength="20000">${esc(blank)}</textarea>`:`<input name="${key}" ${numeric?'type="number" step="any"':'type="text"'} value="${esc(blank)}" ${numeric&&key==='value'?'required':''}>`}</label>`;
+ }
+ function renderDialog(mode='view'){
+  const tabs=mode==='delete'?'view':mode;
+  dialog.innerHTML=`<div class="dw-dialog-header"><div><span class="dw-eyebrow">${esc(result?.kinds.find(k=>k.id===selected.kind)?.name||'完整记录')}</span><h2 id="dw-dialog-title">${esc(selected.title)}</h2><div class="dw-badges">${badge(selected)}<span class="dw-badge neutral">${esc(selected.topic||'未标注行业')}</span></div></div><button data-dw="close" aria-label="关闭记录详情">✕</button></div><div class="dw-dialog-tabs" role="group" aria-label="记录操作"><button data-dw-mode="view" class="${tabs==='view'?'active':''}">完整记录</button>${!selected.deleted?`<button data-dw-mode="edit" class="${tabs==='edit'?'active':''}">编辑数据</button>`:''}<button data-dw-mode="history" class="${tabs==='history'?'active':''}">变更记录${selected.history.length?' · '+selected.history.length:''}</button>${selected.original?`<button data-dw-mode="original" class="${tabs==='original'?'active':''}">修订前记录</button>`:''}<button data-dw="json">下载 JSON ↗</button></div><div class="dw-dialog-body"></div><div class="dw-dialog-error" role="alert" hidden></div><div class="dw-dialog-footer"><span>${selected.updatedAt?'最近修订 '+new Date(selected.updatedAt).toLocaleString('zh-CN'):esc(selected.id||'完整字段已保留')}</span><div>${selected.deleted?'<button data-dw="restore" class="dw-primary">恢复记录</button>':`<button data-dw="delete" class="dw-danger-link">删除记录</button>`}<button data-dw="close">关闭</button></div></div>`;
+  const body=dialog.querySelector('.dw-dialog-body');
+  if(mode==='edit'&&!selected.deleted)body.innerHTML=`<form class="dw-edit-form"><div class="dw-edit-grid">${selected.editable.map(editorField).join('')}</div><label class="dw-edit-reason"><span>修改原因 <b>*</b></span><textarea name="_note" required maxlength="1000" rows="2" placeholder="填写本次修改的依据"></textarea></label><div class="dw-save-row"><span>${selected.kind==='observations'?'指标需有原文证据支持才参与图表。':selected.kind==='evidence'?'证据需能在原文中定位才参与图表。':'编号、来源版本与原始文件保留。'}</span><button type="submit" class="dw-primary">保存修改</button></div></form>`;
+  else if(mode==='history')body.innerHTML=selected.history.length?`<ol class="dw-history">${selected.history.map(h=>`<li><i></i><div><strong>${{edit:'编辑数据',delete:'移入回收站',restore:'恢复数据'}[h.action]||h.action}</strong><time>${new Date(h.at).toLocaleString('zh-CN')}</time><p>${esc(h.note)}</p><small>${h.fields.map(f=>names[f]||f).join(' · ')}</small></div></li>`).join('')}</ol>`:'<div class="dw-empty">这条记录还没有人工修改。</div>';
+  else if(mode==='original')body.innerHTML=recordFields(selected.original||{});
+  else body.innerHTML=`${mode==='delete'?`<form class="dw-delete-form"><div class="dw-delete-callout"><strong>将这条记录移入回收站？</strong><p>${esc(selected.title)}</p><small>可在回收站恢复，后续采集会保留删除状态。</small></div><label><span>删除原因 *</span><textarea name="_note" required maxlength="1000" rows="2" placeholder="填写删除原因"></textarea></label><div class="dw-save-row"><button type="button" data-dw-mode="view">取消</button><button type="submit" class="dw-danger">确认移入回收站</button></div></form>`:''}<div class="dw-detail-summary"><div><small>来源渠道</small><b>${esc(selected.source)}</b></div><div><small>统计期 / 日期</small><b>${esc(selected.date?formatDisplayDate(selected.date):'未提供')}</b></div><div><small>数值</small><b>${esc(number(selected.value))} <small>${esc(selected.unit)}</small></b></div><div>${safeLink(selected.url,'打开原始来源')}${selected.kind==='official'&&/^[a-f0-9]{64}$/.test(selected.record.contentHash||'')?`<br><a href="${new URL('api/iea-file',import.meta.url).href}?hash=${selected.record.contentHash}">原始工作簿 ↗</a>`:''}</div></div>${selected.context.document?`<div class="dw-related-document">关联文章：${safeLink(selected.context.document.url,selected.context.document.title)}</div>`:selected.context.originalDocumentDeleted?'<p class="muted">关联文章已删除；本条原始提取记录保留。</p>':''}${Object.keys(selected.context).filter(k=>!['document','originalDocumentDeleted'].includes(k)).length?`<details class="dw-context"><summary>数据集信息</summary>${recordFields(Object.fromEntries(Object.entries(selected.context).filter(([k])=>!['document','originalDocumentDeleted'].includes(k))))}</details>`:''}${selected.evidence.length?`<details class="dw-proofs"><summary>关联证据 · ${selected.evidence.length} 条</summary>${selected.evidence.map(e=>`<blockquote>${esc(e.quoteZh||e.quote)}<small>${esc(e.id)}</small></blockquote>`).join('')}</details>`:''}${recordFields(selected.record)}`;
+  dialog.dataset.mode=mode;
+ }
+ async function open(kind,key,mode='view'){
+  detailRequest?.abort();detailRequest=new AbortController();priorFocus=host.getRootNode().activeElement||document.activeElement;
+  try{const next=await read(api.href+'/record?'+new URLSearchParams({kind,key}),{signal:detailRequest.signal});if(life.signal.aborted)return;selected=next;dialog?.remove();dialog=document.createElement('dialog');dialog.className='dw-dialog';dialog.setAttribute('aria-labelledby','dw-dialog-title');host.append(dialog);renderDialog(mode==='restore'?'view':mode);dialog.showModal();dialog.addEventListener('cancel',event=>{if(!event.defaultPrevented)close();},{signal:life.signal});dialog.querySelector('[data-dw=close]').focus();}
+  catch(error){if(error.name!=='AbortError')notice(error.message,true);}
+ }
+ function close(){if(!dialog)return;dialog.close();dialog.remove();dialog=null;selected=null;priorFocus?.focus();}
+ async function save(action,patch,note){
+  const current=selected;if(!current||dialog.dataset.saving==='true')return;dialog.dataset.saving='true';const errorEl=dialog.querySelector('.dw-dialog-error');errorEl.hidden=true;dialog.querySelectorAll('button').forEach(b=>b.disabled=true);
+  try{await read(api.href+'/record',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:current.kind,key:current.key,revision:current.revision,action,patch,note}),signal:life.signal});if(life.signal.aborted)return;close();const message={edit:'修改已保存，图表已同步更新。',delete:'已移入回收站，可随时恢复。',restore:'记录已恢复。'}[action];state.notice=message;await load();notice(message);onChange(message);}
+  catch(error){if(error.name!=='AbortError'&&dialog){errorEl.hidden=false;errorEl.textContent=error.message;}}
+  finally{if(dialog){delete dialog.dataset.saving;dialog.querySelectorAll('button').forEach(b=>b.disabled=false);}}
+ }
+ function editPatch(form){
+  const fd=new FormData(form),patch={};for(const key of selected.editable){if(key==='topic'&&selected.kind==='documents')continue;
+   const old=selected.record[key];let value;
+   if(['industry','classification'].includes(key)){value={status:fd.get(key+'.status'),primary:fd.get(key+'.primary')||null,reason:fd.get(key+'.reason')||''};if(value.status===(old?.status||'accepted')&&value.primary===(old?.primary||null)&&value.reason===(old?.reason||''))continue;}
+   else{const text=fd.get(key);if(text===null)continue;if(['value','capacityMW','start'].includes(key))value=text===''?null:Number(text);else if(key==='partial')value=text==='true';else if(key==='countries'){try{value=JSON.parse(text);}catch{throw Error('国家代码应填写 JSON 数组，例如 ["CN","US"]');}}else value=text===''&&old===null?null:text;if(old===undefined&&(value===''||value===null||value===false||Array.isArray(value)&&!value.length))continue;if(JSON.stringify(value)===JSON.stringify(old))continue;}
+   patch[key]=value;
+  }if(!Object.keys(patch).length)throw Error('尚未修改任何字段');return patch;
+ }
+ host.addEventListener('submit',event=>{
+  const form=event.target;event.preventDefault();if(form.matches('.dw-filters')){const fd=new FormData(form);for(const [k,v]of fd)state[k]=String(v).trim();state.page=1;load();}
+  else if(form.matches('.dw-edit-form')){try{save('edit',editPatch(form),new FormData(form).get('_note'));}catch(error){const el=dialog.querySelector('.dw-dialog-error');el.hidden=false;el.textContent=error.message;}}
+  else if(form.matches('.dw-delete-form'))save('delete',null,new FormData(form).get('_note'));
+ },{signal:life.signal});
+ host.addEventListener('click',event=>{
+  const b=event.target.closest('button');if(!b||b.disabled)return;
+  if(b.dataset.dwOpen){open(b.dataset.kind,b.dataset.dwOpen,b.dataset.mode);return;}
+  if(b.dataset.dwKind){state.kind=b.dataset.dwKind;state.page=1;state.status='';load();return;}
+  if(b.dataset.dwPage){state.page=Number(b.dataset.dwPage);load();return;}
+  if(b.dataset.dwView){state.view=b.dataset.dwView;if(result)renderResult();return;}
+  if(b.dataset.dwMode){if(dialog?.dataset.saving!=='true')renderDialog(b.dataset.dwMode);return;}
+  switch(b.dataset.dw){
+   case 'close':if(dialog?.dataset.saving!=='true')close();break;
+   case 'delete':renderDialog('delete');break;
+   case 'restore':save('restore',null,'从数据池回收站恢复');break;
+   case 'trash':state.deleted=state.deleted==='true'?'':'true';state.state='';state.page=1;$('.dw-filters [name=state]').value='';load();break;
+   case 'reset':for(const k of ['q','status','state']){state[k]='';const el=$(`.dw-filters [name=${k}]`);if(el)el.value='';}state.page=1;load();break;
+   case 'retry':load();break;
+   case 'export':{const p=params();p.set('format','csv');csvDownload(api.href+'?'+p);break;}
+   case 'json':{if(!selected)break;const url=URL.createObjectURL(new Blob([JSON.stringify(selected.record,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=(selected.id||selected.kind)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);break;}
+  }
+ },{signal:life.signal});
+ host.addEventListener('change',event=>{if(event.target.name==='sort'&&!dialog?.contains(event.target)){state.sort=event.target.value;state.page=1;load();}if(event.target.name==='pageSize'){state.pageSize=Number(event.target.value);state.page=1;load();}},{signal:life.signal});
+ function cancelClose(event){if(dialog?.dataset.saving==='true')event.preventDefault();}
+ host.addEventListener('cancel',cancelClose,{capture:true,signal:life.signal});
+ load();return ()=>{life.abort();request?.abort();detailRequest?.abort();if(dialog){dialog.close();dialog.remove();}};
+}
