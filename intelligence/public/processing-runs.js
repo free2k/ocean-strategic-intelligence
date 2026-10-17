@@ -36,9 +36,9 @@ export function logDetails(l){
  return parts.join('');
 }
 export function mountProcessingRuns(host,{api='api/processing-runs',beforeStart=()=>{}}={}){
- let generation=0,selectedScope='pending',task=null,preview=null,cursor=0,requestId=null,busy=false,disposed=false,polling=false,filter='all',follow=true;const logs=[];const life=new AbortController();
+ let generation=0,selectedScope='pending',task=null,preview=null,cursor=0,requestId=null,busy=false,disposed=false,polling=false,filter='all',follow=true,totalLogs=0,pageStart=0,viewBusy=false,viewVersion=0;const PAGE_SIZE=50,logs=[];const life=new AbortController();
  host.classList.add('processing-console');
- host.innerHTML=`<div class="pr-top"><div><span class="pr-eyebrow">处理任务</span><h3>重新匹配与分析</h3><p class="pr-scope">正在核对可处理范围…</p></div><div class="pr-actions"><label>处理范围 <select class="pr-range"><option value="pending">待筛选</option><option value="accepted">已纳入</option><option value="excluded">已排除</option><option value="all">全部文章</option></select></label><span class="pr-badge">核对中</span><button class="pr-start primary" disabled>开始新一轮处理</button><button class="pr-stop" disabled>中断任务</button></div></div><p class="pr-feedback" role="status"></p><div class="pr-summary" hidden></div><details class="pr-log-panel" open><summary>处理日志详情 <span class="pr-log-count">0 条</span></summary><div class="pr-log-tools"><label>日志类型 <select class="pr-filter"><option value="all">全部记录</option><option value="classification">关键词匹配</option><option value="review">行业判断</option><option value="extraction">事件／数据／实体</option><option value="model">模型请求与响应</option><option value="retry">异常与重试</option></select></label><label><input type="checkbox" class="pr-follow" checked> 跟随最新记录</label><button class="pr-export">导出日志</button></div><div class="pr-logs" role="log" aria-label="处理日志"><p class="pr-empty">启动后将逐篇显示来源、日期、关键词、模型响应和提取结果。</p></div></details><dialog class="pr-confirm"><form method="dialog"><h3></h3><div class="pr-confirm-body"></div><div class="pr-dialog-actions"><button value="cancel">取消</button><button class="primary" value="confirm">确认</button></div></form></dialog>`;
+ host.innerHTML=`<div class="pr-top"><div><span class="pr-eyebrow">处理任务</span><h3>重新匹配与分析</h3><p class="pr-scope">正在核对可处理范围…</p></div><div class="pr-actions"><label>处理范围 <select class="pr-range"><option value="pending">待筛选</option><option value="accepted">已纳入</option><option value="excluded">已排除</option><option value="all">全部文章</option></select></label><span class="pr-badge">核对中</span><button class="pr-start primary" disabled>开始新一轮处理</button><button class="pr-stop" disabled>中断任务</button></div></div><p class="pr-feedback" role="status"></p><div class="pr-summary" hidden></div><details class="pr-log-panel" open><summary>处理日志详情 <span class="pr-log-count">0 条</span></summary><div class="pr-log-tools"><label>日志类型 <select class="pr-filter"><option value="all">全部记录</option><option value="classification">关键词匹配</option><option value="review">行业判断</option><option value="extraction">事件／数据／实体</option><option value="model">模型请求与响应</option><option value="retry">异常与重试</option></select></label><label><input type="checkbox" class="pr-follow" checked> 跟随最新记录</label><button class="pr-export">导出完整日志</button></div><div class="pr-log-nav"><button class="pr-older">更早记录</button><button class="pr-newer">更新记录</button><button class="pr-latest">回到实时</button><span class="pr-window" role="status"></span></div><div class="pr-logs" role="region" aria-label="处理日志"><p class="pr-empty">启动后将逐篇显示来源、日期、关键词、模型响应和提取结果。</p></div></details><dialog class="pr-confirm"><form method="dialog"><h3></h3><div class="pr-confirm-body"></div><div class="pr-dialog-actions"><button value="cancel">取消</button><button class="primary" value="confirm">确认</button></div></form></dialog>`;
  const $=s=>host.querySelector(s),feedback=msg=>{$('.pr-feedback').textContent=msg;};
  async function read(path='',options={}){const response=await fetch(api+path,{...options,signal:life.signal,headers:{'Content-Type':'application/json',...options.headers}});const payload=await response.json();if(!response.ok)throw Object.assign(Error(payload.error||'读取任务失败'),{status:response.status});return payload;}
  function render(){if(disposed)return;
@@ -53,17 +53,55 @@ export function mountProcessingRuns(host,{api='api/processing-runs',beforeStart=
   $('.pr-summary').hidden=!task;
   if(task){const percent=task.total?Math.floor(task.processed/task.total*100):0;$('.pr-summary').innerHTML=`<div class="pr-stage"><strong>${esc(stages[task.stage]||task.stage)}</strong><span>已处理 ${task.processed} / ${task.total} 篇</span></div><progress value="${task.processed}" max="${task.total||1}" aria-label="文章处理进度"></progress><div class="pr-counters"><span>纳入 <b>${task.accepted}</b></span><span>排除 <b>${task.excluded}</b></span><span>待筛选 <b>${task.unmatched}</b></span><span>事件 <b>${task.facts?.events||0}</b></span><span>数据 <b>${task.facts?.observations||0}</b></span><span>实体 <b>${task.facts?.entities||0}</b></span><span>待重试 <b>${task.retries?.length||0}</b></span></div><small>任务 ${esc(task.id.slice(0,8))} · 范围 ${esc(task.scopeLabel||'待筛选')} · 启动 ${esc(date(task.startedAt))} · 文章处理 ${percent}%（不代表已发布）</small>`;}
  }
- function appendLogs(rows){const box=$('.pr-logs');if(!rows.length)return;if(!logs.length)box.innerHTML='';for(const l of rows){logs.push(l);const details=logDetails(l);box.insertAdjacentHTML('beforeend',`<article class="pr-log ${['retry','model_error','failed'].includes(l.type)?'pr-warning':''}" data-type="${esc(l.type)}"><div class="pr-log-line"><time>${esc(date(l.at))}</time><span class="pr-log-tag">${esc(types[l.type]||l.type)}</span><strong>${esc(l.message)}</strong></div>${l.title?`<p class="pr-log-title">${esc(l.title)}</p>`:''}${details?`<details><summary>查看详情</summary><div class="pr-log-data">${details}</div></details>`:''}</article>`);}$('.pr-log-count').textContent=logs.length+' 条';applyFilter();if(follow)box.scrollTop=box.scrollHeight;}
- function applyFilter(){for(const row of $('.pr-logs').querySelectorAll('[data-type]'))row.hidden=filter!=='all'&&(filter==='model'?!row.dataset.type.startsWith('model'):filter==='retry'?!['retry','model_error','failed'].includes(row.dataset.type):row.dataset.type!==filter);}
- async function poll(){if(polling||disposed)return;polling=true;const epoch=generation;try{let result=await read('/current?after='+cursor);if(epoch!==generation||disposed)return;if(result.task){if(task&&task.id!==result.task.id){result=await read('/current?after=0&id='+result.task.id);if(epoch!==generation||disposed)return;cursor=0;logs.length=0;$('.pr-logs').innerHTML='';}task=result.task;appendLogs(task.logs);if(task.logs.length)cursor=task.logs.at(-1).seq;}render();}catch(e){if(!disposed)feedback(e.message);}finally{polling=false;}}
+ function matches(l){return filter==='all'||(filter==='model'?l.type.startsWith('model'):filter==='retry'?['retry','model_error','failed'].includes(l.type):l.type===filter);}
+ function logNavigation(){
+  $('.pr-log-count').textContent=`累计 ${totalLogs} 条`;
+  $('.pr-window').textContent=`${follow?'实时更新 · 最新在上':'正在查看历史 · 进度仍实时更新'} · ${logs.length?`${logs[0].seq}–${logs.at(-1).seq}`:'0'} / ${totalLogs} 条 · 筛选当前页`;
+  $('.pr-older').disabled=viewBusy||pageStart<=0;$('.pr-newer').disabled=viewBusy||pageStart+PAGE_SIZE>=totalLogs;$('.pr-latest').disabled=viewBusy;$('.pr-follow').checked=follow;
+ }
+ function renderLogs(){
+  const rows=logs.filter(matches).slice().reverse();
+  $('.pr-logs').innerHTML=rows.map(l=>`<article class="pr-log ${['retry','model_error','failed'].includes(l.type)?'pr-warning':''}" data-seq="${l.seq}"><div class="pr-log-line"><time>${esc(date(l.at))}</time><span class="pr-log-tag">${esc(types[l.type]||l.type)}</span><strong>${esc(l.message)}</strong></div>${l.title?`<p class="pr-log-title">${esc(l.title)}</p>`:''}<details class="pr-row-details"><summary>查看详情</summary><div class="pr-log-data"></div></details></article>`).join('')||'<p class="pr-empty">本页没有符合条件的记录，可翻页或切换日志类型。</p>';
+  logNavigation();
+ }
+ function appendLogs(rows){logs.splice(0,logs.length,...rows.slice(-PAGE_SIZE));totalLogs=task?.lastSeq||rows.at(-1)?.seq||0;pageStart=Math.max(0,(logs[0]?.seq||1)-1);renderLogs();}
+ async function loadPage(start){
+  if(!task||viewBusy)return;viewBusy=true;const version=++viewVersion,id=task.id;logNavigation();
+  try{const result=await read('/current?after='+start+'&id='+id);if(disposed||version!==viewVersion||task?.id!==id)return;
+   totalLogs=result.task?.lastSeq||totalLogs;pageStart=start;logs.splice(0,logs.length,...(result.task?.logs||[]).slice(0,PAGE_SIZE));renderLogs();$('.pr-logs').scrollTop=0;
+  }catch(e){if(!disposed)feedback(e.message);}finally{viewBusy=false;if(!disposed)logNavigation();}
+ }
+ async function poll(){if(polling||disposed)return;polling=true;const epoch=generation;try{
+  const result=await read('/current?after='+Number.MAX_SAFE_INTEGER);if(epoch!==generation||disposed)return;
+  if(result.task){const changed=task?.id!==result.task.id;task=result.task;totalLogs=task.lastSeq||0;
+   if(changed){viewVersion++;logs.length=0;pageStart=0;follow=true;}
+   render();logNavigation();
+   if(!viewBusy&&((follow&&$('.pr-log-panel').open&&logs.at(-1)?.seq!==totalLogs)||changed))await loadPage(Math.max(0,totalLogs-PAGE_SIZE));
+  }else render();
+ }catch(e){if(!disposed)feedback(e.message);}finally{polling=false;}}
+ $('.pr-logs').addEventListener('toggle',e=>{const detail=e.target;if(!detail.matches('.pr-row-details')||!detail.open)return;
+  follow=false;viewVersion++;logNavigation();if(detail.dataset.loaded)return;
+  const row=logs.find(l=>String(l.seq)===detail.closest('[data-seq]').dataset.seq);if(row){detail.querySelector('.pr-log-data').innerHTML=logDetails(row)||'<p>无额外详情。</p>';detail.dataset.loaded='true';}
+ },true);
+ $('.pr-older').addEventListener('click',()=>{follow=false;loadPage(Math.max(0,pageStart-PAGE_SIZE));});
+ $('.pr-newer').addEventListener('click',()=>{follow=false;loadPage(Math.min(Math.max(0,totalLogs-PAGE_SIZE),pageStart+PAGE_SIZE));});
+ $('.pr-latest').addEventListener('click',()=>{follow=true;loadPage(Math.max(0,totalLogs-PAGE_SIZE));});
+ $('.pr-log-panel').addEventListener('toggle',()=>{if($('.pr-log-panel').open)poll();});
  async function confirm(title,body,button){const dialog=$('.pr-confirm');dialog.querySelector('h3').textContent=title;$('.pr-confirm-body').innerHTML=body;dialog.querySelector('[value=confirm]').textContent=button;dialog.returnValue='';dialog.showModal();return new Promise(resolve=>dialog.addEventListener('close',()=>resolve(dialog.returnValue==='confirm'),{once:true}));}
  $('.pr-start').addEventListener('click',async()=>{if(busy)return;busy=true;render();try{await beforeStart();preview=await read('/preview?scope='+selectedScope);if(!await confirm('确认开始新一轮处理？',`<p>${esc(preview.scope)}</p><p><b>${esc(preview.scopeLabel)}：实际处理 ${preview.count} 篇</b>，使用规则 <code>${esc(preview.ruleVersion)}</code>。</p><p>依次执行关键词匹配 → AI 复核 → 结构化提取 → 合并 → ${preview.mode==='live'?'发布网站成果':'本地发布'}。</p><p>本轮会调用模型，可能产生费用。</p><p>执行中不能重复启动，需先中断并等待安全退出。</p>`,'确认启动'))return;
-   generation++;requestId||=processingRequestId();const result=await read('/start',{method:'POST',body:JSON.stringify({confirmed:true,requestId,processingScope:selectedScope,previewToken:preview.previewToken})});generation++;task=result.task;requestId=null;cursor=0;logs.length=0;$('.pr-logs').innerHTML='';appendLogs(task.logs);cursor=task.logs.at(-1)?.seq||0;feedback(preview.mode==='live'?'任务已提交；后台忙时会排队等待，完成后更新网站成果。':'任务已启动。本地预览不会修改线上数据。');
+   generation++;viewVersion++;requestId||=processingRequestId();const result=await read('/start',{method:'POST',body:JSON.stringify({confirmed:true,requestId,processingScope:selectedScope,previewToken:preview.previewToken})});generation++;task=result.task;requestId=null;cursor=0;logs.length=0;$('.pr-logs').innerHTML='';appendLogs(task.logs);cursor=task.logs.at(-1)?.seq||0;feedback(preview.mode==='live'?'任务已提交；后台忙时会排队等待，完成后更新网站成果。':'任务已启动。本地预览不会修改线上数据。');
   }catch(e){feedback(e.status?'本次启动未成功：'+e.message:e.message);}finally{busy=false;render();poll();}});
  $('.pr-range').addEventListener('change',async e=>{selectedScope=e.target.value;requestId=null;busy=true;preview=null;render();try{await beforeStart();preview=await read('/preview?scope='+selectedScope);feedback('');}catch(error){feedback(error.message);}finally{busy=false;render();}});
  $('.pr-stop').addEventListener('click',async()=>{if(busy||!task)return;busy=true;render();try{if(!await confirm('确认中断当前任务？',`<p>将取消当前模型请求，并保存已完成的文章检查点。</p><p>未完成结果不会发布；系统显示“已中断”后才允许开始新一轮。</p><p>任务：${esc(task.id.slice(0,8))}</p>`,'确认中断'))return;task=(await read('/'+task.id+'/stop',{method:'POST',body:JSON.stringify({confirmed:true})})).task;feedback('正在安全退出，请等待“已中断”状态。');}catch(e){feedback(e.message);}finally{busy=false;render();poll();}});
- $('.pr-filter').addEventListener('change',e=>{filter=e.target.value;applyFilter();});$('.pr-follow').addEventListener('change',e=>{follow=e.target.checked;});
- $('.pr-export').addEventListener('click',()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({taskId:task?.id,logs},null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='处理日志-'+(task?.id.slice(0,8)||'empty')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
- read('/preview').then(v=>{preview=v;render();return poll();}).catch(e=>feedback(e.message));const timer=setInterval(poll,1000);
+ $('.pr-filter').addEventListener('change',e=>{filter=e.target.value;renderLogs();});$('.pr-follow').addEventListener('change',e=>{follow=e.target.checked;viewVersion++;logNavigation();if(follow)loadPage(Math.max(0,totalLogs-PAGE_SIZE));});
+ $('.pr-export').addEventListener('click',async()=>{
+  if(!task)return;const button=$('.pr-export'),id=task.id,end=totalLogs;button.disabled=true;
+  try{const chunks=[];let after=0;while(after<end){button.textContent=`正在导出 ${after} / ${end}`;
+   const result=await read('/current?after='+after+'&id='+id),rows=(result.task?.logs||[]).filter(l=>l.seq<=end);if(!rows.length)throw Error('历史日志读取不完整，请重试');
+   chunks.push(rows.map(l=>JSON.stringify(l)).join('\n')+'\n');after=rows.at(-1).seq;
+  }const url=URL.createObjectURL(new Blob(chunks,{type:'application/x-ndjson'})),a=document.createElement('a');a.href=url;a.download='处理日志-'+id.slice(0,8)+'.jsonl';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(e){if(!disposed)feedback(e.message);}finally{button.disabled=false;button.textContent='导出完整日志';}
+ });
+ read('/preview').then(v=>{preview=v;render();}).catch(e=>feedback(e.message));poll();const timer=setInterval(poll,1000);
  return()=>{disposed=true;life.abort();clearInterval(timer);$('.pr-confirm')?.close();host.innerHTML='';};
 }

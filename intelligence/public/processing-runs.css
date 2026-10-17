@@ -2,3 +2,6 @@
 
 .processing-console mark.pr-hit-positive{background:#174a44;color:#a9f3de;border:1px solid #398b79;border-radius:4px;padding:2px 5px;line-height:1.9}.processing-console mark.pr-hit-negative{background:#513128;color:#ffd0a5;border:1px solid #b66c47;border-radius:4px;padding:2px 5px;line-height:1.9}
 .reader-dialog .processing-console .pr-top{align-items:stretch;flex-direction:column}.reader-dialog .processing-console .pr-actions{flex-wrap:wrap;flex-shrink:1}.processing-console .pr-actions label{display:flex;align-items:center;gap:8px;white-space:nowrap}
+
+.pr-log-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}.pr-log-nav button{font-size:12px;padding:7px 10px}.pr-window{font-size:12px;color:#a9c5d5}.pr-logs{height:440px;max-height:55vh;overflow:auto;contain:layout style;overflow-anchor:none}.pr-log-tools{flex-wrap:wrap}.pr-log-title{overflow-wrap:anywhere}.pr-log-nav button:focus-visible{outline:2px solid #8fdcda;outline-offset:2px}
+
