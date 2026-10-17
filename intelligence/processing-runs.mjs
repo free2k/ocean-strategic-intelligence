@@ -19,6 +19,11 @@ export function reviewCutoff(now=new Date()){
 }
 export const tooOld=(value,cutoff)=>value&&Number.isFinite(Date.parse(value))&&new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(value))<cutoff;
 
+export const processingScopes={pending:'待筛选',accepted:'已纳入',excluded:'已排除',all:'全部文章'};
+export function selectProcessingDocuments(documents,scope='pending'){
+ if(!Object.hasOwn(processingScopes,scope))fail('无效处理范围',400);
+ return documents.filter(d=>!d.manual&&!d.classification?.manual&&(scope==='all'||(d.classification?.status||'unmatched')===({pending:'unmatched',accepted:'accepted',excluded:'excluded'}[scope])));
+}
 // This controller deliberately owns an isolated file workspace. No production database,
 // scheduler or systemd mutations occur here. A live adapter requires separate approval.
 export class ProcessingRuns{
@@ -28,26 +33,27 @@ export class ProcessingRuns{
  tx(fn){const next=this.serial.catch(()=>{}).then(()=>this.state.transact(fn));this.serial=next;return next;}
  async recover(){await this.tx(s=>{for(const task of Object.values(s.processingRuns||{}))if(active.has(task.status)){task.status='interrupted';task.stage='interrupted';task.finishedAt=this.clock();this.log(task,'interrupted','服务重启，本轮已中断；已保存检查点，未自动发布。');}});}
  log(t,type,message,details={}){const row={seq:(t.logSeq||t.logs.at(-1)?.seq||0)+1,at:this.clock(),type,message,...details};t.logSeq=row.seq;mkdirSync(path.join(this.dir,t.id),{recursive:true});appendFileSync(path.join(this.dir,t.id,'logs.jsonl'),JSON.stringify(row)+'\n');t.logs.push(row);if(t.logs.length>400)t.logs.splice(0,t.logs.length-400);}
- async preview(){const input=await this.readInput(),config=compileRules(input.config),documents=input.documents.filter(d=>!d.manual&&d.classification?.status==='unmatched');
+ async preview(scope='pending'){const input=await this.readInput(),config=compileRules(input.config),documents=selectProcessingDocuments(input.documents,scope);
   const cutoff=reviewCutoff(new Date(this.clock()));
-  return {enabled:true,mode:this.mode,model:this.model,modelAvailable:!!this.client,ruleVersion:config.version,capturedAt:input.capturedAt,count:documents.length,cutoff,oldCount:documents.filter(d=>tooOld(d.publishedAt,cutoff)).length,previewToken:digest({config:input.config,documents,cutoff}),scope:this.mode==='live'?'全部待筛选资料；完成后合并工作库并发布网站成果':'本地待筛选样本；只写本地工作库和发布快照',documents:this.mode==='live'?[]:documents.map(({content,...d})=>d)};
+  return {enabled:true,mode:this.mode,model:this.model,modelAvailable:!!this.client,ruleVersion:config.version,capturedAt:input.capturedAt,count:documents.length,cutoff,oldCount:documents.filter(d=>tooOld(d.publishedAt,cutoff)).length,processingScope:scope,scopeLabel:processingScopes[scope],previewToken:digest({config:input.config,documents,cutoff,scope}),scope:this.mode==='live'?processingScopes[scope]+'；完成后合并工作库并发布网站成果':'本地样本 · '+processingScopes[scope]+'；只写本地工作库和发布快照',documents:this.mode==='live'?[]:documents.map(({content,...d})=>d)};
  }
- async start({confirmed,requestId,previewToken}){
+ async start({confirmed,requestId,previewToken,processingScope='pending'}){
   if(confirmed!==true)fail('请先确认启动',400);
   if(!/^[\w-]{8,100}$/.test(requestId||''))fail('缺少有效幂等请求编号',400);
   // Recognize a retried HTTP request even if rules changed after its first submission.
-  const existing=await this.tx(s=>Object.values(s.processingRuns||{}).find(t=>t.requestId===requestId));if(existing){if(existing.previewToken!==previewToken)fail('同一请求编号不能用于不同范围');return this.public(existing);}
-  const input=await this.readInput(),preview=await this.preview();
+  const existing=await this.tx(s=>Object.values(s.processingRuns||{}).find(t=>t.requestId===requestId));if(existing){if(existing.previewToken!==previewToken||(existing.processingScope||'pending')!==processingScope)fail('同一请求编号不能用于不同范围');return this.public(existing);}
+  const input=await this.readInput(),preview=await this.preview(processingScope);
+  input.documents=selectProcessingDocuments(input.documents,processingScope);
   if(preview.previewToken!==previewToken)fail('规则或资料已变化，请重新确认');
-  if(digest({config:input.config,documents:input.documents.filter(d=>!d.manual&&d.classification?.status==='unmatched'),cutoff:preview.cutoff})!==previewToken)fail('资料读取期间发生变化，请重新确认');
-  if(!preview.count)fail('没有待筛选样本',400);
+  if(digest({config:input.config,documents:input.documents,cutoff:preview.cutoff,scope:processingScope})!==previewToken)fail('资料读取期间发生变化，请重新确认');
+  if(!preview.count)fail('所选范围没有可处理文章',400);
   if(!this.client)fail('本地尚未配置模型，不能启动真实处理',503);
   let release;
   const task=await this.tx(async s=>{
    s.processingRuns||={};const same=Object.values(s.processingRuns).find(t=>t.requestId===requestId);if(same)return clone(same);
    if(Object.values(s.processingRuns).some(t=>active.has(t.status)))fail('已有任务执行中；请先中断并等待其退出，再开始新一轮');
    release=await this.acquire?.();
-   const t={id:randomUUID(),requestId,previewToken,mode:this.mode,ruleVersion:preview.ruleVersion,cutoff:preview.cutoff,startedAt:this.clock(),status:'queued',stage:'queued',total:preview.count,processed:0,accepted:0,excluded:0,unmatched:0,results:[],retries:[],logs:[]};
+   const t={id:randomUUID(),requestId,previewToken,processingScope,scopeLabel:processingScopes[processingScope],mode:this.mode,ruleVersion:preview.ruleVersion,cutoff:preview.cutoff,startedAt:this.clock(),status:'queued',stage:'queued',total:preview.count,processed:0,accepted:0,excluded:0,unmatched:0,results:[],retries:[],logs:[]};
    this.log(t,'queued','本轮已创建：锁定最新规则与样本范围。',{ruleVersion:t.ruleVersion,count:t.total});s.processingRuns[t.id]=t;return clone(t);
   }).catch(async e=>{await release?.();throw e;});
   if(!this.workers.has(task.id)&&task.status==='queued'){
@@ -70,7 +76,7 @@ export class ProcessingRuns{
   const stage=async value=>{check();await this.update(id,t=>{if(t.status==='stopping')throw Object.assign(Error('stopped'),{name:'AbortError'});t.status='running';t.stage=value;});};
   const task=await this.tx(s=>clone(s.processingRuns[id]));const rules=compileRules(input.config);
   try{
-   const documents=input.documents.filter(d=>!d.manual&&d.classification?.status==='unmatched');let nextIndex=0;
+   const documents=selectProcessingDocuments(input.documents,task.processingScope||'pending');let nextIndex=0;
    const worker=async()=>{while(nextIndex<documents.length){const original=documents[nextIndex++];
     check();const articleStarted=Date.now();const loaded=this.loadDocument?await this.loadDocument(original):original;check();const d={...loaded,versionId:'ver_'+digest(loaded),language:/[\u4e00-\u9fff]/.test(loaded.content)?'zh':'en'};
     const meta={documentId:d.id,title:d.title,source:d.sourceName,publishedAt:d.publishedAt};
@@ -114,6 +120,7 @@ export class ProcessingRuns{
     for(const saved of t.results){const result=saved.file?JSON.parse(await fs.readFile(path.join(this.dir,saved.file),'utf8')):saved;const d=result.document,old=snapshot.documents.find(x=>x.id===d.id);if(old?.manual)continue;
      const mergedDoc={...d,industry:result.decision};snapshot.documents=snapshot.documents.filter(x=>x.id!==d.id);snapshot.documents.push(mergedDoc);
      if(result.extraction)applyExtraction(snapshot,mergedDoc,result.extraction,this.clock());
+     else if(result.decision.status!=='accepted')for(const key of ['events','relations','observations'])snapshot[key]=(snapshot[key]||[]).filter(r=>r.documentId!==d.id||r.manual||r.reviewedAt||r.method==='官方原文规则校验');
     }
     const file=`release-${id}.json`;snapshot.publishedAt=this.clock();snapshot.ruleVersion=t.ruleVersion;
     await fs.writeFile(path.join(this.dir,file),JSON.stringify(snapshot),{flag:'wx'});
@@ -130,7 +137,7 @@ export async function serveProcessingRuns(req,res,url,manager){
  try{
   if(!manager){send(200,{enabled:false,reason:'任务控制面板正在本地验收，尚未启用线上任务控制'});return true;}
   if(req.method==='GET'){
-   if(route.endsWith('/preview'))send(200,await manager.preview());
+   if(route.endsWith('/preview'))send(200,await manager.preview(url.searchParams.get('scope')||'pending'));
    else if(route.endsWith('/current'))send(200,{task:await manager.current(Math.max(0,Number(url.searchParams.get('after'))||0),url.searchParams.get('id'))});
    else send(404,{error:'未找到接口'});return true;
   }

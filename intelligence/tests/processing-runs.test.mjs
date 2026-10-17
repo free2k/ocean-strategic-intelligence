@@ -58,3 +58,15 @@ test('live runs process at most four articles concurrently and wait for all requ
 test('older log pages remain available after the bounded runtime log window rolls over',async()=>{
  const x=await setup();try{const p=await x.manager.preview(),t=await x.manager.start({confirmed:true,requestId:'log-pages',previewToken:p.previewToken});await x.manager.workers.get(t.id);await x.manager.update(t.id,s=>{for(let i=0;i<600;i++)x.manager.log(s,'checkpoint','log '+i);});const first=await x.manager.current(0,t.id);assert.equal(first.logs[0].seq,1);assert.equal(first.logs.length,200);const next=await x.manager.current(200,t.id);assert.equal(next.logs[0].seq,201);assert.equal(next.logs.length,200);assert.ok(next.lastSeq>600);}finally{await x.cleanup();}
 });
+
+test('scope preview and execution agree; changing scope cannot reuse confirmation',async()=>{
+ const x=await setup();x.data.documents=['unmatched','accepted','excluded'].map((status,i)=>({...x.data.documents[0],id:'scope-'+i,classification:{status}}));x.data.documents.push({...x.data.documents[0],id:'manual',manual:true});
+ try{for(const scope of ['pending','accepted','excluded'])assert.equal((await x.manager.preview(scope)).count,1);assert.equal((await x.manager.preview('all')).count,3);await assert.rejects(()=>x.manager.preview('invalid'),/无效/);
+ const p=await x.manager.preview('accepted');await assert.rejects(()=>x.manager.start({confirmed:true,requestId:'scope-mismatch',processingScope:'all',previewToken:p.previewToken}),/变化/);
+ const t=await x.manager.start({confirmed:true,requestId:'scope-accepted',processingScope:'accepted',previewToken:p.previewToken});await x.manager.workers.get(t.id);const done=await x.manager.current();assert.equal(done.processingScope,'accepted');assert.equal(done.processed,1);assert.ok(done.logs.filter(l=>l.documentId).every(l=>l.documentId==='scope-1'));}finally{await x.cleanup();}
+});
+
+test('reclassifying an accepted article as excluded removes its automatic facts',async()=>{
+ const x=await setup();try{let p=await x.manager.preview(),t=await x.manager.start({confirmed:true,requestId:'before-exclusion',previewToken:p.previewToken});await x.manager.workers.get(t.id);
+ x.data.documents[0].classification.status='accepted';x.data.config.rules.push({id:2,type:'exclude',title_keywords:['海上风电'],content_keywords:[]});p=await x.manager.preview('accepted');t=await x.manager.start({confirmed:true,requestId:'after-exclusion',processingScope:'accepted',previewToken:p.previewToken});await x.manager.workers.get(t.id);const pointer=JSON.parse(await fs.readFile(path.join(x.dir,'published.json'))),snapshot=JSON.parse(await fs.readFile(path.join(x.dir,pointer.file)));assert.equal(snapshot.documents[0].industry.status,'excluded');assert.deepEqual(snapshot.events,[]);}finally{await x.cleanup();}
+});
