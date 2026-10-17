@@ -1,0 +1,127 @@
+{
+  "version": "1.2",
+  "coverage": "定向文献对标，非系统综述或穷尽性热点排名",
+  "sources": [
+    {
+      "id": "R01",
+      "title": "我国海上风电多能融合发展战略研究",
+      "authors": "程兵等",
+      "year": "2026",
+      "doi": "10.15302/J-SSCAE-2026.03.008",
+      "url": "https://www.engineering.org.cn/sscae/CN/10.15302/J-SSCAE-2026.03.008",
+      "reviewLevel": "摘要及元数据",
+      "finding": "梳理风电与油气、氢能、光伏、波浪能、海洋牧场及能源岛融合模式，提出开发关键条件与决策流程。",
+      "retrieved": "2026-10-17"
+    },
+    {
+      "id": "R02",
+      "title": "海上风电离网制氢技术经济性研究与发展建议",
+      "authors": "彭钦亮等",
+      "year": "在线论文",
+      "doi": "10.16516/j.ceec.2025-250",
+      "url": "https://www.energychina.press/article/doi/10.16516/j.ceec.2025-250?viewType=HTML",
+      "reviewLevel": "摘要及方法说明",
+      "finding": "用统一技术经济口径比较制氢模式，以LCOH及设备、运输、运维成本敏感性支持选择。",
+      "retrieved": "2026-10-17"
+    },
+    {
+      "id": "R03",
+      "title": "海上CCUS集群化部署的船管协同优化与动态投资决策研究",
+      "authors": "薄振宇等",
+      "year": "在线论文",
+      "doi": "10.12153/j.issn.1674-991X.20260216",
+      "url": "https://www.hjgcjsxb.org.cn/article/doi/10.12153/j.issn.1674-991X.20260216",
+      "reviewLevel": "摘要",
+      "finding": "以多周期混合整数规划研究源汇部署、船管运输与投资时序，并分析捕集效率及运输距离。",
+      "retrieved": "2026-10-17"
+    },
+    {
+      "id": "R04",
+      "title": "海上风电制氢系统建模及热力学与经济学分析",
+      "authors": "高波等",
+      "year": "2025",
+      "doi": "10.11949/0438-1157.20240904",
+      "url": "https://hgxb.cip.com.cn/CN/abstract/abstract43802.shtml",
+      "reviewLevel": "摘要及公开表图",
+      "finding": "结合热力学和经济分析，讨论风速、电解槽工况、储氢条件与产氢、效率和成本的关系。",
+      "retrieved": "2026-10-17"
+    },
+    {
+      "id": "R05",
+      "title": "多能互补能源系统多维度综合评价方法",
+      "authors": "赵凤展等",
+      "year": "2021",
+      "doi": "10.11975/j.issn.1002-6819.2021.27.023",
+      "url": "https://www.aeeisp.com/nygcxb/article/doi/10.11975/j.issn.1002-6819.2021.27.023",
+      "reviewLevel": "摘要",
+      "finding": "采用G1与变异系数组合赋权及物元可拓评价，覆盖低碳、可靠性、利用、经济与服务维度。非海上专属研究。",
+      "retrieved": "2026-10-17"
+    },
+    {
+      "id": "R06",
+      "title": "Multi-criteria analysis to rank offshore renewable technologies to support deep-water oil and gas production",
+      "authors": "Novgorodcev Jr. and Jarquín-Laguna",
+      "year": "2020",
+      "doi": "会议论文接受稿",
+      "url": "https://pure.tudelft.nl/ws/portalfiles/portal/101079455/Multi_criteria_analysis_to_rank_offshore_renewable_technologies.pdf",
+      "reviewLevel": "接受稿方法与表格",
+      "finding": "先核验资源、场地与技术可行性，再以技术、经济和环境指标开展AHP多准则比较。",
+      "retrieved": "2026-10-17"
+    },
+    {
+      "id": "R07",
+      "title": "A geographic information systems selection approach to repurposing offshore oil & gas assets for green hydrogen production",
+      "authors": "Rupp et al.",
+      "year": "2025",
+      "doi": "10.3389/ffuel.2025.1464944",
+      "url": "https://www.frontiersin.org/journals/fuels/articles/10.3389/ffuel.2025.1464944/full",
+      "reviewLevel": "全文方法部分",
+      "finding": "将空间排除条件、GIS与AHP适宜性评价及制氢技术经济分析结合，先筛可行位置再比较。",
+      "retrieved": "2026-10-17"
+    },
+    {
+      "id": "R08",
+      "title": "Onshore, offshore or in-turbine electrolysis? Techno-economic overview of alternative integration designs for green hydrogen production into Offshore Wind Power Hubs",
+      "authors": "Singlitico et al.",
+      "year": "2021",
+      "doi": "10.1016/j.rset.2021.200005",
+      "url": "https://arxiv.org/abs/2104.04151",
+      "reviewLevel": "作者稿摘要及出版元数据",
+      "finding": "比较电解位置、设备技术与运行方式对海上风电制氢基础设施及经济性的影响。",
+      "retrieved": "2026-10-17"
+    },
+    {
+      "id": "R09",
+      "title": "Techno-economic and life-cycle assessment comparisons of hydrogen delivery options",
+      "authors": "Arrigoni et al.",
+      "year": "JRC记录2026",
+      "doi": "10.1007/s11708-025-1041-1",
+      "url": "https://publications.jrc.ec.europa.eu/repository/handle/JRC139125",
+      "reviewLevel": "JRC正式记录摘要",
+      "finding": "比较不同氢载体与运输方式的技术经济和生命周期影响，指出转换链条与能耗的重要性。",
+      "retrieved": "2026-10-17"
+    },
+    {
+      "id": "R10",
+      "title": "A review on the complementarity of renewable energy sources: concept, metrics, application and future research directions",
+      "authors": "Jurasz et al.",
+      "year": "作者稿2019",
+      "doi": "10.1016/j.solener.2019.11.087",
+      "url": "https://arxiv.org/abs/1904.01667",
+      "reviewLevel": "作者稿摘要",
+      "finding": "从时间、空间及时空维度梳理可再生能源互补研究。适合借鉴互补性研究框架，非海上专属指标标准。",
+      "retrieved": "2026-10-17"
+    },
+    {
+      "id": "R11",
+      "title": "Prospective techno-economic and life cycle assessment: a review across established and emerging carbon capture, storage and utilization technologies",
+      "authors": "Wang et al.",
+      "year": "2024",
+      "doi": "10.3389/fenrg.2024.1412770",
+      "url": "https://www.frontiersin.org/journals/energy-research/articles/10.3389/fenrg.2024.1412770/full",
+      "reviewLevel": "全文相关方法部分",
+      "finding": "强调前瞻技术经济与生命周期分析的功能单位、系统边界和碳核算；捕集量不等于净减排量。",
+      "retrieved": "2026-10-17"
+    }
+  ]
+}

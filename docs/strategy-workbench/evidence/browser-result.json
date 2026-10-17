@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "cases": [
+    "AC01",
+    "AC02",
+    "AC03",
+    "AC04",
+    "AC08",
+    "AC09",
+    "AC10",
+    "AC12",
+    "AC17",
+    "AC18"
+  ],
+  "viewportWidths": [
+    1440,
+    1024,
+    390
+  ],
+  "themes": [
+    "dark",
+    "light"
+  ],
+  "pageErrors": []
+}

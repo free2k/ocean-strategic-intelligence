@@ -1,0 +1,10 @@
+// Run on the authorized server. Credentials stay in the existing protected environment.
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {spawn} from 'node:child_process';
+import pg from 'pg';
+const backup=process.argv[2];if(!/^\/opt\/ocean-intelligence\/backups\/strategy-workbench-[\w-]+$/.test(backup||''))throw Error('Invalid backup directory');
+process.loadEnvFile('/opt/knowledge-base/.env');await fs.mkdir(backup,{recursive:true,mode:0o700});
+const url=process.env.DATABASE_URL||process.env.INTEL_DATABASE_URL;if(!url)throw Error('Existing database configuration unavailable');const u=new URL(url),target=path.join(backup,'database.dump'),log=await fs.open(path.join(backup,'database-backup.log'),'a',0o600);
+const command=spawn('pg_dump',['--format=custom','--no-owner','--file='+target],{env:{...process.env,PGHOST:u.hostname,PGPORT:u.port||'5432',PGUSER:decodeURIComponent(u.username),PGPASSWORD:decodeURIComponent(u.password),PGDATABASE:decodeURIComponent(u.pathname.slice(1))},stdio:['ignore',log.fd,log.fd]});const code=await new Promise((resolve,reject)=>{command.on('error',reject);command.on('exit',resolve);});await log.close();if(code!==0)throw Error('Database backup failed; inspect protected backup log');await fs.chmod(target,0o600);
+const pool=new pg.Pool({connectionString:url,max:1});try{const tables=(await pool.query("SELECT table_schema,table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema NOT IN ('pg_catalog','information_schema') ORDER BY table_schema,table_name")).rows,counts=[];for(const t of tables){const name='"'+t.table_schema.replaceAll('"','""')+'"."'+t.table_name.replaceAll('"','""')+'"';counts.push({...t,count:(await pool.query('SELECT count(*)::text AS n FROM '+name)).rows[0].n});}await fs.writeFile(path.join(backup,'database-counts.before.json'),JSON.stringify(counts,null,2),{mode:0o600});console.log(JSON.stringify({databaseBackup:'complete',tables:counts.length,bytes:(await fs.stat(target)).size}));}finally{await pool.end();}

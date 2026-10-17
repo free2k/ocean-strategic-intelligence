@@ -1,0 +1,193 @@
+{
+  "version": "1.2-target",
+  "meaning": "平台候选研究设计；指标为文献启发下的建议，非逐篇原始指标完整抄录",
+  "templates": [
+    {
+      "id": "TH01",
+      "title": "海洋油气与新能源产业变化跟踪",
+      "question": "规模、结构及增速如何变化",
+      "indicators": "官方同口径产量/装机/投资时序；项目状态",
+      "methods": "describe,growth,cagr,hhi",
+      "tier": "A 优先核验",
+      "guardrail": "实际量与计划量分离；份额总体完整后才算HHI",
+      "dataRequirements": "统计数据源的连续版本；序列缺口和修订标识",
+      "references": [],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+    },
+    {
+      "id": "TH02",
+      "title": "重点装备与企业竞争格局",
+      "question": "能力与经营指标如何对标",
+      "indicators": "船队规模、利用率、订单/收入；单位与期间",
+      "methods": "describe,growth,weighted,topsis",
+      "tier": "A 优先核验",
+      "guardrail": "公司与口径可比；披露率不能当绩效分",
+      "dataRequirements": "企业报告及季度序列；人工核定同口径指标",
+      "references": [],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+    },
+    {
+      "id": "TH03",
+      "title": "海上项目管线与商业化进程",
+      "question": "哪些项目由规划走向投运",
+      "indicators": "项目ID、阶段、计划/实际容量、节点日期",
+      "methods": "describe,growth；后续生存分析",
+      "tier": "A 优先核验",
+      "guardrail": "项目去重；不同阶段不累计成已投运规模",
+      "dataRequirements": "项目注册表、原文与状态变更事件",
+      "references": [
+        "R01"
+      ],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+    },
+    {
+      "id": "TH04",
+      "title": "海上多能融合模式适宜性与稳健性",
+      "question": "哪些路线适合给定海域和用途",
+      "indicators": "资源匹配、成熟度、安全性、经济性、环境与协同；专家评分可追溯",
+      "methods": "ahp,entropy,critic,weighted,topsis,rank-robustness",
+      "tier": "B 指标建设",
+      "guardrail": "先排除硬约束冲突；分值不是工程实测量",
+      "dataRequirements": "情报证据+统一评分手册+专家判断与逐项依据",
+      "references": [
+        "R01",
+        "R05",
+        "R06"
+      ],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+    },
+    {
+      "id": "TH05",
+      "title": "海上风电制氢布局与经济性",
+      "question": "近海/深远海、岸上/海上制氢何时经济",
+      "indicators": "CAPEX、OPEX、风资源、电解效率、年氢量、运输距离、LCOH、NPV",
+      "methods": "NPV已有；LCOH/TEA及Monte Carlo待接入",
+      "tier": "C 专项数据与引擎",
+      "guardrail": "不能用综合经济性评分替代现金流；明确出厂或交付边界",
+      "dataRequirements": "工程造价、气象时序、电解性能、运输链、寿命与残值",
+      "references": [
+        "R02",
+        "R04",
+        "R08",
+        "R09"
+      ],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+    },
+    {
+      "id": "TH06",
+      "title": "海上平台电气化与净减排情景",
+      "question": "替代供能能否同时降低成本和排放",
+      "indicators": "负荷、燃料、电力构成、CAPEX、供能可靠性、净避免排放、单位减排成本",
+      "methods": "NPV已有；TEA/LCA、能量系统仿真待接入",
+      "tier": "C 专项数据与引擎",
+      "guardrail": "固定基准情景和电力排放口径；区分捕集与避免排放",
+      "dataRequirements": "平台负荷、燃料消耗、供电方案、因子及生命周期清单",
+      "references": [
+        "R01",
+        "R06",
+        "R11"
+      ],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+    },
+    {
+      "id": "TH07",
+      "title": "风浪光储互补及容量配置",
+      "question": "如何降低缺供并平滑出力",
+      "indicators": "逐时出力/负荷、相关性、波动与爬坡、缺供量、弃能率、成本",
+      "methods": "Pearson/Spearman已有；逐时MILP/多目标优化待接入",
+      "tier": "C 专项数据与引擎",
+      "guardrail": "低相关不等于稳定供能；极端气象和连续缺供单独检验",
+      "dataRequirements": "同期逐时风浪光资源、设备曲线、容量成本、充放电效率",
+      "references": [
+        "R01",
+        "R10"
+      ],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+    },
+    {
+      "id": "TH08",
+      "title": "海上CCUS源汇匹配与投资时序",
+      "question": "哪些源汇及船管路径成本更优",
+      "indicators": "捕集规模/效率、距离、运力、封存能力、全链成本、净减排",
+      "methods": "GIS源汇适配、MILP、多周期投资与TEA/LCA待接入",
+      "tier": "C 专项数据与引擎",
+      "guardrail": "储量和许可约束硬筛；封存量与净减排量分列",
+      "dataRequirements": "地理源汇、封存能力、船管工程成本与碳核算边界",
+      "references": [
+        "R03",
+        "R11"
+      ],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+    },
+    {
+      "id": "TH09",
+      "title": "退役海上设施再利用与制氢选址",
+      "question": "哪些设施具有改造可行性",
+      "indicators": "风速、水深、离岸/港距离、结构状况、空间冲突、改造成本、LCOH",
+      "methods": "GIS排除掩膜+AHP适宜性+TEA；GIS/TEA待接入",
+      "tier": "C 专项数据与引擎",
+      "guardrail": "禁用区与结构安全不能被经济得分补偿；案例阈值不作为法规",
+      "dataRequirements": "设施台账、空间图层、检测资料、工程造价",
+      "references": [
+        "R07"
+      ],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+    },
+    {
+      "id": "TH10",
+      "title": "政策工具与技术商业化的持续观察",
+      "question": "政策支持结构与项目进展如何演变",
+      "indicators": "政策类别/时间/效力、项目节点、专利/标准与合作关系",
+      "methods": "内容编码、频次/网络；因果DID/事件研究待接入",
+      "tier": "B 指标建设",
+      "guardrail": "文本热度不能当产业规模；相关不推断因果",
+      "dataRequirements": "持续采集原文、去重、人工标注与实体链接",
+      "references": [
+        "R01"
+      ],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+    },
+    {
+      "id": "TH11",
+      "title": "海洋牧场融合开发的综合效益",
+      "question": "空间协同与经济生态效益是否成立",
+      "indicators": "用海冲突、设施利用、运维成本、养殖产出、生态监测",
+      "methods": "多准则评价；专项生态/LCA待接入",
+      "tier": "B 指标建设",
+      "guardrail": "养殖产量不等于蓝碳；碳研究需基线、额外性、持久性与MRV证据",
+      "dataRequirements": "项目案例、海域与生态监测、收益成本口径",
+      "references": [
+        "R01",
+        "R11"
+      ],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+    },
+    {
+      "id": "TH12",
+      "title": "氢载体与海上输运链选择",
+      "question": "不同距离和规模下何种交付路径适用",
+      "indicators": "液化/转化/再转化能耗、损失率、船管成本、交付LCOH、碳强度",
+      "methods": "TEA+LCA、敏感性与不确定性；专用引擎待接入",
+      "tier": "C 专项数据与引擎",
+      "guardrail": "统一交付氢功能单位；生产端成本不得直接与交付端成本排序",
+      "dataRequirements": "链条清单、运输距离规模、能源与物料因子",
+      "references": [
+        "R08",
+        "R09"
+      ],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+    }
+  ]
+}

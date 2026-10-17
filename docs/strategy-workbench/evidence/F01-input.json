@@ -1,0 +1,60 @@
+{
+  "id": "F01",
+  "method": "topsis",
+  "input": {
+    "matrix": [
+      [
+        1,
+        9
+      ],
+      [
+        5,
+        5
+      ],
+      [
+        9,
+        1
+      ]
+    ],
+    "directions": [
+      "benefit",
+      "cost"
+    ],
+    "labels": [
+      "A",
+      "B",
+      "C"
+    ],
+    "indicators": [
+      {
+        "name": "演示收益",
+        "unit": "演示单位"
+      },
+      {
+        "name": "演示成本",
+        "unit": "演示单位"
+      }
+    ],
+    "weights": [
+      0.4,
+      0.6
+    ],
+    "weightMethod": "manual"
+  },
+  "expected": {
+    "ranking": [
+      {
+        "label": "C",
+        "score": 1
+      },
+      {
+        "label": "B",
+        "score": 0.5
+      },
+      {
+        "label": "A",
+        "score": 0
+      }
+    ]
+  }
+}

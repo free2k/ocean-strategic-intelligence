@@ -1,0 +1,153 @@
+{
+  "version": "1.2-target",
+  "cases": [
+    {
+      "id": "AC01",
+      "title": "六入口和问答回归",
+      "procedure": "进入工作台，依次切换六个页面，再检索旧主题",
+      "expected": "原问答引用、历史及导出正常；无其他模块异常；页签顺序：工作台总览、智能选题推荐、战略量化研究、战略研究方法库、研究成果管理、循证研究问答",
+      "result": "Engineering acceptance passed",
+      "evidence": "browser-result.json; query/navigation/store regressions"
+    },
+    {
+      "id": "AC02",
+      "title": "草稿恢复",
+      "procedure": "填写矩阵和方法参数，切页签后返回，再刷新",
+      "expected": "标题、矩阵、方法、参数、范围恢复；退出账号清理私密草稿",
+      "result": "Engineering acceptance passed",
+      "evidence": "browser-result.json; browser-methods-result.json"
+    },
+    {
+      "id": "AC03",
+      "title": "异常输入",
+      "procedure": "留空值/来源、输入0与负数及非法方向",
+      "expected": "缺口定位；0保留；负数按方法校验；不得默补0",
+      "result": "Engineering acceptance passed",
+      "evidence": "strategy-workbench.test.mjs: field errors, zero, negatives, nested types"
+    },
+    {
+      "id": "AC04",
+      "title": "评价参考答案",
+      "procedure": "运行fixtures中的评价样本并比较WSM/TOPSIS",
+      "expected": "C=1 B=0.5 A=0，容差1e-8；并列有明确显示",
+      "result": "Engineering acceptance passed",
+      "evidence": "F01-output.json; fixtures F01/F02"
+    },
+    {
+      "id": "AC05",
+      "title": "AHP检查",
+      "procedure": "运行一致矩阵与不一致矩阵",
+      "expected": "一致样本权重4/7、2/7、1/7；非法或CR>=0.1拒绝",
+      "result": "Engineering acceptance passed",
+      "evidence": "strategy-engine.test.mjs; fixtures F03/F07"
+    },
+    {
+      "id": "AC06",
+      "title": "平台取数",
+      "procedure": "选择真实序列，同时在请求中伪造替代值",
+      "expected": "服务端输入与数据洞察一致；忽略替代值；缺基期为空",
+      "result": "Engineering acceptance passed",
+      "evidence": "HTTP integration; 13 production series checked read-only"
+    },
+    {
+      "id": "AC07",
+      "title": "推荐门槛",
+      "procedure": "分别构造可算、缺数据、无引擎场景",
+      "expected": "理由与缺口准确；无引擎或不满足前提时不可执行",
+      "result": "Engineering acceptance passed",
+      "evidence": "recommendations, matching and template readiness tests"
+    },
+    {
+      "id": "AC08",
+      "title": "幂等与保存故障",
+      "procedure": "相同请求键连续提交；模拟保存失败及目录刷新失败",
+      "expected": "同请求不重复版本；保存失败不显示已保存；刷新失败不否定已成功保存",
+      "result": "Engineering acceptance passed",
+      "evidence": "concurrent idempotency, failed save; browser-result.json; browser-retry-result.json"
+    },
+    {
+      "id": "AC09",
+      "title": "两种复算",
+      "procedure": "冻结V1后，用旧输入重现，再改真实数据生成V2",
+      "expected": "V1不变；输入与配置差异可解释；同输入同算法结果可重现",
+      "result": "Engineering acceptance passed",
+      "evidence": "archived 1.0.0 replay; frozen/current tests; browser replay"
+    },
+    {
+      "id": "AC10",
+      "title": "持久化导出",
+      "procedure": "重启后读取历史，下载JSON与中文Markdown",
+      "expected": "快照、参数、结果、诊断、来源、版本完整",
+      "result": "Engineering acceptance passed",
+      "evidence": "immutable versions, restart, legacy records, pagination; F01-report.md"
+    },
+    {
+      "id": "AC11",
+      "title": "认证",
+      "procedure": "不带登录会话请求API，构造跨站POST",
+      "expected": "未登录401；跨站受阻；不泄露业务输入与凭据",
+      "result": "Engineering acceptance passed",
+      "evidence": "real HTTP 401/403/400 integration"
+    },
+    {
+      "id": "AC12",
+      "title": "浏览器验收",
+      "procedure": "1440/1024/390及深浅色、键盘、长名称、空数据/错误状态",
+      "expected": "关键动作可见；表格可控横滚；无遮挡；可定位错误",
+      "result": "Engineering acceptance passed",
+      "evidence": "matrix-dark/light-1440/1024/390.png; keyboard tabs"
+    },
+    {
+      "id": "AC13",
+      "title": "方法匹配与拒绝",
+      "procedure": "同主题分别选择方案优选、经济性及因果问题",
+      "expected": "分别给出MCDA、TEA与识别设计；不能统一推荐TOPSIS",
+      "result": "Engineering acceptance passed",
+      "evidence": "evaluation/economics/causal task matching tests"
+    },
+    {
+      "id": "AC14",
+      "title": "硬约束先筛",
+      "procedure": "给高评分方案添加禁用或结构安全冲突",
+      "expected": "冲突方案排除或终止任务；不靠权重放行，保留原因",
+      "result": "Engineering acceptance passed",
+      "evidence": "hard-constraint precedence tests"
+    },
+    {
+      "id": "AC15",
+      "title": "参数修改边界",
+      "procedure": "尝试以权重或情景接口改写官方事实值",
+      "expected": "服务器拒绝；授权纠错另建数据版本；日志含原值与依据",
+      "result": "Engineering acceptance passed",
+      "evidence": "read-only parameter tests; existing insight-data before/after audit tests"
+    },
+    {
+      "id": "AC16",
+      "title": "冻结口径",
+      "procedure": "将交付氢功能单位改成出厂氢再比较结果",
+      "expected": "建立新配置版本；阻止无提示同口径比较",
+      "result": "Engineering acceptance passed",
+      "evidence": "functional unit, config version and comparison gate tests"
+    },
+    {
+      "id": "AC17",
+      "title": "长期模板成熟度",
+      "procedure": "加载12个模板且模拟缺少逐时资源",
+      "expected": "显示模板与真实数据状态；优化不显示可计算",
+      "result": "Engineering acceptance passed",
+      "evidence": "browser-methods-result.json; 12 template readiness tests"
+    },
+    {
+      "id": "AC18",
+      "title": "九点扫描与复现",
+      "procedure": "设置某权重0.1至0.9，其余保持原相对比例",
+      "expected": "九个权重向量和为1；保存范围、种子（如有）及逐点结果；不混为±20%测试",
+      "result": "Engineering acceptance passed",
+      "evidence": "F01-output.json; nine-point vectors and results"
+    }
+  ],
+  "businessAcceptance": {
+    "result": "Not performed",
+    "reason": "No researcher-confirmed real study sample has been supplied"
+  }
+}

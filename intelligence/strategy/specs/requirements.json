@@ -1,0 +1,158 @@
+{
+  "version": "1.2-target",
+  "scope": "部门AI比赛",
+  "baselineStatus": "预写代码未部署，非目标功能全部完成",
+  "requirements": [
+    {
+      "id": "FR01",
+      "priority": "P0",
+      "title": "问题与草稿",
+      "requirement": "六入口与四步任务流程；标题、任务、对象、领域和期间；切换/刷新恢复，退出清理私密草稿",
+      "acceptance": [
+        "AC01",
+        "AC02"
+      ],
+      "status": "待按目标实现并验收"
+    },
+    {
+      "id": "FR02",
+      "priority": "P0",
+      "title": "数据核定",
+      "requirement": "官方序列服务端重读；通用矩阵2—500行2—30列；逐项单位方向和来源；0/负数/缺失区分",
+      "acceptance": [
+        "AC03",
+        "AC06"
+      ],
+      "status": "待按目标实现并验收"
+    },
+    {
+      "id": "FR03",
+      "priority": "P0",
+      "title": "模型参数",
+      "requirement": "AHP成对比较表与CR；权重表及归一化；按方法显示参数；数据适配和引擎状态分开",
+      "acceptance": [
+        "AC04",
+        "AC05",
+        "AC07"
+      ],
+      "status": "待按目标实现并验收"
+    },
+    {
+      "id": "FR04",
+      "priority": "P0",
+      "title": "计算状态",
+      "requirement": "统一数值服务；提交去重；保存与刷新目录状态分开；定位错误；返回保留输入",
+      "acceptance": [
+        "AC04",
+        "AC08"
+      ],
+      "status": "待按目标实现并验收"
+    },
+    {
+      "id": "FR05",
+      "priority": "P0",
+      "title": "模型目录",
+      "requirement": "19类198条可检索；仅已接入并验收且数据满足的方法可执行；176待接入条目不出结果",
+      "acceptance": [
+        "AC04",
+        "AC05",
+        "AC07"
+      ],
+      "status": "待按目标实现并验收"
+    },
+    {
+      "id": "FR06",
+      "priority": "P0",
+      "title": "解释性推荐",
+      "requirement": "当前可计算/需补数据/待接入三种状态，理由、数据范围、缺口和动作明确",
+      "acceptance": [
+        "AC07"
+      ],
+      "status": "待按目标实现并验收"
+    },
+    {
+      "id": "FR07",
+      "priority": "P0",
+      "title": "主题与版本",
+      "requirement": "主题ID与版本ID分开；冻结输入方法参数与来源；旧输入重现和新数据复算分开；两版差异",
+      "acceptance": [
+        "AC09",
+        "AC10"
+      ],
+      "status": "待按目标实现并验收"
+    },
+    {
+      "id": "FR08",
+      "priority": "P0",
+      "title": "导出与问答",
+      "requirement": "JSON与中文Markdown包含完整复现数据；原有问答引用历史及导出回归",
+      "acceptance": [
+        "AC01",
+        "AC10"
+      ],
+      "status": "待按目标实现并验收"
+    },
+    {
+      "id": "NFR01",
+      "priority": "P0",
+      "title": "认证与同源",
+      "requirement": "继承现有登录与POST同源校验，未登录无数据；日志不泄露凭据",
+      "acceptance": [
+        "AC11"
+      ],
+      "status": "待按目标实现并验收"
+    },
+    {
+      "id": "NFR02",
+      "priority": "P0",
+      "title": "响应与可达性",
+      "requirement": "1440/1024/390宽度及深浅色可用；键盘操作、加载、失败与空状态清楚",
+      "acceptance": [
+        "AC12"
+      ],
+      "status": "待按目标实现并验收"
+    },
+    {
+      "id": "FR09",
+      "title": "方法智能适配",
+      "requirement": "按method-matching-rules.json顺序执行；问题与数据结构双匹配，硬约束先筛，结果解释，不适用/缺数据/待引擎/待核定/可计算独立呈现",
+      "priority": "P0",
+      "acceptance": [
+        "AC13",
+        "AC14"
+      ],
+      "status": "待按目标实现并验收"
+    },
+    {
+      "id": "FR10",
+      "title": "参数治理",
+      "requirement": "按parameter-governance.json区分六类参数；事实不可由偏好编辑器改写，硬约束失败禁止排序，改口径生成新版本",
+      "priority": "P0",
+      "acceptance": [
+        "AC15",
+        "AC16"
+      ],
+      "status": "待按目标实现并验收"
+    },
+    {
+      "id": "FR11",
+      "title": "专业研究模板",
+      "requirement": "接入12个候选模板并按实时数据核验成熟度；不能将模板存在标成已可计算；低碳研究纳入通用部门赛范围",
+      "priority": "P0",
+      "acceptance": [
+        "AC17"
+      ],
+      "status": "待按目标实现并验收"
+    },
+    {
+      "id": "FR12",
+      "title": "结果检验与审阅",
+      "requirement": "区分权重敏感性、情景、输入误差与模型不确定性；保存扫描设计和剩余权重分配；初期人工审核后复算",
+      "priority": "P0",
+      "acceptance": [
+        "AC18"
+      ],
+      "status": "待按目标实现并验收"
+    }
+  ]
+}

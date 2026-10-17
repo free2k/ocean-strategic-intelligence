@@ -1,0 +1,233 @@
+{
+  "purpose": "工程验证用演示值，不是业务事实",
+  "tolerance": 1e-08,
+  "fixtures": [
+    {
+      "id": "F01",
+      "method": "topsis",
+      "input": {
+        "matrix": [
+          [
+            1,
+            9
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            9,
+            1
+          ]
+        ],
+        "directions": [
+          "benefit",
+          "cost"
+        ],
+        "labels": [
+          "A",
+          "B",
+          "C"
+        ],
+        "indicators": [
+          {
+            "name": "演示收益",
+            "unit": "演示单位"
+          },
+          {
+            "name": "演示成本",
+            "unit": "演示单位"
+          }
+        ],
+        "weights": [
+          0.4,
+          0.6
+        ],
+        "weightMethod": "manual"
+      },
+      "expected": {
+        "ranking": [
+          {
+            "label": "C",
+            "score": 1
+          },
+          {
+            "label": "B",
+            "score": 0.5
+          },
+          {
+            "label": "A",
+            "score": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "F02",
+      "method": "weighted",
+      "sameInputAs": "F01",
+      "expected": {
+        "ranking": [
+          {
+            "label": "C",
+            "score": 1
+          },
+          {
+            "label": "B",
+            "score": 0.5
+          },
+          {
+            "label": "A",
+            "score": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "F03",
+      "method": "ahp",
+      "input": {
+        "judgments": [
+          [
+            1,
+            2,
+            4
+          ],
+          [
+            0.5,
+            1,
+            2
+          ],
+          [
+            0.25,
+            0.5,
+            1
+          ]
+        ]
+      },
+      "expected": {
+        "weights": [
+          0.5714285714285714,
+          0.2857142857142857,
+          0.14285714285714285
+        ],
+        "crUpperBound": 1e-08
+      }
+    },
+    {
+      "id": "F04",
+      "method": "npv",
+      "input": {
+        "cashflows": [
+          -100,
+          110
+        ],
+        "rate": 0.1
+      },
+      "expected": {
+        "npv": 0
+      }
+    },
+    {
+      "id": "F05",
+      "method": "entropy",
+      "sameInputAs": "F01",
+      "expected": {
+        "weights": [
+          0.5,
+          0.5
+        ]
+      }
+    },
+    {
+      "id": "F06",
+      "method": "hhi",
+      "input": {
+        "values": [
+          50,
+          50
+        ],
+        "completeUniverse": true
+      },
+      "expected": {
+        "hhi10000": 5000
+      }
+    },
+    {
+      "id": "F07",
+      "method": "ahp",
+      "input": {
+        "judgments": [
+          [
+            1,
+            9,
+            0.1111111111111111
+          ],
+          [
+            0.1111111111111111,
+            1,
+            9
+          ],
+          [
+            9,
+            0.1111111111111111,
+            1
+          ]
+        ]
+      },
+      "expectedError": "一致性未通过"
+    },
+    {
+      "id": "F08",
+      "method": "growth",
+      "input": {
+        "rows": [
+          {
+            "period": "2024",
+            "value": 0
+          },
+          {
+            "period": "2025",
+            "value": 10
+          }
+        ]
+      },
+      "expected": {
+        "lastPeriodChange": null
+      }
+    },
+    {
+      "id": "F09",
+      "method": "trend",
+      "input": {
+        "rows": [
+          {
+            "period": "2025-01",
+            "value": 1
+          },
+          {
+            "period": "2025-03",
+            "value": 3
+          },
+          {
+            "period": "2025-04",
+            "value": 4
+          },
+          {
+            "period": "2025-05",
+            "value": 5
+          },
+          {
+            "period": "2025-06",
+            "value": 6
+          },
+          {
+            "period": "2025-07",
+            "value": 7
+          }
+        ]
+      },
+      "expectedError": "连续"
+    }
+  ]
+}

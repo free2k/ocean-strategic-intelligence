@@ -1,0 +1,66 @@
+{
+  "version": "1.2-target",
+  "status": "建议口径，需研究者核定",
+  "indicators": [
+    {
+      "name": "产量/发电量",
+      "unitOrDefinition": "吨油当量或MWh每期",
+      "interpretation": "事实；同比须同频同口径；量纲不同先转换"
+    },
+    {
+      "name": "装机/投运容量",
+      "unitOrDefinition": "MW，实际与规划分列",
+      "interpretation": "事实/计划；不以新闻报道数代替规模"
+    },
+    {
+      "name": "容量因子",
+      "unitOrDefinition": "净发电量÷额定功率÷期间小时数",
+      "interpretation": "观测或模型输出；可用小时口径须一致"
+    },
+    {
+      "name": "成熟度",
+      "unitOrDefinition": "有依据的TRL等级或评分",
+      "interpretation": "序数；评分手册、专家和来源必备"
+    },
+    {
+      "name": "技术经济成本",
+      "unitOrDefinition": "CAPEX币值基年、OPEX每年",
+      "interpretation": "观测/情景；寿命、残值和税费边界明确"
+    },
+    {
+      "name": "LCOH",
+      "unitOrDefinition": "全寿命折现成本÷折现氢产量",
+      "interpretation": "模型输出；出厂/交付单位kg氢分开"
+    },
+    {
+      "name": "NPV",
+      "unitOrDefinition": "各期净现金流按折现率折现合计",
+      "interpretation": "模型输出；税前税后、名义实际不得混用"
+    },
+    {
+      "name": "缺供与弃能",
+      "unitOrDefinition": "缺供电量MWh、弃能占可用发电量%",
+      "interpretation": "优化/仿真输出；时间分辨率与分母明确"
+    },
+    {
+      "name": "氢链能耗与损失",
+      "unitOrDefinition": "kWh每kg交付氢、损失占比%",
+      "interpretation": "工程输入/输出；避免同一环节重复核算"
+    },
+    {
+      "name": "净减排量",
+      "unitOrDefinition": "基准情景排放减项目全链排放，tCO2e",
+      "interpretation": "模型输出；捕集量和封存量分别记录"
+    },
+    {
+      "name": "单位减排成本",
+      "unitOrDefinition": "增量成本÷净避免排放量",
+      "interpretation": "条件结果；分母非正时不能常规排序"
+    },
+    {
+      "name": "资源互补性",
+      "unitOrDefinition": "同频序列相关系数、波动/缺供指标",
+      "interpretation": "相关不代表因果；低相关不保证供能可靠"
+    }
+  ]
+}

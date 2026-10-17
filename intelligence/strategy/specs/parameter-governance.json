@@ -1,0 +1,55 @@
+{
+  "version": "1.2-target",
+  "classes": [
+    {
+      "id": "fact",
+      "name": "事实观测",
+      "examples": "实际产量、已投产容量、实测风速",
+      "manualRule": "只读引用；人工纠错必须保留原值、依据与新数据版本",
+      "automationRule": "自动抽取、单位换算及异常检查；候选修正不得直接覆盖事实"
+    },
+    {
+      "id": "preference",
+      "name": "偏好与专家判断",
+      "examples": "评价权重、AHP判断、主客观组合系数",
+      "manualRule": "研究者可改；专家身份、理由、聚合规则与确认状态留痕",
+      "automationRule": "按确认规则归一化、计算AHP/熵权/CRITIC；不以排名满意度优化权重"
+    },
+    {
+      "id": "scenario",
+      "name": "外生情景假设",
+      "examples": "未来电价、碳价、折现率、资源情景",
+      "manualRule": "用户在有来源的范围内设置；与历史观测分列",
+      "automationRule": "按确认范围批量扫描；随机采样需分布、相关结构与种子"
+    },
+    {
+      "id": "decision",
+      "name": "内生决策变量",
+      "examples": "装机比例、储能容量、设备调度",
+      "manualRule": "用户设上下界及目标；不直接涂改所谓最优解",
+      "automationRule": "专用求解器在可行域求解；当前优化引擎待接入"
+    },
+    {
+      "id": "constraint",
+      "name": "硬约束与冻结口径",
+      "examples": "禁建区、额定功率、能量平衡、功能单位、基期",
+      "manualRule": "运行内冻结；口径修订或设计边界变化另存版本并记录审批依据",
+      "automationRule": "自动校验可行性；硬约束不得降格成软评分以放行"
+    },
+    {
+      "id": "output",
+      "name": "计算输出",
+      "examples": "相对得分、NPV、LCOH、排放强度",
+      "manualRule": "只读；通过输入和方法复算更新",
+      "automationRule": "由确定性引擎生成；回答模型只能引用与解释"
+    }
+  ],
+  "invariants": [
+    "对象总体与时间口径",
+    "功能单位与系统边界",
+    "币值基年与折现口径",
+    "标准化方式与算法版本",
+    "数据与来源快照"
+  ],
+  "externalReality": "平台不控制真实天气、政策或市场价格；只处理它们的观测与情景表达。"
+}
