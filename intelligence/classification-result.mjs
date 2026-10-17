@@ -5,8 +5,9 @@ export function resolveClassificationResult(article, collected) {
  if(manual)return manual.classification;
  if(candidates.length<2)return candidates[0]?.classification;
  const time=x=>Date.parse(x.updatedAt)||0;
- // Canonical article result wins a transaction-time tie. Legacy rows without
- // timestamps retain the existing collection preference until reconciled.
- if(time(article)&&time(article)>=time(collected))return article.classification;
+ // A timestamp tie cannot establish freshness across different rule versions.
+ // Keep the collection result for that legacy ambiguity; synchronized writes
+ // have the same rule version and can use the canonical article result.
+ if(time(article)&&(time(article)>time(collected)||(time(article)===time(collected)&&article.classification.version===collected.classification.version)))return article.classification;
  return collected.classification;
 }

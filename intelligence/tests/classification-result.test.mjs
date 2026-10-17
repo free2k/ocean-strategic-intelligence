@@ -21,3 +21,8 @@ test('audit counts use final decision while retaining conflicting source evidenc
  assert.equal(result.documents[0].classificationConflict,true);
  assert.equal(result.documents[0].classificationRecords.at(-1).classification,pending);
 });
+
+test('legacy equal timestamps cannot promote a different rule version',()=>{
+ const old={...pending,version:'old'};const current={...accepted,version:'current'};
+ assert.equal(resolveClassificationResult({classification:old,updatedAt:newer},{classification:current,updatedAt:newer}),current);
+});
