@@ -1,5 +1,5 @@
 import {cachedAudit,auditBridge} from '../../intelligence/classification-audit.mjs';
-import {queueSemantic} from '../../intelligence/semantic-classification.mjs';
+import {inputHash,queueSemantic} from '../../intelligence/semantic-classification.mjs';
 // MP_CLEAN_V1
 import {initClassification,decideArticle} from '../../intelligence/classification-jobs.mjs';
 import {prepareMPItem} from './mp-content-clean.mjs';
@@ -33,6 +33,9 @@ export async function persistItem(s,item,compiled,{manualBody}={}){const db=awai
  const saved=(await db.query('SELECT manual_classify,classify_method,filter_status,matched_topic,reject_reason FROM public.articles WHERE id=$1',[articleId])).rows[0];if(saved.manual_classify||saved.classify_method==='manual')classification=decideArticle({...saved,title:item.title,mp_content:item.content},compiled).decision;
  if(!classification.manual)await db.query("UPDATE public.articles SET classify_method='keyword' WHERE id=$1",[articleId]);
  classification=await queueSemantic(db,{id:articleId,title:item.title,content:item.content},compiled,classification);
+ // Persist the final decision, including a reused semantic result, atomically.
+ await db.query('INSERT INTO classification.articles(article_id,classification,input_hash,job_id) VALUES($1,$2,$3,NULL) ON CONFLICT(article_id) DO UPDATE SET classification=EXCLUDED.classification,input_hash=EXCLUDED.input_hash,job_id=NULL,updated_at=now()',[articleId,classification,inputHash(item.title,item.content)]);
+ if(!classification.manual)await db.query("UPDATE public.articles SET filter_status=$2::text,matched_topic=$3,classify_method=$4,reject_reason=$5,matched_keywords_json=NULL,updated_at=now() WHERE id=$1 AND NOT manual_classify AND classify_method IS DISTINCT FROM 'manual'",[articleId,classification.status==='accepted'?'accepted':classification.status==='excluded'?'rejected':'pending',classification.primary,classification.method==='llm'?'llm':'keyword',classification.status==='excluded'?classification.reason?.slice(0,255):null]);
  // Version changes invalidate old chunks; human classification remains untouched on URL conflicts.
  await db.query('DELETE FROM public.article_chunks WHERE article_id=$1',[articleId]);
  await db.query(`INSERT INTO mp2rss.versions(id,hash,payload) VALUES($1,$2,$3) ON CONFLICT DO NOTHING`,[item.key,item.hash,item]);
