@@ -28,9 +28,22 @@ export class FileResearchRepository{
 
 // Schema installation is an explicit migration, never an application-start side effect.
 export class PostgresResearchRepository{
- constructor(pool){this.pool=pool;}
+ constructor(pool){this.pool=pool;this.records=new Map();this.recordBytes=0;this.pendingReads=new Map();}
  async head(){return (await this.pool.query("SELECT payload FROM ocean_research.head WHERE id='latest'")).rows[0]?.payload||null;}
- async read(id){return (await this.pool.query('SELECT payload FROM ocean_research.records WHERE id=$1',[check(id)])).rows[0]?.payload||null;}
+ async read(id){
+  check(id);let encoded=this.records.get(id);
+  if(encoded===undefined){
+   if(!this.pendingReads.has(id))this.pendingReads.set(id,(async()=>{
+    const value=(await this.pool.query('SELECT payload::text AS payload FROM ocean_research.records WHERE id=$1',[id])).rows[0]?.payload;
+    if(!value)return null;const text=typeof value==='string'?value:JSON.stringify(value),bytes=Buffer.byteLength(text);
+    if(bytes<=64*1024*1024){while(this.records.size&&(this.recordBytes+bytes>64*1024*1024||this.records.size>=32)){const oldest=this.records.keys().next().value;this.recordBytes-=Buffer.byteLength(this.records.get(oldest));this.records.delete(oldest);}this.records.set(id,text);this.recordBytes+=bytes;}
+    return text;
+   })().finally(()=>this.pendingReads.delete(id)));
+   encoded=await this.pendingReads.get(id);
+  }
+  // Immutable records are cached; callers receive an independent mutable copy.
+  return encoded?JSON.parse(encoded):null;
+ }
  async isPublished(id){check(id);return (await this.pool.query(`WITH RECURSIVE chain AS (
  SELECT r.id,r.payload,ARRAY[r.id] AS visited FROM ocean_research.head h JOIN ocean_research.records r ON r.id=h.payload->>'releaseId' WHERE h.id='latest'
  UNION ALL SELECT r.id,r.payload,c.visited||r.id FROM chain c JOIN ocean_research.records r ON r.id=c.payload->>'previousReleaseId' WHERE NOT r.id=ANY(c.visited)
@@ -43,7 +56,7 @@ export class PostgresResearchRepository{
   const c=await this.pool.connect();try{await c.query('BEGIN');await c.query("SELECT pg_advisory_xact_lock(hashtextextended('ocean_research.publish',0))");
    const current=(await c.query("SELECT payload FROM ocean_research.head WHERE id='latest' FOR UPDATE")).rows[0]?.payload;
    if((current?.releaseId||null)!==expectedReleaseId)fail('VERSION_CONFLICT','Latest release changed',409);
-   for(const [id,record] of Object.entries(records)){check(id);const old=(await c.query('SELECT payload FROM ocean_research.records WHERE id=$1',[id])).rows[0]?.payload;if(old){if(digest(old)!==digest(record))fail('IMMUTABLE_CONFLICT','Existing immutable record differs',409);}else await c.query('INSERT INTO ocean_research.records(id,kind,payload) VALUES($1,$2,$3)',[id,record.kind,record]);}
+   for(const [id,record] of Object.entries(records)){check(id);const old=(await c.query('SELECT payload::text AS payload FROM ocean_research.records WHERE id=$1',[id])).rows[0]?.payload;if(old){if(digest(old)!==digest(record))fail('IMMUTABLE_CONFLICT','Existing immutable record differs',409);}else await c.query('INSERT INTO ocean_research.records(id,kind,payload) VALUES($1,$2,$3)',[id,record.kind,record]);}
    await c.query("INSERT INTO ocean_research.head(id,payload) VALUES('latest',$1) ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload",[head]);await c.query('COMMIT');
   }catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}
  }

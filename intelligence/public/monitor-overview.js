@@ -12,7 +12,7 @@ export function mountMonitorOverview(flow,summary,{query=''}={}){
  function paint(){flow.querySelectorAll('.monitor-flow-node').forEach((n,i)=>{n.classList.toggle('active',i===phase);n.classList.toggle('complete',i<phase);});const b=flow.querySelector('[data-flow=pause]');if(b){b.textContent=paused?'继续':'暂停';b.disabled=!ready||elapsed>=12;}const progress=flow.querySelector('progress');if(progress)progress.value=elapsed;}
  function set(result,error){
   ready=false;phase=0;elapsed=0;
-  const o=result?.data,events=(o?.events||[]).flatMap(e=>e.versions.slice().reverse().map(v=>({...v,eventId:e.id}))).sort((a,b)=>String(b.observedAt).localeCompare(String(a.observedAt))),latest=events[0];
+  const o=result?.data,events=(o?.events||[]).flatMap(e=>e.versions.slice().reverse().map(v=>({...v,eventId:e.id}))).sort((a,b)=>(Date.parse(b.occurredAt||b.publishedAt)||0)-(Date.parse(a.occurredAt||a.publishedAt)||0)||String(b.observedAt).localeCompare(String(a.observedAt))),latest=events[0];
   const previous=latest?events.find(v=>v.eventId===latest.eventId&&(v.bodyVersionId!==latest.bodyVersionId||v.snapshotId!==latest.snapshotId)):null;
   const fact=o?.facts.find(f=>f.versions.some(v=>v.documentId===latest?.documentId&&v.bodyVersionId===latest?.bodyVersionId));
   ready=!!latest;

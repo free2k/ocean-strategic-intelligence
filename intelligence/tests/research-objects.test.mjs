@@ -26,3 +26,13 @@ test('object publication dates use inclusive Beijing days and reject invalid dat
 test('period document IDs constrain object lists and cannot open objects outside the report',async t=>{const {ledger}=await setup(t);const all=await readObjects(ledger);assert.equal((await readObjects(ledger,{},null,new Set())).total,0);await assert.rejects(readObjects(ledger,{},all.data[0].id,new Set()),e=>e.code==='OBJECT_SCOPE_MISMATCH');assert.equal((await readObjects(ledger,{},null,new Set(['d']))).total,2);});
 
 test('object versions preserve explicit event date and independent date evidence',async t=>{const {ledger,data,release}=await setup(t);Object.assign(data.events[0],{eventDate:'2019-12-30',dateQuote:'2019年12月30日双方签订设备合同。',dateEvidenceIds:['date-proof']});const next=await ledger.publish(data,{expectedReleaseId:release.releaseId});await publishObjects(ledger,next.releaseId);const rows=await readObjects(ledger);const o=await readObjects(ledger,{},rows.data[0].id);const event=o.data.events[0].versions.at(-1);assert.equal(event.occurredAt,'2019-12-30');assert.equal(event.publishedAt,'2020-01-01');assert.equal(event.dateQuote,data.events[0].dateQuote);assert.deepEqual(event.dateEvidenceIds,['date-proof']);});
+
+test('object listing prioritizes event dates then publication dates, never ingestion order',async()=>{
+ const ref=(id,date)=>({documentId:id,snapshotId:'s',publishedAt:date});
+ const object=(id,date,eventIds)=>({id,name:id,type:'公司',aliases:[],documentRefs:[ref(id,date)],eventIds,firstSeenAt:'2099-01-01'});
+ const registry={kind:'registry',objects:[object('old','2026-10-17',['a']),object('new','2026-10-16',['b']),object('no-event','2026-10-18',[])],events:[{id:'a',versions:[{documentId:'old',occurredAt:'2020-01-01',publishedAt:'2026-10-17'}]},{id:'b',versions:[{documentId:'new',publishedAt:'2026-10-16'}]}]};
+ const ledger={resolveRelease:async()=>({snapshotId:'s',objectRegistryId:'r'}),repository:{read:async()=>registry}};
+ assert.deepEqual((await readObjects(ledger)).data.map(o=>o.id),['new','old','no-event']);
+ assert.equal((await readObjects(ledger,{offset:'1',limit:'1'})).data[0].latestEventAt,'2020-01-01');
+ assert.equal((await readObjects(ledger,{from:'2026-10-17'})).data[0].id,'old');
+});

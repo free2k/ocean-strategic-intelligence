@@ -60,6 +60,7 @@ export async function publishObjects(ledger,expectedReleaseId){
  const {releaseId,...rest}=release,next={...rest,objectRegistryId:id,previousReleaseId:releaseId,publishedAt:new Date().toISOString()};next.releaseId='release_'+digest(next);
  await ledger.repository.commit({expectedReleaseId,head:{releaseId:next.releaseId,snapshotId:next.snapshotId},records:{[id]:registry,[next.releaseId]:next}});return next;
 }
+const objectListCaches=new WeakMap();
 export async function readObjects(ledger,query={},id=null,documentIds=null){
  const allowed=new Set(['releaseId','snapshotId','q','type','topic','sourceId','from','to','country','offset','limit']);for(const key of Object.keys(query))if(!allowed.has(key))fail('INVALID_SCOPE','不支持的对象筛选条件');
  if(query.country)fail('OBJECT_SCOPE_UNAVAILABLE','国家角色尚未接入对象档案，请清除国家筛选后查看');
@@ -67,17 +68,29 @@ export async function readObjects(ledger,query={},id=null,documentIds=null){
  const start=query.from?day(query.from):null,end=query.to?day(query.to)+86400000:null;
  if(start!==null&&end!==null&&start>=end)fail('INVALID_SCOPE','截止日期不能早于起始日期');
  const release=await ledger.resolveRelease(query);if(!release.objectRegistryId)fail('OBJECTS_NOT_INITIALIZED','此发布版本尚未建立对象档案',503);
+ const limit=Number(query.limit||12),offset=Number(query.offset||0);if(!Number.isInteger(limit)||limit<1||limit>50||!Number.isInteger(offset)||offset<0)fail('INVALID_PAGINATION','分页参数无效');
+ const meta={releaseId:release.releaseId,snapshotId:release.snapshotId,registryId:release.objectRegistryId,generatedAt:release.publishedAt,timeBasis:'document_publication',historyPolicy:'matched_documents_all_saved_versions'};
+ let cache=objectListCaches.get(ledger.repository);if(!cache){cache=new Map();objectListCaches.set(ledger.repository,cache);}
+ const cacheKey=JSON.stringify([release.objectRegistryId,query.q||'',query.type||'',query.topic||'',query.sourceId||'',query.from||'',query.to||'',documentIds?[...documentIds].sort():null]);
+ if(!id&&cache.has(cacheKey)){const rows=cache.get(cacheKey);return {data:structuredClone(rows.slice(offset,offset+limit)),total:rows.length,offset,limit,meta};}
  const registry=await ledger.repository.read(release.objectRegistryId);if(!registry||registry.kind!=='registry')fail('REGISTRY_NOT_FOUND','对象档案版本不存在',404);
  const matches=r=>(!documentIds||documentIds.has(r.documentId))&&r.snapshotId===release.snapshotId&&(!query.topic||r.topic===query.topic)&&(!query.sourceId||r.sourceId===query.sourceId)&&(start===null||Date.parse(r.publishedAt)>=start)&&(end===null||Date.parse(r.publishedAt)<end);
  const visible=o=>o.documentRefs.some(matches);
- const meta={releaseId:release.releaseId,snapshotId:release.snapshotId,registryId:release.objectRegistryId,generatedAt:release.publishedAt,timeBasis:'document_publication',historyPolicy:'matched_documents_all_saved_versions'};
  if(id){const object=registry.objects.find(o=>o.id===id);if(!object)fail('OBJECT_NOT_FOUND','对象不存在于该版本',404);if(!visible(object))fail('OBJECT_SCOPE_MISMATCH','对象不在当前资料范围内',409);
   const members=registry.objects.filter(o=>o.id===id||o.mergedInto===id),eventIds=uniq(members.flatMap(o=>o.eventIds)),relIds=uniq(members.flatMap(o=>o.relationIds)),factIds=uniq(members.flatMap(o=>o.factIds));
   const docs=new Set(members.flatMap(o=>o.documentRefs).filter(matches).map(r=>r.documentId));
   const scoped=rows=>rows.map(r=>({...r,versions:r.versions.filter(v=>docs.has(v.documentId))})).filter(r=>r.versions.length);
   return {data:{...object,documentRefs:object.documentRefs.filter(r=>docs.has(r.documentId)),members:members.map(o=>({id:o.id,name:o.name})),events:scoped(registry.events.filter(e=>eventIds.includes(e.id))),relations:scoped(registry.relations.filter(r=>relIds.includes(r.id))).map(r=>({...r,fromName:registry.objects.find(o=>o.id===r.from)?.name,toName:registry.objects.find(o=>o.id===r.to)?.name})),facts:scoped(registry.facts.filter(f=>factIds.includes(f.id))),metrics:members.flatMap(o=>o.metrics).filter(m=>docs.has(m.reference.documentId)),assessments:(!documentIds&&!query.topic&&!query.sourceId&&!query.from&&!query.to)?[await readDossier(ledger,release,{kind:'object',objectId:id})].filter(Boolean):[],identityHistory:registry.operations.filter(o=>o.sourceId===id||o.targetId===id)},meta};
  }
- const limit=Number(query.limit||12),offset=Number(query.offset||0);if(!Number.isInteger(limit)||limit<1||limit>50||!Number.isInteger(offset)||offset<0)fail('INVALID_PAGINATION','分页参数无效');
- const rows=registry.objects.filter(o=>!o.mergedInto&&visible(o)&&(!query.type||o.type===query.type)&&(!query.q||[o.name,...o.aliases].join(' ').toLowerCase().includes(query.q.toLowerCase()))).sort((a,b)=>a.id.localeCompare(b.id));
- return {data:rows.slice(offset,offset+limit).map(o=>{const docs=new Set(o.documentRefs.filter(matches).map(r=>r.documentId));return {id:o.id,name:o.name,type:o.type,aliases:o.aliases,identityWarning:o.identityWarning||null,documents:docs.size,events:registry.events.filter(e=>o.eventIds.includes(e.id)&&e.versions.some(v=>docs.has(v.documentId))).length,firstSeenAt:o.firstSeenAt};}),total:rows.length,offset,limit,meta};
+ const eventIndex=new Map(registry.events.map(e=>[e.id,e]));
+ const time=v=>Number.isFinite(Date.parse(v))?Date.parse(v):0;
+ const rows=registry.objects.filter(o=>!o.mergedInto&&visible(o)&&(!query.type||o.type===query.type)&&(!query.q||[o.name,...o.aliases].join(' ').toLowerCase().includes(query.q.toLowerCase()))).map(o=>{
+  const refs=o.documentRefs.filter(matches),docs=new Set(refs.map(r=>r.documentId));
+  const events=o.eventIds.map(id=>eventIndex.get(id)).filter(e=>e?.versions.some(v=>docs.has(v.documentId)));
+  const latest=events.flatMap(e=>e.versions.filter(v=>docs.has(v.documentId))).sort((a,b)=>time(b.occurredAt||b.publishedAt)-time(a.occurredAt||a.publishedAt)||time(b.publishedAt)-time(a.publishedAt))[0];
+  const latestPublishedAt=refs.map(r=>r.publishedAt).sort((a,b)=>time(b)-time(a))[0]||null;
+  return {id:o.id,name:o.name,type:o.type,aliases:o.aliases,identityWarning:o.identityWarning||null,documents:docs.size,events:events.length,firstSeenAt:o.firstSeenAt,latestEventAt:latest?.occurredAt||null,latestPublishedAt:latest?.publishedAt||latestPublishedAt,latestActivityAt:latest?.occurredAt||latest?.publishedAt||latestPublishedAt};
+ }).sort((a,b)=>Number(b.events>0)-Number(a.events>0)||time(b.latestActivityAt)-time(a.latestActivityAt)||a.id.localeCompare(b.id));
+ if(cache.size>=8)cache.delete(cache.keys().next().value);cache.set(cacheKey,rows);
+ return {data:structuredClone(rows.slice(offset,offset+limit)),total:rows.length,offset,limit,meta};
 }
