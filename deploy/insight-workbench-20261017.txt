@@ -1,0 +1,20 @@
+产业数据洞察部署记录
+
+目标：49.233.77.111 /ocean-intelligence/#analysis
+功能代码提交：4778a237daf7c65d82213561bdc845c6802604ac（已包含在当前分支）
+部署时间：2026-10-17 19:16（服务器北京时间）
+备份：/opt/ocean-intelligence/insight-workbench-backups/20261017T191611
+脚本：deploy/install-insight-workbench.sh
+
+部署数据池、数据编辑及回收站接口、图表视图、共享筛选、持久化修订机制。
+仅覆盖模块文件；服务入口采用插入方式，保留线上语义复核和后台活动接口。
+未导入本地预览数据。原版知识库未重启；只重启 ocean-intelligence。
+
+验证：
+- insight-data 与 insight-shared-scope 共 14 项测试通过。
+- 线上登录后的数据池记录、编辑表单、图表分析加载通过，无浏览器脚本错误。
+- 服务健康检查通过，PostgreSQL 后端，1347 篇工作库文章。
+- 浏览器验收未修改真实业务记录；未对生产库执行删除/恢复测试。
+
+代码回滚使用备份中的 intelligence 文件；新增表为附加修订与日志表，保留其中数据。
+不要用备份 snapshot.json 覆盖后续采集产生的新数据。
