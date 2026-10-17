@@ -9,7 +9,7 @@ def inventory():
  return result
 if '--before' in sys.argv:
  x=inventory();before.write_text(json.dumps(x));before.chmod(0o600);print(json.dumps({'baselineFiles':len(x)}));sys.exit()
-old=json.loads(before.read_text());current=inventory();hashes=json.loads((backup/'data-manifest.before.json').read_text());missing=[];changed=[];equivalent=[]
+old=json.loads(before.read_text());current=inventory();hashes=json.loads((backup/'data-manifest.before.json').read_text());missing=[];changed=[];equivalent=[];metadata_only=[]
 for name,meta in old.items():
  if name not in current:missing.append(name);continue
  if current[name]==meta:continue
@@ -19,7 +19,11 @@ for name,meta in old.items():
   if h==hashes[name]['sha256']:equivalent.append(name);continue
  if name.endswith('.json'):
   try:
-   if json.loads(p.read_text())==json.loads((backup/'data'/name).read_text()):equivalent.append(name);continue
+   current_json=json.loads(p.read_text());old_json=json.loads((backup/'data'/name).read_text())
+   if current_json==old_json:equivalent.append(name);continue
+   if name=='snapshot.json':
+    current_json.get('industryRulePublication',{}).pop('appliedAt',None);old_json.get('industryRulePublication',{}).pop('appliedAt',None)
+    if current_json==old_json:metadata_only.append({'file':name,'field':'industryRulePublication.appliedAt','reason':'Existing startup refreshes rule application timestamp; all business fields match'});continue
   except (ValueError,OSError):pass
  changed.append(name)
-report={'originalFiles':len(old),'missingFiles':missing,'changedOriginalFiles':changed,'equivalentRewrites':equivalent,'addedFiles':len(set(current)-set(old))};(backup/'data-verification.json').write_text(json.dumps(report,indent=2));print(json.dumps(report));sys.exit(1 if missing or changed else 0)
+report={'originalFiles':len(old),'missingFiles':missing,'changedOriginalFiles':changed,'equivalentRewrites':equivalent,'metadataOnlyRewrites':metadata_only,'addedFiles':len(set(current)-set(old))};(backup/'data-verification.json').write_text(json.dumps(report,indent=2));print(json.dumps(report));sys.exit(1 if missing or changed else 0)

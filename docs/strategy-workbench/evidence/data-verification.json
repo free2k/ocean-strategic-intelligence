@@ -1,0 +1,18 @@
+{
+  "originalFiles": 210540,
+  "missingFiles": [],
+  "changedOriginalFiles": [],
+  "equivalentRewrites": [
+    "period-reports/runtime.json",
+    "object-supplements/runtime.json",
+    "processing-runs/tasks/runtime.json"
+  ],
+  "metadataOnlyRewrites": [
+    {
+      "file": "snapshot.json",
+      "field": "industryRulePublication.appliedAt",
+      "reason": "Existing startup refreshes rule application timestamp; all business fields match"
+    }
+  ],
+  "addedFiles": 0
+}

@@ -1,0 +1,10 @@
+{
+  "checkedTables": 41,
+  "rowCountChanges": [
+    {
+      "table": "mp2rss.state",
+      "before": "2391",
+      "after": "2411"
+    }
+  ]
+}

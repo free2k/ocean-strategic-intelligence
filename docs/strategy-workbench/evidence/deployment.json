@@ -1,0 +1,8 @@
+{
+  "release": "/opt/ocean-intelligence/releases/20261018-strategy-workbench-1.2.0",
+  "previousRelease": "/opt/ocean-intelligence/releases/20261016T154133Z",
+  "files": 29,
+  "dataDirectory": "/opt/ocean-intelligence/data",
+  "databaseMigration": false,
+  "status": "deployed"
+}

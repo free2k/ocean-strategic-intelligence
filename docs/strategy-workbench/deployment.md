@@ -8,7 +8,7 @@
 
 受保护目录：`/opt/ocean-intelligence/backups/strategy-workbench-20261017`（以任务开始日命名）。
 
-- `data/`：原业务目录完整文件备份，使用同文件系统CoW复制，209427个文件，33874823603字节；不将旧快照写回现有数据目录。
+- `data/`：原业务目录完整文件备份，使用同文件系统CoW复制，210540个文件，33985652006字节；不将旧快照写回现有数据目录。
 - `data-manifest.before.json`：全部原文件SHA-256；`data-stat.before.json`：切换前文件元数据；`data-verification.json`：切换后核对。
 - `database.dump`：原PostgreSQL数据库完整custom-format备份，目录和备份仅管理员可访问；`database-counts.backup.json`保留备份时点计数，`database-counts.before.json`及`database-verification.json`核对切换前后各表行数。
 - `program-before.tar.gz`和`previous-release.txt`：旧程序和旧版本位置；`deployment.json`记录本次实际切换。
@@ -25,4 +25,4 @@
 
 切换前：284项本地回归、30项云端定向测试、浏览器完整工程样本、13条生产官方序列只读适配。
 
-切换后：检查PM2、公开地址、认证API、六入口、原问答历史、数据洞察、实际序列只校验不保存；核对所有原文件及数据库表行数。最终结果补记于验收报告和受保护部署记录。
+切换后：检查PM2、公开地址、认证API、六入口、原问答历史、数据洞察、实际序列只校验不保存；核对所有原文件及数据库表行数。全部验证已完成。原文件零缺失、业务数据一致；数据库原记录保留，原后台仍可正常追加同步状态。业务快照仅刷新原服务启动时的规则应用时间戳。公开地址浏览器验证通过，未在生产创建演示研究。详情见验收报告和受保护部署记录。

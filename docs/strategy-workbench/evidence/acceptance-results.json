@@ -149,5 +149,18 @@
   "businessAcceptance": {
     "result": "Not performed",
     "reason": "No researcher-confirmed real study sample has been supplied"
+  },
+  "production": {
+    "status": "deployed",
+    "date": "2026-10-18 Asia/Shanghai",
+    "url": "http://49.233.77.111/ocean-intelligence/#research",
+    "evidence": [
+      "deployment.json",
+      "production-browser-result.json",
+      "data-verification.json",
+      "database-verification.json",
+      "state-row-verification.json",
+      "file-backup-summary.json"
+    ]
   }
 }

@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "url": "http://49.233.77.111/ocean-intelligence/",
+  "methods": 198,
+  "implemented": 22,
+  "templates": 12,
+  "series": 13,
+  "validationStatus": 200,
+  "canExecute": true,
+  "persisted": false,
+  "periods": 7,
+  "expectedPeriods": 7,
+  "savedVersions": 0,
+  "qaHistoryStatus": 200,
+  "productionVersionsCreated": 0,
+  "paidAIRequests": 0,
+  "pageErrors": []
+}
