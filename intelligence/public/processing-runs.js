@@ -35,8 +35,25 @@ export function logDetails(l){
  if(l.ruleVersion)parts.push(`<p>规则版本：${esc(l.ruleVersion)}</p>`);
  return parts.join('');
 }
+function articleCard(rows){
+ const latest=rows.at(-1),find=type=>rows.findLast(l=>l.type===type),rule=find('classification'),review=find('review'),extract=find('extraction'),checkpoint=find('checkpoint'),retry=find('retry')||find('model_error'),skip=find('skipped');
+ const decision=review||rule,meta=rows.find(l=>l.source||l.publishedAt)||latest;
+ const outcome={accepted:'已纳入',excluded:'已排除',unmatched:'待筛选'};
+ const words=(rule?.positive||[]).flatMap(p=>(p.keywords||[]).map(k=>k.keyword)),negative=(rule?.negative||[]).map(k=>k.keyword);
+ const chips=(items,kind)=>[...new Set(items)].slice(0,12).map(k=>`<mark class="pr-hit-${kind}">${esc(k)}</mark>`).join(' ')||'无';
+ const stage=(label,row,text)=>`<div class="pr-article-step ${row?'has-result':''}"><span>${label}</span><strong>${esc(text)}</strong></div>`;
+ const events=rows.slice().reverse().map(l=>`<details class="pr-row-details" data-seq="${l.seq}"><summary><time>${esc(date(l.at).split(' ').at(-1))}</time><span>${esc(types[l.type]||l.type)}</span> ${esc(l.message)}</summary><div class="pr-log-data"></div></details>`).join('');
+ return `<article class="pr-log pr-article ${retry?'pr-warning':''}" data-seq="${latest.seq}"><header class="pr-article-head"><span class="pr-result">${esc(retry?'待重试':checkpoint?outcome[checkpoint.status]||'结果已保存':decision?outcome[decision.status]||'处理中':'处理中')}</span><time>最近更新 ${esc(date(latest.at))}</time></header><h4 class="pr-log-title">${esc(latest.title||latest.message)}</h4><p class="pr-article-meta">渠道：${esc(meta.source||'本页未记录')} · 资讯日期：${esc(date(meta.publishedAt))}${checkpoint?.durationMs!=null?' · 单篇耗时 '+(checkpoint.durationMs/1000).toFixed(1)+' 秒':''}</p>
+ <div class="pr-article-flow">${stage('01 规则匹配',rule,rule?outcome[rule.status]||'已匹配':'本页无记录')}${stage('02 AI 复核',review||skip,review?outcome[review.status]||'已判断':skip?'已跳过':'本页无结果')}${stage('03 事实提取',extract,extract?`事件 ${extract.events?.length||0} · 数据 ${extract.observations?.length||0} · 实体 ${extract.entities?.length||0}`:'本页无结果')}</div>
+ ${rule?`<div class="pr-keywords"><span>正向命中 ${chips(words,'positive')}</span><span>反向命中 ${chips(negative,'negative')}</span></div>`:''}
+ ${decision?`<div class="pr-decision"><b>行业：${esc(decision.industry||'未确定')}</b><p>${review?'AI 判断依据':'规则判断依据'}：${esc(decision.reason||'未记录依据')}</p></div>`:''}
+ ${skip?`<p class="pr-note">${esc(skip.message)}</p>`:''}${retry?`<p class="pr-note pr-error">${esc(retry.errorType||'处理异常')} · ${esc(retry.message)}</p>`:''}
+ <div class="pr-card-events"><p>本页过程记录 ${rows.length} 条 · 点击查看原文依据、模型响应与提取明细</p>${events}</div></article>`;
+}
 export function mountProcessingRuns(host,{api='api/processing-runs',beforeStart=()=>{}}={}){
  let generation=0,selectedScope='pending',task=null,preview=null,cursor=0,requestId=null,busy=false,disposed=false,polling=false,filter='all',follow=true,totalLogs=0,pageStart=0,viewBusy=false,viewVersion=0;const PAGE_SIZE=50,logs=[];const life=new AbortController();
+ const styleRoot=host.getRootNode(),styleParent=styleRoot instanceof ShadowRoot?styleRoot:document.head;
+ if(!styleParent.querySelector('link[data-processing-style]')){const link=document.createElement('link');link.dataset.processingStyle='true';link.rel='stylesheet';link.href=new URL('./processing-runs.css?v=article-cards-2',import.meta.url);styleParent.append(link);}
  host.classList.add('processing-console');
  host.innerHTML=`<div class="pr-top"><div><span class="pr-eyebrow">处理任务</span><h3>重新匹配与分析</h3><p class="pr-scope">正在核对可处理范围…</p></div><div class="pr-actions"><label>处理范围 <select class="pr-range"><option value="pending">待筛选</option><option value="accepted">已纳入</option><option value="excluded">已排除</option><option value="all">全部文章</option></select></label><span class="pr-badge">核对中</span><button class="pr-start primary" disabled>开始新一轮处理</button><button class="pr-stop" disabled>中断任务</button></div></div><p class="pr-feedback" role="status"></p><div class="pr-summary" hidden></div><details class="pr-log-panel" open><summary>处理日志详情 <span class="pr-log-count">0 条</span></summary><div class="pr-log-tools"><label>日志类型 <select class="pr-filter"><option value="all">全部记录</option><option value="classification">关键词匹配</option><option value="review">行业判断</option><option value="extraction">事件／数据／实体</option><option value="model">模型请求与响应</option><option value="retry">异常与重试</option></select></label><label><input type="checkbox" class="pr-follow" checked> 跟随最新记录</label><button class="pr-export">导出完整日志</button></div><div class="pr-log-nav"><button class="pr-older">更早记录</button><button class="pr-newer">更新记录</button><button class="pr-latest">回到实时</button><span class="pr-window" role="status"></span></div><div class="pr-logs" role="region" aria-label="处理日志"><p class="pr-empty">启动后将逐篇显示来源、日期、关键词、模型响应和提取结果。</p></div></details><dialog class="pr-confirm"><form method="dialog"><h3></h3><div class="pr-confirm-body"></div><div class="pr-dialog-actions"><button value="cancel">取消</button><button class="primary" value="confirm">确认</button></div></form></dialog>`;
  const $=s=>host.querySelector(s),feedback=msg=>{$('.pr-feedback').textContent=msg;};
@@ -56,12 +73,13 @@ export function mountProcessingRuns(host,{api='api/processing-runs',beforeStart=
  function matches(l){return filter==='all'||(filter==='model'?l.type.startsWith('model'):filter==='retry'?['retry','model_error','failed'].includes(l.type):l.type===filter);}
  function logNavigation(){
   $('.pr-log-count').textContent=`累计 ${totalLogs} 条`;
-  $('.pr-window').textContent=`${follow?'实时更新 · 最新在上':'正在查看历史 · 进度仍实时更新'} · ${logs.length?`${logs[0].seq}–${logs.at(-1).seq}`:'0'} / ${totalLogs} 条 · 筛选当前页`;
+  $('.pr-window').textContent=`${follow?'实时更新 · 最新在上':'正在查看历史 · 进度仍实时更新'} · ${logs.length?`${logs[0].seq}–${logs.at(-1).seq}`:'0'} / ${totalLogs} 条 · 按文章归组，筛选当前页`;
   $('.pr-older').disabled=viewBusy||pageStart<=0;$('.pr-newer').disabled=viewBusy||pageStart+PAGE_SIZE>=totalLogs;$('.pr-latest').disabled=viewBusy;$('.pr-follow').checked=follow;
  }
  function renderLogs(){
-  const rows=logs.filter(matches).slice().reverse();
-  $('.pr-logs').innerHTML=rows.map(l=>`<article class="pr-log ${['retry','model_error','failed'].includes(l.type)?'pr-warning':''}" data-seq="${l.seq}"><div class="pr-log-line"><time>${esc(date(l.at))}</time><span class="pr-log-tag">${esc(types[l.type]||l.type)}</span><strong>${esc(l.message)}</strong></div>${l.title?`<p class="pr-log-title">${esc(l.title)}</p>`:''}<details class="pr-row-details"><summary>查看详情</summary><div class="pr-log-data"></div></details></article>`).join('')||'<p class="pr-empty">本页没有符合条件的记录，可翻页或切换日志类型。</p>';
+  const groups=new Map();for(const l of logs){const key=l.documentId||'system-'+l.seq;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(l);}
+  const cards=[...groups.values()].filter(rows=>rows.some(matches)).sort((a,b)=>b.at(-1).seq-a.at(-1).seq);
+  $('.pr-logs').innerHTML=cards.map(articleCard).join('')||'<p class="pr-empty">本页没有符合条件的文章记录，可翻页或切换日志类型。</p>';
   logNavigation();
  }
  function appendLogs(rows){logs.splice(0,logs.length,...rows.slice(-PAGE_SIZE));totalLogs=task?.lastSeq||rows.at(-1)?.seq||0;pageStart=Math.max(0,(logs[0]?.seq||1)-1);renderLogs();}
