@@ -1,5 +1,6 @@
+import {styleOption} from './charts.js';
 // Deliberately isolated from catalog and exports. Every value below is synthetic.
-export function demoOption(type,dark=false){
+function rawDemoOption(type,dark){
  const ink=dark?'#a9c2d7':'#526c80',colors=['#55bfc3','#a69ae3','#e8b971','#518ebf'];
  const base={animation:false,color:colors,textStyle:{color:ink,fontSize:10},tooltip:{confine:true},grid:{left:42,right:15,top:25,bottom:35},xAxis:{type:'category',data:['1月','2月','3月','4月','5月','6月'],axisLine:{lineStyle:{color:ink}},axisTick:{show:false}},yAxis:{type:'value',splitLine:{lineStyle:{color:dark?'#284050':'#e2eaee'}}}};
  const values=[18,27,23,38,32,46],tree={name:'演示资料',children:[{name:'领域 A',children:[{name:'来源甲',value:8},{name:'来源乙',value:5}]},{name:'领域 B',children:[{name:'来源丙',value:6},{name:'来源丁',value:3}]}]};
@@ -20,3 +21,5 @@ export function demoOption(type,dark=false){
  if(type==='lines')return {...base,xAxis:{type:'value',min:0,max:100,show:false},yAxis:{type:'value',min:0,max:100,show:false},series:[{type:'lines',coordinateSystem:'cartesian2d',lineStyle:{color:colors[0],width:2,curveness:.2},symbol:['circle','arrow'],symbolSize:9,data:[{coords:[[10,20],[50,75]]},{coords:[[50,75],[90,30]]}]},{type:'scatter',data:[[10,20],[50,75],[90,30]],symbolSize:12}]};
  throw Error('Unsupported demo type '+type);
 }
+
+export function demoOption(type,dark=false){return styleOption(rawDemoOption(type,dark),dark,{demo:true});}

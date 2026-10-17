@@ -1,3 +1,4 @@
+import {serveInsightData} from './insight-data.mjs';
 import {previewDetails} from './classification-preview-details.mjs';
 import {ObjectSupplements} from './research/object-supplements.mjs';
 import {createPeriodScheduler} from './research/period-scheduler.mjs';
@@ -70,6 +71,7 @@ const server=http.createServer(async(req,res)=>{res.setHeader('X-Content-Type-Op
  if(route==='/api/login'&&req.method==='POST'){if(limited(req,'login',10,600000))return json(res,429,{error:'尝试次数过多，请稍后重试'});const b=await body(req);if(!password||!equal(b.password||'',password))return json(res,401,{error:'访问密码不正确'});const exp=String(Date.now()+7*86400000);res.setHeader('Set-Cookie',['ocean_auth','site_auth'].map(name=>`${name}=${exp}.${sign(exp)}; HttpOnly; SameSite=Lax; Path=${name==='site_auth'?'/':base}; Max-Age=604800${req.headers['x-forwarded-proto']==='https'?'; Secure':''}`));return json(res,200,{ok:true});}
  if(route==='/api/logout'&&req.method==='POST'){res.setHeader('Set-Cookie',[`ocean_auth=; Path=${base}; Max-Age=0; HttpOnly; SameSite=Lax`,'site_auth=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax']);return json(res,200,{ok:true});}
  if(route.startsWith('/api/')&&!auth(req))return json(res,401,{error:'请先使用原站访问密码登录'});
+ if(await serveInsightData(req,res,url,{store,serial,body,json}))return;
 
  if(route==='/api/object-supplements'&&['GET','POST'].includes(req.method)){try{const input=req.method==='POST'?await body(req,300000):Object.fromEntries(url.searchParams);if(!input.objectId||!input.releaseId)throw new LedgerError('INVALID_OBJECT','请选择具体对象与版本',400);const object=(await readObjects(researchLedger,{releaseId:input.releaseId},input.objectId)).data;if(req.method==='GET')return json(res,200,{items:await objectSupplements.list(object.id)});if(limited(req,'object-supplement',20,3600000))return json(res,429,{error:'本小时识别次数已用完'});const upload=input.uploadId?await readUpload(dir,input.uploadId):null;return json(res,202,await objectSupplements.create(object,{...input,upload}));}catch(e){return json(res,e.status||400,{error:e.status?e.message:'资料读取或识别请求失败，请稍后重试'});}}
  if(route.startsWith('/api/intake-drafts')&&req.method==='POST'){
