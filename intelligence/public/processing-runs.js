@@ -32,6 +32,7 @@ export function logDetails(l){
  for(const[key,label]of [['events','事件'],['observations','指标数据'],['entities','实体']])if(l[key])parts.push(`<div><strong>${label} ${l[key].length} 条</strong>${l[key].length?'<ul>'+l[key].map(x=>`<li>${esc(x.titleZh||x.title||x.nameZh||x.name||x.id)}${x.rawValue!=null?' · '+esc(x.rawValue)+' '+esc(x.unit||''):''}${x.eventDate?' · '+esc(x.eventDate):''}</li>`).join('')+'</ul>':'<p>未提取到有原文依据的结果。</p>'}</div>`);
  if(l.model)parts.push(`<p>模型：${esc(l.model)}${l.durationMs!=null?' · 响应耗时 '+(l.durationMs/1000).toFixed(1)+' 秒':''}${l.finishReason?' · '+esc(l.finishReason):''}${l.usage?.total_tokens?' · '+l.usage.total_tokens+' tokens':''}</p>`);
  if(l.errorType)parts.push(`<p>错误类型：${esc(l.errorType)}${l.httpStatus?' · HTTP '+l.httpStatus:''}${l.nextRetryAt?' · 最早可重试：'+date(l.nextRetryAt):''}</p>`);
+ if(l.errorCode)parts.push(`<p>错误代码：${esc(l.errorCode)} · 发生阶段：${esc(stages[l.failedStage]||l.failedStage||'未记录')}</p>`);
  if(l.ruleVersion)parts.push(`<p>规则版本：${esc(l.ruleVersion)}</p>`);
  return parts.join('');
 }

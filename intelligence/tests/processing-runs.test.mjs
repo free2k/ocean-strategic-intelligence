@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import os from 'node:os';import path from 'node:path';
+﻿import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import os from 'node:os';import path from 'node:path';
 import {ProcessingRuns,reviewCutoff,tooOld} from '../processing-runs.mjs';
 const input=()=>({capturedAt:'2026-10-17T00:00:00Z',config:{rules:[{id:1,type:'include',topic:'海上风电',title_keywords:['海上风电'],content_keywords:[]}]},documents:[{id:'a',title:'海上风电项目投产',content:'海上风电项目于2026年10月16日正式投产。',sourceName:'测试渠道',publishedAt:'2026-10-16T00:00:00Z',classification:{status:'unmatched'}}]});
 const facts=()=>({events:[{id:'e',documentId:'a',title:'投产'}],entities:[{id:'n',name:'风电项目'}],relations:[],observations:[],evidence:[],rejected:[]});
@@ -74,3 +74,12 @@ test('reclassifying an accepted article as excluded removes its automatic facts'
 test('new articles and metadata refreshes do not invalidate the confirmed article set',async()=>{
  const x=await setup();try{const p=await x.manager.preview();x.data.documents[0].classification.reason='background refresh';x.data.documents.push({...x.data.documents[0],id:'new-arrival'});const t=await x.manager.start({confirmed:true,requestId:'frozen-input',previewToken:p.previewToken});await x.manager.workers.get(t.id);const done=await x.manager.current();assert.equal(done.total,1);assert.equal(done.processed,1);assert.ok(done.logs.filter(l=>l.documentId).every(l=>l.documentId==='a'));}finally{await x.cleanup();}
 });
+
+test('publication recovery reuses checkpoints, does not run models, and records publication once',async()=>{
+ let attempts=0;const x=await setup({publish:async()=>{if(++attempts===1)throw Object.assign(Error('parameter types'),{code:'42P08'});return {releaseId:'recovered'};}});
+ try{const p=await x.manager.preview(),t=await x.manager.start({confirmed:true,requestId:'recover-publish',previewToken:p.previewToken});await x.manager.workers.get(t.id);let state=await x.manager.current();assert.equal(state.status,'failed');assert.equal(state.failedStage,'publishing');assert.equal(state.logs.at(-1).errorCode,'42P08');
+ x.manager.extract=()=>{throw Error('must not extract again')};x.manager.review=()=>{throw Error('must not review again')};
+ assert.equal((await x.manager.resumePublication(t.id)).releaseId,'recovered');assert.equal((await x.manager.current()).stage,'published');await x.manager.resumePublication(t.id);assert.equal(attempts,2);
+ }finally{await x.cleanup();}
+});
+

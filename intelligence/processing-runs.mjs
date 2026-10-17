@@ -70,6 +70,25 @@ export class ProcessingRuns{
   this.controllers.get(id)?.abort();return task;
  }
  async update(id,change){return this.tx(s=>change(s.processingRuns[id]));}
+ async resumePublication(id){
+  if(!this.publish)fail('当前环境不支持恢复发布',400);
+  const task=await this.tx(s=>{
+   const t=s.processingRuns?.[id];if(!t)fail('任务不存在',404);
+   if(t.publication)return clone(t);
+   if(Object.values(s.processingRuns).some(x=>active.has(x.status)))fail('已有任务执行中');
+   if(t.status!=='failed'||t.processed!==t.total||t.results.length!==t.total||!(t.failedStage==='merging'||t.failedStage==='publishing'||t.logs.some(l=>l.type==='merging')))fail('只能恢复已完成逐篇处理的合并失败任务');
+   return clone(t);
+  });
+  if(task.publication)return task.publication;
+  // Check all checkpoints before changing the task state. No model client is used.
+  const saved=JSON.parse(await fs.readFile(path.join(this.dir,'previews',task.previewToken+'.json'),'utf8'));
+  const results=[];for(const r of task.results)results.push(JSON.parse(await fs.readFile(path.join(this.dir,r.file),'utf8')));
+  await this.update(id,t=>{t.status='running';t.stage='merging';delete t.finishedAt;this.log(t,'merging','从已保存检查点恢复合并；不重复调用模型',{checkpointCount:results.length});});
+  try{
+   const publication=await this.publish({task,input:saved.input,readResults:async()=>results});
+   await this.update(id,t=>{t.status=t.retries.length?'partial':'completed';t.stage='published';t.finishedAt=this.clock();t.publication=publication;delete t.failedStage;this.log(t,'published','已恢复合并并发布网站成果',publication);});return publication;
+  }catch(error){await this.update(id,t=>{t.status='failed';t.failedStage='merging';t.stage='failed';t.finishedAt=this.clock();this.log(t,'failed','恢复合并失败，检查点保留',{...extractionError(error),errorCode:/^[A-Z0-9_]{3,50}$/.test(error.code||'')?error.code:null,failedStage:'merging'});});throw error;}
+ }
  async run(id,input,signal){
   const check=()=>{if(signal.aborted)throw Object.assign(Error('stopped'),{name:'AbortError'});};
   const emit=(type,message,details)=>this.update(id,t=>this.log(t,type,message,details));
@@ -129,7 +148,7 @@ export class ProcessingRuns{
     const pointer=path.join(this.dir,'published.json'),temp=pointer+'.tmp';await fs.writeFile(temp,JSON.stringify({taskId:id,file,publishedAt:snapshot.publishedAt}));await fs.rename(temp,pointer);
     t.status=t.retries.length?'partial':'completed';t.stage='published';t.finishedAt=this.clock();t.publication={mode:'local',file,publishedAt:snapshot.publishedAt};this.log(t,'published',`本地发布完成；${t.retries.length} 篇待重试。线上数据未修改。`,{file});
    });
-  }catch(error){await this.update(id,t=>{t.status=signal.aborted||error.name==='AbortError'?'interrupted':'failed';t.stage=t.status;t.finishedAt=this.clock();this.log(t,t.status,t.status==='interrupted'?'本轮已安全中断；已处理检查点保留，未发布未完成结果。':'任务异常结束，已保留检查点。',{...extractionError(error)});});}finally{await release?.();}
+  }catch(error){await this.update(id,t=>{t.failedStage=t.stage;t.status=signal.aborted||error.name==='AbortError'?'interrupted':'failed';t.stage=t.status;t.finishedAt=this.clock();this.log(t,t.status,t.status==='interrupted'?'本轮已安全中断；已处理检查点保留，未发布未完成结果。':'任务异常结束，已保留检查点。',{...extractionError(error),errorCode:/^[A-Z0-9_]{3,50}$/.test(error.code||'')?error.code:null,failedStage:t.failedStage||null});});}finally{await release?.();}
  }
 }
 
