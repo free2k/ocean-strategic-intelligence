@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+const base='http://127.0.0.1:3000';
+const login=await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:process.env.SITE_PASSWORD})});
+assert.equal(login.status,200);
+const cookie=login.headers.get('set-cookie').split(';')[0];
+const qa=await fetch(base+'/api/qa',{method:'POST',headers:{cookie,'Content-Type':'application/json'},body:JSON.stringify({question:'Briefly summarize offshore wind developments in the references, in one sentence.'}),signal:AbortSignal.timeout(120000)});
+console.log(JSON.stringify({check:'live_website_embedding_retrieval_and_chat',status:qa.status}));
+assert.equal(qa.status,200);
+const result=await qa.json();
+assert.ok(result.answer?.length);
+console.log(JSON.stringify({answerPresent:true,references:result.references?.length||0}));
+const session=await fetch('http://127.0.0.1:3101/api/session');
+const status=await session.json();
+assert.equal(status.modelReady,true);
+console.log(JSON.stringify({check:'intelligence_model_ready',ok:true}));

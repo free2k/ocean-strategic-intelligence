@@ -186,6 +186,7 @@ async function handleImportRules(event: Event) {
 
 const includeRules = computed(() => data.value?.rules?.filter(r => r.type === 'include') || []);
 const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'exclude') || []);
+const contextRules = computed(() => data.value?.rules?.filter(r => r.type === 'context') || []);
 </script>
 
 <template>
@@ -196,6 +197,23 @@ const excludeRules = computed(() => data.value?.rules?.filter(r => r.type === 'e
     <details><summary class="cursor-pointer text-sm">公共执行策略与补充关键词组合</summary><p class="text-sm text-gray-500">上方六领域定义规定分类范围；此处说明通用执行顺序与额外的匹配组合，不是另一套领域分类。没有补充组合的领域仍使用下方配置的正式关键词规则。</p><p class="text-sm text-gray-500">人工分类优先；反向词优先排除；标题和正文前 1800 字检查海洋范围，全文匹配正向词与组合条件。未确定行业且有正文时交 Qwen 复核。关键词组合和补充别名属于识别线索。</p><p class="text-xs break-words">海洋范围词：{{data?.marineContextPattern}}</p><div v-for="domain in standardTopics" :key="domain.id" class="text-xs mt-2"><strong>{{domain.name}}</strong><p v-for="(rule,i) in (data?.supplementalRules||[]).filter(r=>topicLabel(r.topic)===domain.name)" :key="i">{{rule.groups.map((g:string[])=>g.join(' / ')).join(' ＋ ')}}</p><p v-if="!(data?.supplementalRules||[]).some(r=>topicLabel(r.topic)===domain.name)">未配置额外补充组合，使用正式关键词规则与领域定义。</p></div></details>
   </section>
   <div class="space-y-6 pt-4">
+    <section v-for="rule in contextRules" :key="rule.id" class="rounded-lg border border-gray-300 dark:border-gray-700 p-4 space-y-3">
+      <h3 class="font-semibold">通用海洋语境关键词</h3>
+      <p class="text-sm">供六大行业共用。标题或清洗后正文前1800字符任意命中，即通过海洋场景检查；仍需命中行业正向规则，且不能命中反向排除。此检查不是模型语义理解，不直接决定行业。</p>
+      <p class="text-sm text-gray-500">填写普通词语，不支持正则表达式。中文按包含匹配，英文忽略大小写并匹配词边界。清空或停用将阻止规则直接通过语境门槛；未匹配且有正文的文章可进入模型复核。保存后通过下方预览和重新分类应用到历史文章。</p>
+      <template v-if="editingId===rule.id">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <UFormGroup label="标题语境词（每行一个）"><UTextarea v-model="editForm.titleKeywords" :rows="9" /></UFormGroup>
+          <UFormGroup label="正文前1800字符语境词（每行一个）"><UTextarea v-model="editForm.contentKeywords" :rows="9" /></UFormGroup>
+        </div>
+        <UButton @click="saveEdit(rule.id)">保存语境词</UButton> <UButton color="gray" @click="cancelEdit">取消</UButton>
+      </template>
+      <template v-else>
+        <p class="text-sm break-words">标题：{{rule.titleKeywords.join('、')||'未配置'}}</p>
+        <p class="text-sm break-words">正文前1800字符：{{rule.contentKeywords.join('、')||'未配置'}}</p>
+        <UButton @click="startEdit(rule)">编辑通用语境词</UButton> <UButton color="gray" @click="toggleRule(rule.id,rule.enabled)">{{rule.enabled?'停用':'启用'}}</UButton>
+      </template>
+    </section>
     <ClassificationHistoryFlow ref="historyFlow" :source-id="targetSourceId" :since-date="targetSinceDate" @published="emit('changed')" />
     <!-- 操作栏 -->
     <div class="flex items-center justify-between">

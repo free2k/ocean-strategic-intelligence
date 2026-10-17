@@ -44,7 +44,9 @@ export async function serveResearchRead(req,res,url,ledger,journal=null){
    const config=snapshot.ruleConfig;
    if(!Array.isArray(config?.rules))fail('RULES_UNAVAILABLE','此版本未保存匹配规则',503);
    const policyMatches=compileRules(config).version===snapshot.ruleVersion;
-   send(res,200,{data:{rules:config.rules,domains:standardTopics,policyMatches,supplementalRules:policyMatches?supplementalRules:[],marineContextPattern:policyMatches?marineContextPattern:null},meta:{releaseId:release.releaseId,publishedAt:release.publishedAt,ruleVersion:snapshot.ruleVersion}});return true;
+   const context=config.rules.filter(r=>r.type==='context');
+   const contextText=context.length?context.filter(r=>r.enabled!==false).map(r=>'标题：'+(r.title_keywords||r.titleKeywords||[]).join('、')+'；正文前1800字符：'+(r.content_keywords||r.contentKeywords||[]).join('、')).join('；')||'已停用，规则不直接通过语境门槛':marineContextPattern;
+   send(res,200,{data:{rules:config.rules,domains:standardTopics,policyMatches,supplementalRules:policyMatches?supplementalRules:[],marineContextPattern:policyMatches?contextText:null},meta:{releaseId:release.releaseId,publishedAt:release.publishedAt,ruleVersion:snapshot.ruleVersion}});return true;
   }
   if(route==='/api/research/products'){send(res,200,await readProductCatalog(ledger,versions));return true;}
   if(route==='/api/research/replay'){const result=await readBatchReplay(ledger,versions),etag='"'+result.meta.releaseId+':'+result.meta.scope.scopeHash+'"';send(res,req.headers['if-none-match']===etag?304:200,req.headers['if-none-match']===etag?null:result,{ETag:etag});return true;}

@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const code=fs.readFileSync('intelligence/public/sensing.js','utf8').split('\n').find(x=>x.startsWith('function sourcePayload('));
+const sourcePayload=Function(code+';return sourcePayload')();
+const list=[{id:'mp:old',present:false,payload:{name:'Historical',platform:'mp'}},{id:'x:new',present:true,payload:{name:'Active',platform:'x'}}];
+const result=sourcePayload({list,jobs:[{id:1}]},{list:[]});
+assert.deepEqual(result.subscriptions.map(s=>s.id),['x:new']);
+assert.equal(list.length,2);
+assert.equal(result.jobs.length,1);
+console.log('PASS retired subscriptions excluded from channel data, source records and task history preserved');
