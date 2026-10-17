@@ -38,9 +38,9 @@ test('live publisher receives durable article results and releases guard after p
  try{const p=await x.manager.preview();assert.equal(p.mode,'live');assert.deepEqual(p.documents,[]);const t=await x.manager.start({confirmed:true,requestId:'live-publish',previewToken:p.previewToken});await x.manager.workers.get(t.id);const done=await x.manager.current();assert.equal(done.status,'completed');assert.equal(done.publication.releaseId,'release-test');assert.ok(published&&released);await assert.rejects(()=>fs.access(path.join(x.dir,'published.json')));}finally{await x.cleanup();}
 });
 
-test('external scheduler conflict does not create a new task',async()=>{
+test('external scheduler conflict creates a visible cancellable queue and blocks duplicates',async()=>{
  const x=await setup({acquire:async()=>{throw Object.assign(Error('external busy'),{status:409});}});
- try{const p=await x.manager.preview();await assert.rejects(()=>x.manager.start({confirmed:true,requestId:'live-busy',previewToken:p.previewToken}),/external busy/);assert.equal(await x.manager.current(),null);}finally{await x.cleanup();}
+ try{const p=await x.manager.preview();const t=await x.manager.start({confirmed:true,requestId:'live-busy',previewToken:p.previewToken});await new Promise(r=>setTimeout(r,30));const queued=await x.manager.current();assert.equal(queued.stage,'waiting');assert.ok(queued.logs.some(l=>l.type==='waiting'));await assert.rejects(()=>x.manager.start({confirmed:true,requestId:'live-busy-again',previewToken:p.previewToken}),/已有任务/);await x.manager.stop(t.id,{confirmed:true});await x.manager.workers.get(t.id);assert.equal((await x.manager.current()).status,'interrupted');}finally{await x.cleanup();}
 });
 
 test('live publication failure is not reported as published and releases guard',async()=>{
@@ -69,4 +69,8 @@ test('scope preview and execution agree; changing scope cannot reuse confirmatio
 test('reclassifying an accepted article as excluded removes its automatic facts',async()=>{
  const x=await setup();try{let p=await x.manager.preview(),t=await x.manager.start({confirmed:true,requestId:'before-exclusion',previewToken:p.previewToken});await x.manager.workers.get(t.id);
  x.data.documents[0].classification.status='accepted';x.data.config.rules.push({id:2,type:'exclude',title_keywords:['海上风电'],content_keywords:[]});p=await x.manager.preview('accepted');t=await x.manager.start({confirmed:true,requestId:'after-exclusion',processingScope:'accepted',previewToken:p.previewToken});await x.manager.workers.get(t.id);const pointer=JSON.parse(await fs.readFile(path.join(x.dir,'published.json'))),snapshot=JSON.parse(await fs.readFile(path.join(x.dir,pointer.file)));assert.equal(snapshot.documents[0].industry.status,'excluded');assert.deepEqual(snapshot.events,[]);}finally{await x.cleanup();}
+});
+
+test('new articles and metadata refreshes do not invalidate the confirmed article set',async()=>{
+ const x=await setup();try{const p=await x.manager.preview();x.data.documents[0].classification.reason='background refresh';x.data.documents.push({...x.data.documents[0],id:'new-arrival'});const t=await x.manager.start({confirmed:true,requestId:'frozen-input',previewToken:p.previewToken});await x.manager.workers.get(t.id);const done=await x.manager.current();assert.equal(done.total,1);assert.equal(done.processed,1);assert.ok(done.logs.filter(l=>l.documentId).every(l=>l.documentId==='a'));}finally{await x.cleanup();}
 });

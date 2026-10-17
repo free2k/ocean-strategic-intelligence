@@ -34,31 +34,31 @@ export class ProcessingRuns{
  async recover(){await this.tx(s=>{for(const task of Object.values(s.processingRuns||{}))if(active.has(task.status)){task.status='interrupted';task.stage='interrupted';task.finishedAt=this.clock();this.log(task,'interrupted','服务重启，本轮已中断；已保存检查点，未自动发布。');}});}
  log(t,type,message,details={}){const row={seq:(t.logSeq||t.logs.at(-1)?.seq||0)+1,at:this.clock(),type,message,...details};t.logSeq=row.seq;mkdirSync(path.join(this.dir,t.id),{recursive:true});appendFileSync(path.join(this.dir,t.id,'logs.jsonl'),JSON.stringify(row)+'\n');t.logs.push(row);if(t.logs.length>400)t.logs.splice(0,t.logs.length-400);}
  async preview(scope='pending'){const input=await this.readInput(),config=compileRules(input.config),documents=selectProcessingDocuments(input.documents,scope);
-  const cutoff=reviewCutoff(new Date(this.clock()));
-  return {enabled:true,mode:this.mode,model:this.model,modelAvailable:!!this.client,ruleVersion:config.version,capturedAt:input.capturedAt,count:documents.length,cutoff,oldCount:documents.filter(d=>tooOld(d.publishedAt,cutoff)).length,processingScope:scope,scopeLabel:processingScopes[scope],previewToken:digest({config:input.config,documents,cutoff,scope}),scope:this.mode==='live'?processingScopes[scope]+'；完成后合并工作库并发布网站成果':'本地样本 · '+processingScopes[scope]+'；只写本地工作库和发布快照',documents:this.mode==='live'?[]:documents.map(({content,...d})=>d)};
+  const cutoff=reviewCutoff(new Date(this.clock())),previewToken=digest(randomUUID());
+  await fs.mkdir(path.join(this.dir,'previews'),{recursive:true});await fs.writeFile(path.join(this.dir,'previews',previewToken+'.json'),JSON.stringify({input:{...input,documents},cutoff,scope,createdAt:this.clock()}),{flag:'wx'});
+  return {enabled:true,mode:this.mode,model:this.model,modelAvailable:!!this.client,ruleVersion:config.version,capturedAt:input.capturedAt,count:documents.length,cutoff,oldCount:documents.filter(d=>tooOld(d.publishedAt,cutoff)).length,processingScope:scope,scopeLabel:processingScopes[scope],previewToken,scope:this.mode==='live'?processingScopes[scope]+'；完成后合并工作库并发布网站成果':'本地样本 · '+processingScopes[scope]+'；只写本地工作库和发布快照',documents:this.mode==='live'?[]:documents.map(({content,...d})=>d)};
  }
  async start({confirmed,requestId,previewToken,processingScope='pending'}){
   if(confirmed!==true)fail('请先确认启动',400);
   if(!/^[\w-]{8,100}$/.test(requestId||''))fail('缺少有效幂等请求编号',400);
   // Recognize a retried HTTP request even if rules changed after its first submission.
   const existing=await this.tx(s=>Object.values(s.processingRuns||{}).find(t=>t.requestId===requestId));if(existing){if(existing.previewToken!==previewToken||(existing.processingScope||'pending')!==processingScope)fail('同一请求编号不能用于不同范围');return this.public(existing);}
-  const input=await this.readInput(),preview=await this.preview(processingScope);
-  input.documents=selectProcessingDocuments(input.documents,processingScope);
-  if(preview.previewToken!==previewToken)fail('规则或资料已变化，请重新确认');
-  if(digest({config:input.config,documents:input.documents,cutoff:preview.cutoff,scope:processingScope})!==previewToken)fail('资料读取期间发生变化，请重新确认');
+  if(!/^[a-f0-9]{64}$/.test(previewToken||''))fail('预览已过期，请重新确认');
+  const saved=await fs.readFile(path.join(this.dir,'previews',previewToken+'.json'),'utf8').then(JSON.parse).catch(()=>null);
+  if(!saved||saved.scope!==processingScope||Date.parse(this.clock())-Date.parse(saved.createdAt)>3600000)fail('预览范围已变化或过期，请重新确认');
+  const latest=await this.readInput();if(digest(latest.config)!==digest(saved.input.config))fail('行业规则已变化，请重新确认');
+  const input=saved.input,preview={count:input.documents.length,ruleVersion:compileRules(input.config).version,cutoff:saved.cutoff};
   if(!preview.count)fail('所选范围没有可处理文章',400);
   if(!this.client)fail('本地尚未配置模型，不能启动真实处理',503);
-  let release;
   const task=await this.tx(async s=>{
    s.processingRuns||={};const same=Object.values(s.processingRuns).find(t=>t.requestId===requestId);if(same)return clone(same);
    if(Object.values(s.processingRuns).some(t=>active.has(t.status)))fail('已有任务执行中；请先中断并等待其退出，再开始新一轮');
-   release=await this.acquire?.();
    const t={id:randomUUID(),requestId,previewToken,processingScope,scopeLabel:processingScopes[processingScope],mode:this.mode,ruleVersion:preview.ruleVersion,cutoff:preview.cutoff,startedAt:this.clock(),status:'queued',stage:'queued',total:preview.count,processed:0,accepted:0,excluded:0,unmatched:0,results:[],retries:[],logs:[]};
    this.log(t,'queued','本轮已创建：锁定最新规则与样本范围。',{ruleVersion:t.ruleVersion,count:t.total});s.processingRuns[t.id]=t;return clone(t);
-  }).catch(async e=>{await release?.();throw e;});
+  });
   if(!this.workers.has(task.id)&&task.status==='queued'){
    const abort=new AbortController();this.controllers.set(task.id,abort);
-   const work=this.run(task.id,input,abort.signal).finally(async()=>{this.controllers.delete(task.id);this.workers.delete(task.id);await release?.();});this.workers.set(task.id,work);
+   const work=this.run(task.id,input,abort.signal).finally(async()=>{this.controllers.delete(task.id);this.workers.delete(task.id);});this.workers.set(task.id,work);
   }return this.public(task);
  }
  public(t,after=0){if(!t)return null;const {results,...rest}=clone(t);rest.logs=rest.logs.filter(l=>l.seq>after).slice(0,200);rest.lastSeq=t.logSeq||t.logs.length;rest.facts={events:results.reduce((n,r)=>n+(r.extraction?.events.length||0),0),entities:results.reduce((n,r)=>n+(r.extraction?.entities.length||0),0),observations:results.reduce((n,r)=>n+(r.extraction?.observations.length||0),0)};return rest;}
@@ -75,7 +75,9 @@ export class ProcessingRuns{
   const emit=(type,message,details)=>this.update(id,t=>this.log(t,type,message,details));
   const stage=async value=>{check();await this.update(id,t=>{if(t.status==='stopping')throw Object.assign(Error('stopped'),{name:'AbortError'});t.status='running';t.stage=value;});};
   const task=await this.tx(s=>clone(s.processingRuns[id]));const rules=compileRules(input.config);
+  let release;
   try{
+   if(this.acquire){let waiting=false;while(!release){check();try{release=await this.acquire();}catch(error){if(error.status!==409)throw error;if(!waiting){await this.update(id,t=>{t.stage='waiting';this.log(t,'waiting','任务已排队，等待其他批次安全退出',{reason:error.message});});waiting=true;}await new Promise(resolve=>{const done=()=>{clearTimeout(timer);signal.removeEventListener('abort',done);resolve();};const timer=setTimeout(done,3000);signal.addEventListener('abort',done,{once:true});if(signal.aborted)done();});}}check();}
    const documents=selectProcessingDocuments(input.documents,task.processingScope||'pending');let nextIndex=0;
    const worker=async()=>{while(nextIndex<documents.length){const original=documents[nextIndex++];
     check();const articleStarted=Date.now();const loaded=this.loadDocument?await this.loadDocument(original):original;check();const d={...loaded,versionId:'ver_'+digest(loaded),language:/[\u4e00-\u9fff]/.test(loaded.content)?'zh':'en'};
@@ -127,7 +129,7 @@ export class ProcessingRuns{
     const pointer=path.join(this.dir,'published.json'),temp=pointer+'.tmp';await fs.writeFile(temp,JSON.stringify({taskId:id,file,publishedAt:snapshot.publishedAt}));await fs.rename(temp,pointer);
     t.status=t.retries.length?'partial':'completed';t.stage='published';t.finishedAt=this.clock();t.publication={mode:'local',file,publishedAt:snapshot.publishedAt};this.log(t,'published',`本地发布完成；${t.retries.length} 篇待重试。线上数据未修改。`,{file});
    });
-  }catch(error){await this.update(id,t=>{t.status=signal.aborted||error.name==='AbortError'?'interrupted':'failed';t.stage=t.status;t.finishedAt=this.clock();this.log(t,t.status,t.status==='interrupted'?'本轮已安全中断；已处理检查点保留，未发布未完成结果。':'任务异常结束，已保留检查点。',{...extractionError(error)});});}
+  }catch(error){await this.update(id,t=>{t.status=signal.aborted||error.name==='AbortError'?'interrupted':'failed';t.stage=t.status;t.finishedAt=this.clock();this.log(t,t.status,t.status==='interrupted'?'本轮已安全中断；已处理检查点保留，未发布未完成结果。':'任务异常结束，已保留检查点。',{...extractionError(error)});});}finally{await release?.();}
  }
 }
 
