@@ -35,25 +35,35 @@ export function logDetails(l){
  if(l.ruleVersion)parts.push(`<p>规则版本：${esc(l.ruleVersion)}</p>`);
  return parts.join('');
 }
-function articleCard(rows){
+export function safeSourceUrl(value){try{const u=new URL(value);return ['http:','https:'].includes(u.protocol)?u.href:null;}catch{return null;}}
+const resultLabels={all:'全部日志',accepted:'纳入',excluded:'排除',unmatched:'待筛选',events:'事件',observations:'数据',entities:'实体',retry:'待重试'};
+export function matchesResult(row,kind){if(['accepted','excluded','unmatched'].includes(kind))return row.type==='checkpoint'&&row.status===kind;if(kind==='retry')return row.type==='retry';return row.type==='extraction'&&(row[kind]?.length||0)>0;}
+function articleCard(rows,sourceLookup=()=>null){
  const latest=rows.at(-1),find=type=>rows.findLast(l=>l.type===type),rule=find('classification'),review=find('review'),extract=find('extraction'),checkpoint=find('checkpoint'),retry=find('retry')||find('model_error'),skip=find('skipped');
  const decision=review||rule,meta=rows.find(l=>l.source||l.publishedAt)||latest;
  const outcome={accepted:'已纳入',excluded:'已排除',unmatched:'待筛选'};
  const words=(rule?.positive||[]).flatMap(p=>(p.keywords||[]).map(k=>k.keyword)),negative=(rule?.negative||[]).map(k=>k.keyword);
  const chips=(items,kind)=>[...new Set(items)].slice(0,12).map(k=>`<mark class="pr-hit-${kind}">${esc(k)}</mark>`).join(' ')||'无';
  const stage=(label,row,text)=>`<div class="pr-article-step ${row?'has-result':''}"><span>${label}</span><strong>${esc(text)}</strong></div>`;
+ const sourceUrl=safeSourceUrl(rows.find(l=>safeSourceUrl(l.url))?.url||sourceLookup(meta));
+ const sourceLink=sourceUrl?`<a class="pr-source" href="${esc(sourceUrl)}" target="_blank" rel="noopener noreferrer">核对原文 ↗</a>`:latest.documentId?`<button class="pr-source" data-source-id="${esc(latest.documentId)}">核对原文 ↗</button>`:'<span class="pr-note">未提供原文地址</span>';
  const events=rows.slice().reverse().map(l=>`<details class="pr-row-details" data-seq="${l.seq}"><summary><time>${esc(date(l.at).split(' ').at(-1))}</time><span>${esc(types[l.type]||l.type)}</span> ${esc(l.message)}</summary><div class="pr-log-data"></div></details>`).join('');
  return `<article class="pr-log pr-article ${retry?'pr-warning':''}" data-seq="${latest.seq}"><header class="pr-article-head"><span class="pr-result">${esc(retry?'待重试':checkpoint?outcome[checkpoint.status]||'结果已保存':decision?outcome[decision.status]||'处理中':'处理中')}</span><time>最近更新 ${esc(date(latest.at))}</time></header><h4 class="pr-log-title">${esc(latest.title||latest.message)}</h4><p class="pr-article-meta">渠道：${esc(meta.source||'本页未记录')} · 资讯日期：${esc(date(meta.publishedAt))}${checkpoint?.durationMs!=null?' · 单篇耗时 '+(checkpoint.durationMs/1000).toFixed(1)+' 秒':''}</p>
- <div class="pr-article-flow">${stage('01 规则匹配',rule,rule?outcome[rule.status]||'已匹配':'本页无记录')}${stage('02 AI 复核',review||skip,review?outcome[review.status]||'已判断':skip?'已跳过':'本页无结果')}${stage('03 事实提取',extract,extract?`事件 ${extract.events?.length||0} · 数据 ${extract.observations?.length||0} · 实体 ${extract.entities?.length||0}`:'本页无结果')}</div>
+ ${sourceLink}<div class="pr-article-flow">${stage('01 规则匹配',rule,rule?outcome[rule.status]||'已匹配':'本页无记录')}${stage('02 AI 复核',review||skip,review?outcome[review.status]||'已判断':skip?'已跳过':'本页无结果')}${stage('03 事实提取',extract,extract?`事件 ${extract.events?.length||0} · 数据 ${extract.observations?.length||0} · 实体 ${extract.entities?.length||0}`:'本页无结果')}</div>
  ${rule?`<div class="pr-keywords"><span>正向命中 ${chips(words,'positive')}</span><span>反向命中 ${chips(negative,'negative')}</span></div>`:''}
  ${decision?`<div class="pr-decision"><b>行业：${esc(decision.industry||'未确定')}</b><p>${review?'AI 判断依据':'规则判断依据'}：${esc(decision.reason||'未记录依据')}</p></div>`:''}
  ${skip?`<p class="pr-note">${esc(skip.message)}</p>`:''}${retry?`<p class="pr-note pr-error">${esc(retry.errorType||'处理异常')} · ${esc(retry.message)}</p>`:''}
  <div class="pr-card-events"><p>本页过程记录 ${rows.length} 条 · 点击查看原文依据、模型响应与提取明细</p>${events}</div></article>`;
 }
-export function mountProcessingRuns(host,{api='api/processing-runs',beforeStart=()=>{}}={}){
- let generation=0,selectedScope='pending',task=null,preview=null,cursor=0,requestId=null,busy=false,disposed=false,polling=false,filter='all',follow=true,totalLogs=0,pageStart=0,viewBusy=false,viewVersion=0;const PAGE_SIZE=50,logs=[];const life=new AbortController();
+export function mountProcessingRuns(host,{api='api/processing-runs',beforeStart=()=>{},sourceDocuments=[]}={}){
+ let generation=0,selectedScope='pending',task=null,preview=null,cursor=0,requestId=null,busy=false,disposed=false,polling=false,filter='all',follow=true,totalLogs=0,pageStart=0,viewBusy=false,viewVersion=0,resultTab='all',resultEnd=0,resultNext=0,resultHistory=[],resultLoading=false,resultVersion=0;const PAGE_SIZE=50,logs=[];const life=new AbortController();
+ const sourceIndex=new Map();let sourceLoaded=sourceDocuments.length>0;
+ const sourceKey=d=>JSON.stringify([d.title,d.sourceName||d.source,d.publishedAt?new Date(d.publishedAt).getTime():null]);
+ function indexSources(documents){for(const d of documents){for(const key of [d.id,d.workingId,sourceKey(d)].filter(Boolean)){const url=safeSourceUrl(d.url);if(sourceIndex.has(key)&&sourceIndex.get(key)!==url)sourceIndex.set(key,null);else if(!sourceIndex.has(key))sourceIndex.set(key,url);}}}
+ indexSources(sourceDocuments);
+ const sourceLookup=row=>sourceIndex.get(row.documentId)||sourceIndex.get(sourceKey(row));
  const styleRoot=host.getRootNode(),styleParent=styleRoot instanceof ShadowRoot?styleRoot:document.head;
- if(!styleParent.querySelector('link[data-processing-style]')){const link=document.createElement('link');link.dataset.processingStyle='true';link.rel='stylesheet';link.href=new URL('./processing-runs.css?v=article-cards-2',import.meta.url);styleParent.append(link);}
+ if(!styleParent.querySelector('link[data-processing-style]')){const link=document.createElement('link');link.dataset.processingStyle='true';link.rel='stylesheet';link.href=new URL('./processing-runs.css?v=result-tabs-3',import.meta.url);styleParent.append(link);}
  host.classList.add('processing-console');
  host.innerHTML=`<div class="pr-top"><div><span class="pr-eyebrow">处理任务</span><h3>重新匹配与分析</h3><p class="pr-scope">正在核对可处理范围…</p></div><div class="pr-actions"><label>处理范围 <select class="pr-range"><option value="pending">待筛选</option><option value="accepted">已纳入</option><option value="excluded">已排除</option><option value="all">全部文章</option></select></label><span class="pr-badge">核对中</span><button class="pr-start primary" disabled>开始新一轮处理</button><button class="pr-stop" disabled>中断任务</button></div></div><p class="pr-feedback" role="status"></p><div class="pr-summary" hidden></div><details class="pr-log-panel" open><summary>处理日志详情 <span class="pr-log-count">0 条</span></summary><div class="pr-log-tools"><label>日志类型 <select class="pr-filter"><option value="all">全部记录</option><option value="classification">关键词匹配</option><option value="review">行业判断</option><option value="extraction">事件／数据／实体</option><option value="model">模型请求与响应</option><option value="retry">异常与重试</option></select></label><label><input type="checkbox" class="pr-follow" checked> 跟随最新记录</label><button class="pr-export">导出完整日志</button></div><div class="pr-log-nav"><button class="pr-older">更早记录</button><button class="pr-newer">更新记录</button><button class="pr-latest">回到实时</button><span class="pr-window" role="status"></span></div><div class="pr-logs" role="region" aria-label="处理日志"><p class="pr-empty">启动后将逐篇显示来源、日期、关键词、模型响应和提取结果。</p></div></details><dialog class="pr-confirm"><form method="dialog"><h3></h3><div class="pr-confirm-body"></div><div class="pr-dialog-actions"><button value="cancel">取消</button><button class="primary" value="confirm">确认</button></div></form></dialog>`;
  const $=s=>host.querySelector(s),feedback=msg=>{$('.pr-feedback').textContent=msg;};
@@ -68,42 +78,81 @@ export function mountProcessingRuns(host,{api='api/processing-runs',beforeStart=
   $('.pr-start').disabled=busy||active(task)||!preview?.enabled||!preview.modelAvailable||!preview.count;
   $('.pr-stop').disabled=busy||!active(task)||task.status==='stopping'||task.stage==='publishing';
   $('.pr-summary').hidden=!task;
-  if(task){const percent=task.total?Math.floor(task.processed/task.total*100):0;$('.pr-summary').innerHTML=`<div class="pr-stage"><strong>${esc(stages[task.stage]||task.stage)}</strong><span>已处理 ${task.processed} / ${task.total} 篇</span></div><progress value="${task.processed}" max="${task.total||1}" aria-label="文章处理进度"></progress><div class="pr-counters"><span>纳入 <b>${task.accepted}</b></span><span>排除 <b>${task.excluded}</b></span><span>待筛选 <b>${task.unmatched}</b></span><span>事件 <b>${task.facts?.events||0}</b></span><span>数据 <b>${task.facts?.observations||0}</b></span><span>实体 <b>${task.facts?.entities||0}</b></span><span>待重试 <b>${task.retries?.length||0}</b></span></div><small>任务 ${esc(task.id.slice(0,8))} · 范围 ${esc(task.scopeLabel||'待筛选')} · 启动 ${esc(date(task.startedAt))} · 文章处理 ${percent}%（不代表已发布）</small>`;}
+  if(task){const percent=task.total?Math.floor(task.processed/task.total*100):0;$('.pr-summary').innerHTML=`<div class="pr-stage"><strong>${esc(stages[task.stage]||task.stage)}</strong><span>已处理 ${task.processed} / ${task.total} 篇</span></div><progress value="${task.processed}" max="${task.total||1}" aria-label="文章处理进度"></progress><div class="pr-counters" role="tablist" aria-label="本轮处理结果">${Object.entries(resultLabels).map(([key,label])=>{const count={all:task.processed,accepted:task.accepted,excluded:task.excluded,unmatched:task.unmatched,events:task.facts?.events||0,observations:task.facts?.observations||0,entities:task.facts?.entities||0,retry:task.retries?.length||0}[key];return `<button role="tab" aria-selected="${resultTab===key}" data-result="${key}">${label}<b>${count}</b></button>`;}).join('')}</div><small>任务 ${esc(task.id.slice(0,8))} · 范围 ${esc(task.scopeLabel||'待筛选')} · 启动 ${esc(date(task.startedAt))} · 文章处理 ${percent}%（不代表已发布）</small>`;}
  }
  function matches(l){return filter==='all'||(filter==='model'?l.type.startsWith('model'):filter==='retry'?['retry','model_error','failed'].includes(l.type):l.type===filter);}
  function logNavigation(){
   $('.pr-log-count').textContent=`累计 ${totalLogs} 条`;
+  $('.pr-filter').disabled=resultTab!=='all';$('.pr-follow').disabled=resultTab!=='all';
+  if(resultTab!=='all'){
+   $('.pr-window').textContent=resultLoading?`正在查找本轮「${resultLabels[resultTab]}」结果…`:`本轮全部已处理结果 · ${resultLabels[resultTab]} · 第 ${resultHistory.length+1} 页 · 本页 ${new Set(logs.map(l=>l.documentId).filter(Boolean)).size} 篇 · 事件/数据/实体统计为条数，列表按文章展示 · 点击“刷新结果”查看新增结果`;
+   $('.pr-older').textContent='下一页';$('.pr-newer').textContent='上一页';$('.pr-latest').textContent='刷新结果';
+   $('.pr-older').disabled=resultLoading||resultNext<=0;$('.pr-newer').disabled=resultLoading||!resultHistory.length;$('.pr-latest').disabled=resultLoading;$('.pr-follow').checked=false;return;
+  }
+  $('.pr-older').textContent='更早记录';$('.pr-newer').textContent='更新记录';$('.pr-latest').textContent='回到实时';
   $('.pr-window').textContent=`${follow?'实时更新 · 最新在上':'正在查看历史 · 进度仍实时更新'} · ${logs.length?`${logs[0].seq}–${logs.at(-1).seq}`:'0'} / ${totalLogs} 条 · 按文章归组，筛选当前页`;
   $('.pr-older').disabled=viewBusy||pageStart<=0;$('.pr-newer').disabled=viewBusy||pageStart+PAGE_SIZE>=totalLogs;$('.pr-latest').disabled=viewBusy;$('.pr-follow').checked=follow;
  }
  function renderLogs(){
   const groups=new Map();for(const l of logs){const key=l.documentId||'system-'+l.seq;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(l);}
-  const cards=[...groups.values()].filter(rows=>rows.some(matches)).sort((a,b)=>b.at(-1).seq-a.at(-1).seq);
-  $('.pr-logs').innerHTML=cards.map(articleCard).join('')||'<p class="pr-empty">本页没有符合条件的文章记录，可翻页或切换日志类型。</p>';
+  const cards=[...groups.values()].filter(rows=>resultTab!=='all'||rows.some(matches)).sort((a,b)=>b.at(-1).seq-a.at(-1).seq);
+  $('.pr-logs').innerHTML=cards.map(rows=>articleCard(rows,sourceLookup)).join('')||'<p class="pr-empty">当前范围没有符合条件的文章记录。</p>';
   logNavigation();
  }
  function appendLogs(rows){logs.splice(0,logs.length,...rows.slice(-PAGE_SIZE));totalLogs=task?.lastSeq||rows.at(-1)?.seq||0;pageStart=Math.max(0,(logs[0]?.seq||1)-1);renderLogs();}
+ async function loadResultPage(end){
+  const version=++resultVersion,id=task?.id,kind=resultTab;if(!id||kind==='all')return;resultLoading=true;resultEnd=end;resultNext=0;logs.length=0;renderLogs();
+  const selected=new Map();let upper=end;
+  try{
+   const total={accepted:task.accepted,excluded:task.excluded,unmatched:task.unmatched,retry:task.retries?.length||0,events:task.facts?.events||0,observations:task.facts?.observations||0,entities:task.facts?.entities||0}[kind];
+   if(total===0)upper=0;
+   while(upper>0&&selected.size<20){
+    const after=Math.max(0,upper-200),result=await read('/current?after='+after+'&id='+id);
+    if(disposed||version!==resultVersion||task?.id!==id)return;
+    const batch=(result.task?.logs||[]).filter(l=>l.seq<=upper);if(!batch.length)throw Error('未能读取历史结果，请刷新重试');
+    for(const row of batch.slice().reverse())if(row.documentId&&matchesResult(row,kind)&&!selected.has(row.documentId)){
+     selected.set(row.documentId,batch.filter(l=>l.documentId===row.documentId));if(selected.size===20){resultNext=row.seq-1;break;}
+    }
+    upper=after;
+   }
+   if(disposed||version!==resultVersion)return;
+   logs.splice(0,logs.length,...[...selected.values()].flat().sort((a,b)=>a.seq-b.seq));renderLogs();$('.pr-logs').scrollTop=0;
+  }catch(e){if(!disposed&&version===resultVersion)feedback(e.message);}finally{if(version===resultVersion){resultLoading=false;if(!disposed)logNavigation();}}
+ }
+ $('.pr-summary').addEventListener('click',e=>{const button=e.target.closest('[data-result]');if(!button||!task)return;
+  resultTab=button.dataset.result;resultVersion++;viewVersion++;resultLoading=false;resultHistory=[];follow=resultTab==='all';filter='all';$('.pr-filter').value='all';$('.pr-log-panel').open=true;render();
+  if(resultTab==='all'){logs.length=0;loadPage(Math.max(0,totalLogs-PAGE_SIZE));}else loadResultPage(totalLogs);
+ });
+ $('.pr-summary').addEventListener('keydown',e=>{const tab=e.target.closest('[data-result]');if(!tab||!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...$('.pr-summary').querySelectorAll('[data-result]')],index=tabs.indexOf(tab),next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(index+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;const key=tabs[next].dataset.result;tabs[next].click();$('.pr-summary').querySelector(`[data-result="${key}"]`)?.focus();});
+ $('.pr-logs').addEventListener('click',async e=>{const button=e.target.closest('[data-source-id]');if(!button||button.disabled)return;
+  const popup=window.open('about:blank','_blank');if(popup)popup.opener=null;
+  button.disabled=true;button.textContent='正在读取来源…';
+  try{if(!sourceLoaded){const response=await fetch(new URL('api/classification-audit',new URL('.',import.meta.url)),{signal:life.signal});const payload=await response.json();if(!response.ok)throw Error(payload.error||'来源读取失败');indexSources(payload.documents||[]);sourceLoaded=true;}
+   const row=logs.find(l=>l.documentId===button.dataset.sourceId),url=row&&sourceLookup(row);if(!url)throw Error('未找到唯一对应的原文地址，请到情报证据中心核对该文章');
+   const link=document.createElement('a');link.className='pr-source';link.href=url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='打开原文 ↗';button.replaceWith(link);if(popup)popup.location.replace(url);else link.focus();
+  }catch(error){popup?.close();if(!disposed){button.disabled=false;button.textContent='重试读取原文链接';feedback(error.message);}}
+ });
  async function loadPage(start){
   if(!task||viewBusy)return;viewBusy=true;const version=++viewVersion,id=task.id;logNavigation();
-  try{const result=await read('/current?after='+start+'&id='+id);if(disposed||version!==viewVersion||task?.id!==id)return;
+  try{const result=await read('/current?after='+start+'&id='+id);if(disposed||version!==viewVersion||task?.id!==id||resultTab!=='all')return;
    totalLogs=result.task?.lastSeq||totalLogs;pageStart=start;logs.splice(0,logs.length,...(result.task?.logs||[]).slice(0,PAGE_SIZE));renderLogs();$('.pr-logs').scrollTop=0;
   }catch(e){if(!disposed)feedback(e.message);}finally{viewBusy=false;if(!disposed)logNavigation();}
  }
  async function poll(){if(polling||disposed)return;polling=true;const epoch=generation;try{
   const result=await read('/current?after='+Number.MAX_SAFE_INTEGER);if(epoch!==generation||disposed)return;
   if(result.task){const changed=task?.id!==result.task.id;task=result.task;totalLogs=task.lastSeq||0;
-   if(changed){viewVersion++;logs.length=0;pageStart=0;follow=true;}
+   if(changed){viewVersion++;resultVersion++;resultLoading=false;resultTab='all';logs.length=0;pageStart=0;follow=true;}
    render();logNavigation();
-   if(!viewBusy&&((follow&&$('.pr-log-panel').open&&logs.at(-1)?.seq!==totalLogs)||changed))await loadPage(Math.max(0,totalLogs-PAGE_SIZE));
+   if(resultTab==='all'&&!viewBusy&&((follow&&$('.pr-log-panel').open&&logs.at(-1)?.seq!==totalLogs)||changed))await loadPage(Math.max(0,totalLogs-PAGE_SIZE));
   }else render();
  }catch(e){if(!disposed)feedback(e.message);}finally{polling=false;}}
  $('.pr-logs').addEventListener('toggle',e=>{const detail=e.target;if(!detail.matches('.pr-row-details')||!detail.open)return;
   follow=false;viewVersion++;logNavigation();if(detail.dataset.loaded)return;
   const row=logs.find(l=>String(l.seq)===detail.closest('[data-seq]').dataset.seq);if(row){detail.querySelector('.pr-log-data').innerHTML=logDetails(row)||'<p>无额外详情。</p>';detail.dataset.loaded='true';}
  },true);
- $('.pr-older').addEventListener('click',()=>{follow=false;loadPage(Math.max(0,pageStart-PAGE_SIZE));});
- $('.pr-newer').addEventListener('click',()=>{follow=false;loadPage(Math.min(Math.max(0,totalLogs-PAGE_SIZE),pageStart+PAGE_SIZE));});
- $('.pr-latest').addEventListener('click',()=>{follow=true;loadPage(Math.max(0,totalLogs-PAGE_SIZE));});
+ $('.pr-older').addEventListener('click',()=>{if(resultTab!=='all'){resultHistory.push(resultEnd);loadResultPage(resultNext);return;}follow=false;loadPage(Math.max(0,pageStart-PAGE_SIZE));});
+ $('.pr-newer').addEventListener('click',()=>{if(resultTab!=='all'){loadResultPage(resultHistory.pop());return;}follow=false;loadPage(Math.min(Math.max(0,totalLogs-PAGE_SIZE),pageStart+PAGE_SIZE));});
+ $('.pr-latest').addEventListener('click',()=>{if(resultTab!=='all'){resultHistory=[];loadResultPage(totalLogs);return;}follow=true;loadPage(Math.max(0,totalLogs-PAGE_SIZE));});
  $('.pr-log-panel').addEventListener('toggle',()=>{if($('.pr-log-panel').open)poll();});
  async function confirm(title,body,button){const dialog=$('.pr-confirm');dialog.querySelector('h3').textContent=title;$('.pr-confirm-body').innerHTML=body;dialog.querySelector('[value=confirm]').textContent=button;dialog.returnValue='';dialog.showModal();return new Promise(resolve=>dialog.addEventListener('close',()=>resolve(dialog.returnValue==='confirm'),{once:true}));}
  $('.pr-start').addEventListener('click',async()=>{if(busy)return;busy=true;render();try{await beforeStart();preview=await read('/preview?scope='+selectedScope);if(!await confirm('确认开始新一轮处理？',`<p>${esc(preview.scope)}</p><p><b>${esc(preview.scopeLabel)}：实际处理 ${preview.count} 篇</b>，使用规则 <code>${esc(preview.ruleVersion)}</code>。</p><p>依次执行关键词匹配 → AI 复核 → 结构化提取 → 合并 → ${preview.mode==='live'?'发布网站成果':'本地发布'}。</p><p>本轮会调用模型，可能产生费用。</p><p>执行中不能重复启动，需先中断并等待安全退出。</p>`,'确认启动'))return;
