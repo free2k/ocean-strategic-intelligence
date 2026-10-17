@@ -4,6 +4,13 @@ const stages={queued:'等待启动',classifying:'关键词匹配',reviewing:'AI 
 const statuses={queued:'待启动',running:'执行中',stopping:'正在安全中断',completed:'已完成',partial:'本轮结束 · 有待重试项',interrupted:'已中断',failed:'异常结束'};
 const types={classification:'规则匹配',model_request:'模型请求',model_response:'模型响应',model_error:'模型异常',review:'行业判断',extraction:'事实提取',checkpoint:'检查点',retry:'待重试',skipped:'跳过',published:'发布',queued:'任务创建',stopping:'中断请求',interrupted:'已中断',merging:'合并'};
 const active=t=>t&&['queued','running','stopping'].includes(t.status);
+// getRandomValues remains available on HTTP origins where randomUUID is absent.
+export function processingRequestId(cryptoApi=globalThis.crypto){
+ if(typeof cryptoApi?.randomUUID==='function')return cryptoApi.randomUUID();
+ if(typeof cryptoApi?.getRandomValues!=='function')throw Error('浏览器不支持安全随机数，请使用新版浏览器');
+ const bytes=cryptoApi.getRandomValues(new Uint8Array(16));bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
+ const hex=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
 export function highlightHits(text,positive=[],negative=[]){
  const terms=[...new Set([...positive,...negative].filter(Boolean))].sort((a,b)=>b.length-a.length);if(!terms.length)return esc(text);
  const re=new RegExp(terms.map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'gi');const source=String(text||'');let html='',at=0;
@@ -47,7 +54,7 @@ export function mountProcessingRuns(host,{api='api/processing-runs'}={}){
  async function poll(){if(polling||disposed)return;polling=true;try{const result=await read('/current?after='+cursor+(task?'&id='+task.id:''));if(result.task){if(task&&task.id!==result.task.id){cursor=0;logs.length=0;}task=result.task;appendLogs(task.logs);if(task.logs.length)cursor=task.logs.at(-1).seq;}render();}catch(e){if(!disposed)feedback(e.message);}finally{polling=false;}}
  async function confirm(title,body,button){const dialog=$('.pr-confirm');dialog.querySelector('h3').textContent=title;$('.pr-confirm-body').innerHTML=body;dialog.querySelector('[value=confirm]').textContent=button;dialog.returnValue='';dialog.showModal();return new Promise(resolve=>dialog.addEventListener('close',()=>resolve(dialog.returnValue==='confirm'),{once:true}));}
  $('.pr-start').addEventListener('click',async()=>{if(busy)return;busy=true;render();try{preview=await read('/preview');if(!await confirm('确认开始新一轮处理？',`<p>${esc(preview.scope)}</p><p><b>${preview.count} 篇待筛选资料</b>，使用规则 <code>${esc(preview.ruleVersion)}</code>。</p><p>依次执行关键词匹配 → AI 复核 → 结构化提取 → 合并 → ${preview.mode==='live'?'发布网站成果':'本地发布'}。</p><p>本轮会调用模型，可能产生费用。</p><p>执行中不能重复启动，需先中断并等待安全退出。</p>`,'确认启动'))return;
-   requestId||=crypto.randomUUID();const result=await read('/start',{method:'POST',body:JSON.stringify({confirmed:true,requestId,previewToken:preview.previewToken})});task=result.task;requestId=null;cursor=0;logs.length=0;$('.pr-logs').innerHTML='';appendLogs(task.logs);cursor=task.logs.at(-1)?.seq||0;feedback(preview.mode==='live'?'任务已启动，完成后更新网站成果。':'任务已启动。本地预览不会修改线上数据。');
+   requestId||=processingRequestId();const result=await read('/start',{method:'POST',body:JSON.stringify({confirmed:true,requestId,previewToken:preview.previewToken})});task=result.task;requestId=null;cursor=0;logs.length=0;$('.pr-logs').innerHTML='';appendLogs(task.logs);cursor=task.logs.at(-1)?.seq||0;feedback(preview.mode==='live'?'任务已启动，完成后更新网站成果。':'任务已启动。本地预览不会修改线上数据。');
   }catch(e){feedback(e.message);}finally{busy=false;render();poll();}});
  $('.pr-stop').addEventListener('click',async()=>{if(busy||!task)return;busy=true;render();try{if(!await confirm('确认中断当前任务？',`<p>将取消当前模型请求，并保存已完成的文章检查点。</p><p>未完成结果不会发布；系统显示“已中断”后才允许开始新一轮。</p><p>任务：${esc(task.id.slice(0,8))}</p>`,'确认中断'))return;task=(await read('/'+task.id+'/stop',{method:'POST',body:JSON.stringify({confirmed:true})})).task;feedback('正在安全退出，请等待“已中断”状态。');}catch(e){feedback(e.message);}finally{busy=false;render();poll();}});
  $('.pr-filter').addEventListener('change',e=>{filter=e.target.value;applyFilter();});$('.pr-follow').addEventListener('change',e=>{follow=e.target.checked;});
