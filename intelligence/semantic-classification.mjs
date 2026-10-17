@@ -1,3 +1,4 @@
+import {markDelivery} from './intelligence-delivery.mjs';
 import {domainPrompt,canonicalTopic,taxonomyVersion} from './industry-topics.mjs';
 import {createHash} from 'node:crypto';
 import OpenAI from 'openai';
@@ -53,15 +54,18 @@ export async function processSemanticQueue(pool,{limit=6,client,model=process.en
  await guard.query("UPDATE classification.semantic_queue SET status='running',updated_at=now() WHERE article_id=$1 AND input_hash=$2 AND version=$3",[a.id,q.input_hash,q.version]);
  const key=hash([q.input_hash,q.version,model,revision]);let decision=(await guard.query('SELECT decision FROM classification.semantic_cache WHERE key=$1',[key])).rows[0]?.decision;
  if(!decision){decision=await semanticDecision(a,q.decision,q.config,{client,model});await guard.query('INSERT INTO classification.semantic_cache(key,decision) VALUES($1,$2) ON CONFLICT DO NOTHING',[key,decision]);}
- await guard.query('BEGIN');await guard.query('SELECT pg_advisory_xact_lock(73201910)');
+ await guard.query('BEGIN');await guard.query("SET LOCAL lock_timeout='10s'");
+ // Lock only this article, in the same order as ingestion, rather than the whole sync service.
+ await guard.query('SELECT id FROM public.articles WHERE id=$1 FOR UPDATE',[a.id]);
  const current=(await guard.query('SELECT * FROM classification.semantic_queue WHERE article_id=$1 FOR UPDATE',[a.id])).rows[0];
- await guard.query('SELECT id FROM public.articles WHERE id=$1 FOR UPDATE',[a.id]);const fresh=(await read()).rows[0];
+ const fresh=(await read()).rows[0];
  if(current?.input_hash!==q.input_hash||current?.version!==q.version||fresh.manual_classify||fresh.classify_method==='manual'||fresh.filter_status!=='pending'||inputHash(fresh.title,fresh.content)!==q.input_hash){await guard.query('ROLLBACK');result.stale++;continue;}
  await guard.query("UPDATE public.articles SET filter_status=$2::text,matched_topic=$3,classify_method='llm',reject_reason=NULL,matched_keywords_json=NULL,updated_at=now() WHERE id=$1",[a.id,decision.status==='accepted'?'accepted':'pending',decision.primary]);
  await guard.query('UPDATE mp2rss.items SET classification=$2,updated_at=now() WHERE article_id=$1',[a.id,decision]);
  if(q.job_id)await guard.query('UPDATE classification.audit SET after_state=$3 WHERE job_id=$1 AND article_id=$2',[q.job_id,a.id,decision]);
  await guard.query('INSERT INTO classification.articles(article_id,classification,input_hash,job_id) VALUES($1,$2,$3,$4) ON CONFLICT(article_id) DO UPDATE SET classification=EXCLUDED.classification,input_hash=EXCLUDED.input_hash,job_id=EXCLUDED.job_id,updated_at=now()',[a.id,decision,q.input_hash,q.job_id]);
  await guard.query("UPDATE classification.semantic_queue SET status='completed',decision=$2,error=NULL,updated_at=now() WHERE article_id=$1",[a.id,decision]);
+ if(decision.status==='accepted')await markDelivery(guard);
  await guard.query('COMMIT');result.completed++;if(decision.status==='accepted')result.accepted++;
  }catch(e){await guard.query('ROLLBACK');const safe='语义复核暂未完成，保留候选并自动重试';await guard.query("UPDATE classification.semantic_queue SET status='failed',attempts=attempts+1,next_retry_at=now()+interval '10 minutes',error=$2,updated_at=now() WHERE article_id=$1 AND input_hash=$3 AND version=$4",[a.id,safe,q.input_hash,q.version]);result.failed++;}
  }

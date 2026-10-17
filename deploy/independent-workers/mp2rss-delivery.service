@@ -1,0 +1,12 @@
+[Unit]
+Description=Coalesced intelligence processing delivery
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/knowledge-base/mp2rss-current
+EnvironmentFile=/opt/knowledge-base/mp2rss.env
+ExecStart=/usr/bin/node --env-file=/opt/knowledge-base/.env /opt/knowledge-base/mp2rss-current/scripts/mp2rss-worker.mjs delivery
+TimeoutStartSec=2min
+TimeoutStopSec=10s
+UMask=0077

@@ -1,0 +1,8 @@
+[Unit]
+Description=AI industry semantic review
+[Timer]
+OnBootSec=30s
+OnUnitInactiveSec=30s
+AccuracySec=5s
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,24 @@
+Independent workers (2026-10-17)
+
+mp2rss-sync: existing sync schedule, no inline semantic/evidence work.
+mp2rss-semantic: up to 6 articles per batch, next batch 30 seconds after exit.
+mp2rss-evidence: up to 20 work items / 5 minutes, next batch 1 minute after exit.
+mp2rss-delivery: checks durable pending-change marker every 5 minutes.
+
+Each uses the existing environment files. No credentials are stored here.
+Semantic results lock their article row, not the channel-wide lock.
+Evidence posts use content/rule version checkpoints. Translation chunks are saved individually.
+Evidence logs and mp2rss.state x-evidence identify the current stage and URL.
+State deferred means the batch yielded normally with work remaining.
+Failed items retain safe error categories and retry eligibility.
+
+Live logs with timestamps:
+journalctl -u mp2rss-semantic.service -u mp2rss-evidence.service -u mp2rss-delivery.service -f -o short-iso
+
+Inspect timers:
+systemctl list-timers 'mp2rss-*'
+
+Installation: copy only the six .service/.timer files to /etc/systemd/system, chmod 644,
+then systemctl daemon-reload and enable --now the three timers.
+Code and units must be deployed together. Old inline workers must exit before switching.
+Backup code on this deployment: *.before-worker-split beside the modified server files.

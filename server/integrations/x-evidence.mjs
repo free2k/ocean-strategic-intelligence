@@ -1,3 +1,4 @@
+import {remainingMs,boundedLookup} from './evidence-budget.mjs';
 import {parseHTML} from 'linkedom';
 import {Readability} from '@mozilla/readability';
 import {fetch,Agent,ProxyAgent} from 'undici';
@@ -48,22 +49,22 @@ export function parseArticle(html,url){
  const content=(body.body?.textContent?.trim()||body.documentElement?.textContent?.trim()||trim(parsed?.textContent)).replace(/[ \t]+/g,' ').replace(/\n\s*\n+/g,'\n\n').trim();
  return {url,title:trim(meta('og:title')||article.headline||parsed?.title||document.querySelector('title')?.textContent),content,publishedAt,publishedPrecision:date?/T/.test(date)?'second':'day':null,author:trim(article.author?.name||meta('author')||new URL(url).hostname),language:/[\u4e00-\u9fff]/.test(content.slice(0,500))?'zh':'en',access:restricted?'restricted':content.length<180?'partial':'public',tables,assets,attachments,references};
 }
-export async function getResource(start,{proxy=process.env.MP2_EVIDENCE_PROXY||process.env.DOWNLOAD_PROXY,maxBytes=12*1024*1024}={}){
+export async function getResource(start,{proxy=process.env.MP2_EVIDENCE_PROXY||process.env.DOWNLOAD_PROXY,maxBytes=12*1024*1024,deadline=Date.now()+120000}={}){
  const chain=[];let url=start;
  for(let step=0;step<10;step++){
-  url=await validateUrl(url);if(chain.includes(url))throw Error('redirect_loop');chain.push(url);
+  url=await boundedLookup(()=>validateUrl(url),deadline);if(chain.includes(url))throw Error('redirect_loop');chain.push(url);
   if(/(^|\.)(x\.com|twitter\.com)$/.test(new URL(url).hostname))return {url,chain,kind:'social',status:200};
   let response,agent;
   // Pin validated DNS on direct connections; the configured proxy is trusted egress only.
   for(const viaProxy of [false,true]){if(viaProxy&&!proxy)break;agent=viaProxy?new ProxyAgent(proxy):new Agent({connect:{lookup:(host,opts,cb)=>lookup(host,{all:true}).then(rows=>{if(rows.some(r=>!publicAddress(r.address)))throw Error('unsafe_address');cb(null,opts.all?rows:rows[0].address,rows[0].family);}).catch(cb)}});
-   try{response=await fetch(url,{dispatcher:agent,redirect:'manual',headers:{'User-Agent':'OceanEnergyResearch/1.0 (+source-attributed research)','Accept':'text/html,application/pdf,text/csv,*/*'},signal:AbortSignal.timeout(30000)});if(response.status===403&&!viaProxy&&proxy){await response.body?.cancel();await agent.close();continue;}break;}catch{await agent.close();if(viaProxy||!proxy)throw Error('network_error');}}
+   try{response=await fetch(url,{dispatcher:agent,redirect:'manual',headers:{'User-Agent':'OceanEnergyResearch/1.0 (+source-attributed research)','Accept':'text/html,application/pdf,text/csv,*/*'},signal:AbortSignal.timeout(remainingMs(deadline,30000))});if(response.status===403&&!viaProxy&&proxy){await response.body?.cancel();await agent.destroy();continue;}break;}catch(e){await agent.destroy();if(e.code==='BATCH_DEFERRED'||viaProxy||!proxy)throw e;}}
   try{if([301,302,303,307,308].includes(response.status)){url=canonicalUrl(response.headers.get('location'),url);await response.body?.cancel();continue;}
    if(!response.ok){await response.body?.cancel();return {url,chain,status:response.status,kind:'unavailable'};}
    if(Number(response.headers.get('content-length'))>maxBytes){await response.body?.cancel();throw Error('resource_too_large');}
    const pieces=[];let size=0;for await(const piece of response.body){size+=piece.length;if(size>maxBytes)throw Error('resource_too_large');pieces.push(piece);}const buffer=Buffer.concat(pieces),type=imageMime(buffer)||response.headers.get('content-type')||'';
    if(type.includes('html')){const text=buffer.toString('utf8'),next=intermediary(text,url);if(next){url=next;continue;}return {url,chain,status:200,kind:'html',buffer,type};}
    return {url,chain,status:200,kind:type.startsWith('image/')?'image':type.includes('pdf')||/\.pdf(\?|$)/i.test(url)?'pdf':/csv|spreadsheet|excel/.test(type)||/\.(csv|xlsx?)(\?|$)/i.test(url)?'table':'unsupported',buffer,type};
-  }finally{await agent.close();}
+  }finally{await agent.destroy();}
  }
  throw Error('too_many_redirects');
 }
