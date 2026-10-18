@@ -50,3 +50,12 @@ test('no new reports retains theme history without inventing closure; historic r
  const registry=await ledger.repository.read(indexed.countryRegistryId);assert.equal(registry.themes[0].id,first.data.themes[0].id);assert.equal(registry.themes[0].versions[0].status,'candidate');
  assert.equal((await readCountries(ledger,{releaseId:release.releaseId})).data.events.length,1);
 });
+
+test('overview preserves scope, evidence and counts while full view retains saved history',async t=>{
+ const {ledger}=await setup(t);
+ for(const scope of [{},{countryCodes:'CN'},{countryCodes:'CN,BR',relationMode:'within'},{sourceId:'unknown'}]){
+  const full=await readCountries(ledger,scope),overview=await readCountries(ledger,{...scope,view:'overview'});
+  const expected=structuredClone(full);expected.data.themes=expected.data.themes.map(({versions,...theme})=>({...theme,versionCount:versions.length}));assert.deepEqual(overview,expected);
+ }
+ await assert.rejects(readCountries(ledger,{view:'unknown'}),{code:'INVALID_SCOPE'});
+});
