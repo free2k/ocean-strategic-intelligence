@@ -3,8 +3,9 @@ import {fail} from './ledger.mjs';
 import {readDossier} from './dossier-products.mjs';
 export async function readMonitorSummary(ledger,query={},period=null){
  for(const key of Object.keys(query))if(!['releaseId','snapshotId','topic','sourceId','from','to','country'].includes(key))fail('INVALID_SCOPE','不支持的变化汇总筛选条件');
- const replay=await readBatchReplay(ledger,query),release=await ledger.resolveRelease({releaseId:replay.meta.releaseId}),batch=await ledger.batch(release.batchId),registry=release.objectRegistryId?await ledger.repository.read(release.objectRegistryId):null;
+ const replay=await readBatchReplay(ledger,query),release=await ledger.resolveRelease({releaseId:replay.meta.releaseId}),batch=await ledger.batch(release.batchId);
  const docs=new Set(replay.data.documents.filter(d=>!period||period.documentIds.has(d.id)).map(d=>d.id)),affected=new Set(batch.changes.filter(c=>docs.has(c.documentId)).map(c=>c.documentId));
+ const registry=release.objectRegistryId?(ledger.repository.readMonitorIndex?await ledger.repository.readMonitorIndex(release.objectRegistryId,release.snapshotId,docs):await ledger.repository.read(release.objectRegistryId)):null;
  const objects=(registry?.objects||[]).filter(o=>!o.mergedInto&&o.documentRefs.some(r=>r.snapshotId===release.snapshotId&&docs.has(r.documentId)));
  const changedObjects=objects.filter(o=>o.documentRefs.some(r=>r.snapshotId===release.snapshotId&&affected.has(r.documentId)));
  const assessments=[];for(const ref of release.dossierProducts||[]){if(ref.scope.kind!=='object'||!objects.some(o=>o.id===ref.scope.objectId))continue;const product=await readDossier(ledger,release,ref.scope);if(product&&product.inputVersions.every(v=>docs.has(v.documentId)))assessments.push({objectId:ref.scope.objectId,subject:product.subject,productId:product.productId,overview:product.content.overview,phaseComparisons:product.phaseComparisons});}
