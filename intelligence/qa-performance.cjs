@@ -38,7 +38,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
   await page.waitForTimeout(5000);assert.equal(await page.locator('#question').inputValue(),'保留尚未提交的研究问题');
   for(const tab of ['sources','library','events'])await page.locator('#nav [data-tab="'+tab+'"]').click();
   await page.waitForTimeout(3500);assert.equal(await page.locator('body').getAttribute('data-view'),'events');
-  assert.match(await page.locator('#content').innerText(),/行业动态监测/);assert.deepEqual(errors,[]);
+  assert.match(await page.locator('#content').innerText(),/产业动态监测/);assert.deepEqual(errors,[]);
   console.log(JSON.stringify({initialMs,timings,slowReadInputPreserved:true,rapidNavigation:true,lazyEvidence:true,filters:true,documentEvidence:true,errors}));
  }finally{await browser.close();}
 })().catch(e=>{console.error(e.message);process.exitCode=1;});

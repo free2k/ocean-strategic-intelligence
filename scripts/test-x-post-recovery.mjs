@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {needsPostRecovery,parsePostBody,recoverPostBody} from '../server/integrations/x-post-recovery.mjs';
+const url='https://x.com/i/web/status/12345';
+const page=(id,body)=>`<meta property="og:url" content="https://x.com/test/status/${id}"><meta property="og:description" content="${body}">`;
+assert.equal(needsPostRecovery({kind:'x_post',url,content:''}),true);
+assert.equal(needsPostRecovery({kind:'x_post',url,content:'Existing text'}),false);
+assert.equal(needsPostRecovery({kind:'x_post',url:'https://example.com/status/12345',content:''}),false);
+assert.equal(parsePostBody(page('12345','Offshore wind &amp; energy'),url).content,'Offshore wind & energy');
+assert.throws(()=>parsePostBody(page('99999','Different post'),url),/identity/);
+assert.throws(()=>parsePostBody(page('12345','Sign in to X'),url),/unverified/);
+assert.throws(()=>parsePostBody(page('12345','Incomplete text…'),url),/unverified/);
+assert.throws(()=>parsePostBody('<html>Login required</html>',url),/identity/);
+assert.equal(await recoverPostBody({kind:'x_post',url,content:'Existing text'},{proxy:'invalid'}),null);
+console.log('X recovery: identity, login, truncated body and existing-body guards passed');

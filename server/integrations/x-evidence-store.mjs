@@ -1,3 +1,4 @@
+import {needsPostRecovery,recoverPostBody} from './x-post-recovery.mjs';
 import {remainingMs,errorDetails,boundedClient} from './evidence-budget.mjs';
 import {markDelivery} from '../../intelligence/intelligence-delivery.mjs';
 import fs from 'node:fs/promises';
@@ -52,9 +53,27 @@ export async function processXEvidence({provider=null,deadline=Date.now()+5*6000
    if(result.attempted>=Math.max(1,Math.floor(limit/2))||Date.now()>deadline-60000){result.deferred=true;break postsLoop;}
    const postKey='evidence-post:'+hash(JSON.stringify([p.key,p.hash,compiled.version]));
    const postState=(await pool.query('SELECT payload FROM mp2rss.state WHERE id=$1',[postKey])).rows[0]?.payload;
-   if(postState?.completed||Date.parse(postState?.retryAt||'')>Date.now())continue;
+   if((postState?.completed&&!needsPostRecovery(p))||Date.parse(postState?.retryAt||'')>Date.now())continue;
    result.attempted++;await checkpoint('post',p.url);let postFailed=false;
    if(p.key!==row.payload.key){await persistItem(s,p,compiled);const stored=(await pool.query('SELECT payload FROM mp2rss.items WHERE id=$1',[p.key])).rows[0]?.payload;if(stored)Object.assign(p,stored);}
+   if(needsPostRecovery(p)){
+    try{
+     await checkpoint('recover_x_body',p.url);
+     const recovered=await recoverPostBody(p,{deadline:Math.min(deadline-1000,Date.now()+30000)});
+     await persistItem(s,p,compiled,{recoveredBody:recovered});
+     const fresh=(await pool.query('SELECT payload FROM mp2rss.items WHERE id=$1',[p.key])).rows[0]?.payload;
+     if(fresh)Object.assign(p,fresh);
+     result.changed++;await markDelivery(pool);
+    }catch(e){
+     const code=/^[a-z_0-9]+$/.test(e.message||'')?e.message:(e.cause?.code||e.code||'post_fetch_failed');
+     const retryAt=new Date(Date.now()+6*3600000).toISOString();
+     await pool.query("UPDATE mp2rss.items SET payload=jsonb_set(payload,'{bodyRecovery}',$2::jsonb),updated_at=now() WHERE id=$1 AND coalesce(payload->>'content','')=''",[p.key,JSON.stringify({status:'pending',code,checkedAt:now(),retryAt})]);
+     await pool.query('INSERT INTO mp2rss.state(id,payload) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload',[postKey,{completed:false,retryAt,errorDetails:{stage:'recover_x_body',code}}]);
+     // A media-only post can still supply useful images when no text is recoverable.
+     for(const media of mediaLinks(p))await queueLink(media.url,'image',{postUrl:p.url,postPublishedAt:p.publishedAt,author:p.author,subscriptionId:s.id,subscriptionName:s.payload.name,caption:media.caption});
+     result.failed++;continue;
+    }
+   }
    const translationKey='x-translation:'+p.key+':'+p.hash;
    const saved=(await pool.query('SELECT payload FROM mp2rss.state WHERE id=$1',[translationKey])).rows[0]?.payload;
    if(saved)Object.assign(p,saved);
