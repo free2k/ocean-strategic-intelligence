@@ -1,7 +1,6 @@
 import {topicLabel} from './industry-topics.mjs';
 import {formatDisplayDate} from './preview.js';
-import {buildRelationshipModel,relationshipScope,relationshipOption,relationshipEntityLegend} from './quant/chart-views.js';
-import {mountChartRotation} from './quant/chart-rotation.js';
+import {buildRelationshipModel,relationshipNetwork,relationshipGraphOption,searchRelationshipNodes,relationshipEntityLegend} from './quant/chart-views.js';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let disposeRelationship=()=>{},relationshipEngine;
 export function businessViews(data){
@@ -9,8 +8,18 @@ export function businessViews(data){
  const cards=(data.observations||[]).filter(o=>o.subject==='Whale项目').map(o=>`<div class="business-point"><span>${esc(o.name)}</span><strong>${esc(o.qualifier==='超过'?'> ':'')}${esc(o.rawValue)} <small>${esc(o.unit)}</small></strong><p class="meta">${esc(o.nature)} · ${esc(o.period)}</p><button data-document="${esc(o.documentId)}">原文与译文 ↗</button></div>`).join('');
  return (cards?`<section class="panel quant-evidence"><div class="panel-head"><div><small>SHELL / PROJECT DISCLOSURES</small><h2>Whale项目指标</h2></div></div><p class="meta">项目披露值，不与实际月度产量混合；预计峰值不是已实现产量，水深不是钻井深度。</p><div class="business-points">${cards}</div></section>`:'')+quarterly.map(s=>{const rows=s.rows,max=Math.max(...rows.map(r=>r.value))*1.1;return `<section class="panel quant-evidence"><div class="panel-head"><div><small>TRANSOCEAN / QUARTERLY ACTUALS</small><h2>${esc(s.name)}</h2></div><a href="${esc(s.sourceUrl)}" target="_blank" rel="noopener noreferrer">官方统计 ↗</a></div><p class="meta">${esc(s.note)}</p><svg class="change-scatter" viewBox="0 0 700 220"><path d="M45 170H670" class="scatter-axis"/>${rows.map((r,i)=>{const x=65+i*580/Math.max(1,rows.length-1),y=170-r.value/max*125;return `<g><path d="M${x} 170V${y}" style="stroke:var(--accent);stroke-width:3"/><circle class="quarter-dot" cx="${x}" cy="${y}" r="7"/><text x="${x}" y="${y-15}" text-anchor="middle">${r.value}</text><text x="${x}" y="195" text-anchor="middle">${esc(r.period)}</text><title>${esc(r.period)}：${r.value} ${esc(s.unit)}</title></g>`;}).join('')}</svg><p class="meta">单位：${esc(s.unit)} · 缺失季度不补零 · 纵轴从零起</p><details><summary>查看逐期来源和原始统计行</summary>${rows.map(r=>`<div class="row"><strong>${esc(r.period)}：${r.value} ${esc(s.unit)}</strong><p class="meta">${esc(r.quote)}<br>文章发布日期：${esc(formatDisplayDate(r.publishedAt||'未识别'))}</p><button data-document="${esc(r.documentId)}">原文与译文</button> <a href="${esc(r.sourceUrl)}" target="_blank" rel="noopener noreferrer">官方来源 ↗</a></div>`).join('')}</details></section>`;}).join('')+((data.reportCatalog||[]).length&&!data.series?.every(s=>s.country!=='GLOBAL')?`<section class="panel quant-evidence"><h2>Transocean船队报告原件</h2><p class="meta">官方季度PDF索引。合同安排包含确定合同与附条件合同；本轮图表使用季度业绩公告的结构化运营统计，尚未将PDF逐船合同表自动转换为图表。</p>${data.reportCatalog.map(r=>`<p><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.label)} ↗</a></p>`).join('')}</section>`:'');
 }
-export function relationshipView(data){
- return `<section class="relationship-explorer" data-relationship-chart aria-label="分层产业关系浏览"><div class="relationship-intro"><div><small>CLASSIFY · EXPLORE · CONNECT</small><h3>先看产业结构，再沿主体追踪关联</h3><p>领域 → 主体类型 → 具体主体 → 关联关系</p></div><div class="relationship-stats" data-rel-stats></div></div><nav class="relationship-breadcrumbs" data-rel-breadcrumbs aria-label="当前关系分类"></nav><div class="relationship-toolbar"><div class="relationship-modes" data-rel-modes role="group" aria-label="关系图表类型"></div><div class="relationship-actions"><button data-rel-auto type="button"></button><button data-rel-reset type="button">重置分类</button></div></div><div class="relationship-layout"><section class="relationship-stage"><p class="relationship-caption" data-rel-caption role="status"></p><div class="relationship-chart-wrap"><div class="relationship-canvas" role="img" tabindex="0" aria-label="可点击下钻的产业分类图"></div><div class="relationship-chart-status" data-rel-status role="status">正在准备产业关系图…</div></div><div class="relationship-edge-tools" data-rel-edge-tools hidden></div><p class="relationship-legend" data-rel-legend></p></section><aside class="relationship-browser"><label>在当前分类中查找主体<input data-rel-search type="search" maxlength="180" placeholder="搜索名称或已记录别名" autocomplete="off"></label><div class="relationship-browser-heading" data-rel-list-heading></div><div class="relationship-browser-list" data-rel-list></div><div class="relationship-pager" data-rel-pager></div></aside></div><section class="relationship-evidence" data-rel-evidence aria-live="polite"></section></section>`;
+export function relationshipView(){
+ return `<section class="relationship-explorer" data-relationship-chart aria-label="可逐层放大的产业关系图">
+  <div class="relationship-top-actions"><button data-rel-expand type="button" aria-pressed="true">一键全展开</button><button data-rel-search-toggle type="button" aria-expanded="false" aria-controls="relationship-search-panel">一键搜索</button></div>
+  <div class="relationship-intro"><div><small>INDUSTRY / CONNECTED NETWORK</small><h3>沿节点放大，逐层看清产业关联</h3><p>领域 → 主体类型 → 具体主体 → 关联关系</p></div><div class="relationship-stats" data-rel-stats></div></div>
+  <nav class="relationship-breadcrumbs" data-rel-breadcrumbs aria-label="当前关系范围"></nav>
+  <div class="relationship-layout"><section class="relationship-stage"><div class="relationship-stage-heading"><p class="relationship-caption" data-rel-caption role="status"></p><span class="relationship-expanded-badge">关系图 · 全部展开</span></div>
+   <div class="relationship-chart-wrap"><div class="relationship-canvas" role="img" tabindex="0" aria-label="全部展开的产业关系图"></div><div class="relationship-chart-status" data-rel-status role="status">正在准备产业关系图…</div></div>
+   <div class="relationship-map-controls"><span data-rel-hint>点击节点放大下钻 · 滚轮缩放 · 拖动画布平移</span><div><button data-rel-zoom="in" aria-label="放大关系图">＋</button><button data-rel-zoom="out" aria-label="缩小关系图">−</button><button data-rel-zoom="fit">适应画布</button></div></div>
+   <div class="relationship-edge-tools" data-rel-edge-tools hidden></div><p class="relationship-legend" data-rel-legend></p>
+  </section><aside class="relationship-browser" id="relationship-search-panel" data-rel-search-panel hidden aria-label="搜索图谱节点"><div class="relationship-search-heading"><strong>搜索并定位节点</strong><button data-rel-search-close aria-label="关闭节点搜索">×</button></div><label>查找领域、主体类型、名称或别名<input data-rel-search type="search" maxlength="180" placeholder="输入关键词，一键定位" autocomplete="off"></label><div class="relationship-browser-heading" data-rel-list-heading></div><div class="relationship-browser-list" data-rel-list></div><div class="relationship-pager" data-rel-pager></div></aside></div>
+  <section class="relationship-evidence" data-rel-evidence aria-live="polite"></section>
+ </section>`;
 }
 
 function loadRelationshipEngine(){
@@ -20,103 +29,111 @@ function loadRelationshipEngine(){
 
 function mountRelationshipChart(host,data,openDoc){
  const life=new AbortController(),model=buildRelationshipModel(data),q=s=>host.querySelector(s);
- const scopeKey='relationship-explorer:'+['topic','country','source','from','to'].map(id=>document.getElementById(id)?.value||'').join('|');
  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
- let saved={};try{saved=JSON.parse(sessionStorage.getItem(scopeKey)||'{}');}catch{}
- const state={sector:'',entityType:'',subject:'',query:'',page:0,edgePage:0,relationType:'',view:'treemap',auto:!reduced,...saved};
- if(!model.sectors.has(state.sector))state.sector='';if(!model.nodes.has(state.subject))state.subject='';if(reduced)state.auto=false;
- let chart,engine,chartType,rotation,visibility,scope,searchTimer,selectedRecords=[],evidencePage=0,compact=q('.relationship-canvas').clientWidth<650;
- const save=()=>{try{sessionStorage.setItem(scopeKey,JSON.stringify(state));}catch{}};
- const choices=()=>scope?.subject?['graph','circular','sankey']:['treemap','tree'];
- const labels={treemap:'分类地图',tree:'层级关系',graph:'关系图',circular:'环形关系',sankey:'桑基图'};
+ // Every entry starts expanded, including sessions saved by older chart versions.
+ const state={sector:'',entityType:'',subject:'',relationType:''};
+ let chart,engine,network,option,searchTimer,drillTimer,hovered,viewport='',detail=false,searchOpen=false,query='',searchPage=0,searchResults=[],selectedRecords=[],evidencePage=0;
  function evidence(){
   const rows=selectedRecords.slice(evidencePage*4,evidencePage*4+4);
-  q('[data-rel-evidence]').innerHTML=rows.length?`<div class="relationship-evidence-heading"><div><small>RELATION / SOURCE EVIDENCE</small><h4>这条关联来自哪里</h4></div><span>${selectedRecords.length} 条保存记录</span></div><div class="relationship-evidence-rows">${rows.map(r=>`<article><p><strong>${esc(model.nodes.get(r.from).name)}</strong><span>${esc(r.type)} →</span><strong>${esc(model.nodes.get(r.to).name)}</strong></p><blockquote>${esc(r.proof[0]?.quoteZh||r.proof[0]?.quote||'原记录未保存摘录，可查看原文核对。')}</blockquote><div class="relationship-evidence-source"><span>${esc(r.document.titleZh||r.document.title||'来源资料')} · ${esc(formatDisplayDate(r.document.publishedAt||'日期未记录'))} · ${esc({verified:'人工确认',confirmed:'已确认',extracted:'系统提取',candidate:'候选记录'}[r.status]||'保存记录')}</span><button data-rel-document="${esc(r.document.id)}">原文与证据 ↗</button></div></article>`).join('')}</div>${selectedRecords.length>4?`<div class="relationship-pager"><button data-rel-evidence-page="-1" ${evidencePage===0?'disabled':''}>上一组</button><span>${evidencePage+1} / ${Math.ceil(selectedRecords.length/4)}</span><button data-rel-evidence-page="1" ${(evidencePage+1)*4>=selectedRecords.length?'disabled':''}>下一组</button></div>`:''}`:`<p class="meta">${scope?.subject?'悬停查看相邻关系，点击连线展开来源证据；点击其他主体继续追踪。':'点击领域和主体类型逐层进入，或搜索具体主体后查看关系图与桑基图。'}</p>`;
+  q('[data-rel-evidence]').innerHTML=rows.length?`<div class="relationship-evidence-heading"><div><small>RELATION / SOURCE EVIDENCE</small><h4>这条关联来自哪里</h4></div><span>${selectedRecords.length} 条保存记录</span></div><div class="relationship-evidence-rows">${rows.map(r=>`<article><p><strong>${esc(model.nodes.get(r.from).name)}</strong><span>${esc(r.type)} →</span><strong>${esc(model.nodes.get(r.to).name)}</strong></p><blockquote>${esc(r.proof[0]?.quoteZh||r.proof[0]?.quote||'原记录未保存摘录，可查看原文核对。')}</blockquote><div class="relationship-evidence-source"><span>${esc(r.document.titleZh||r.document.title||'来源资料')} · ${esc(formatDisplayDate(r.document.publishedAt||'日期未记录'))} · ${esc({verified:'人工确认',confirmed:'已确认',extracted:'系统提取',candidate:'候选记录'}[r.status]||'保存记录')}</span><button data-rel-document="${esc(r.document.id)}">原文与证据 ↗</button></div></article>`).join('')}</div>${selectedRecords.length>4?`<div class="relationship-pager"><button data-rel-evidence-page="-1" ${evidencePage===0?'disabled':''}>上一组</button><span>${evidencePage+1} / ${Math.ceil(selectedRecords.length/4)}</span><button data-rel-evidence-page="1" ${(evidencePage+1)*4>=selectedRecords.length?'disabled':''}>下一组</button></div>`:''}`:'<p class="meta">点击节点放大并展开下一级关联；点击带箭头的连线查看原文证据。分类归属连线与原文关系分别标识。</p>';
  }
  function draw(){
   if(!engine)return;
-  const option=relationshipOption(scope,state.view,{dark:!document.body.classList.contains('light'),reduced,width:q('.relationship-canvas').clientWidth}),nextType=option.series[0].type;
-  // Different series types must not reuse a hovered node's stale edge data.
-  if(!chart||chartType!==nextType){chart?.dispose();chart=engine.init(q('.relationship-canvas'),null,{renderer:'canvas'});chart.on('click',chartClick);chartType=nextType;}
-  chart.setOption(option,true);
-  q('[data-rel-status]').hidden=scope.subject?scope.visibleRelations.length>0:scope.hierarchy.length>0;
-  if(!q('[data-rel-status]').hidden)q('[data-rel-status]').textContent='当前分类没有匹配记录，可返回上一级或调整搜索。';
+  detail=false;hovered=null;clearTimeout(drillTimer);
+  const canvas=q('.relationship-canvas');viewport=canvas.clientWidth+'x'+canvas.clientHeight;
+  option=relationshipGraphOption(network,{dark:!document.body.classList.contains('light'),reduced,width:canvas.clientWidth,height:canvas.clientHeight});
+  if(!chart){chart=engine.init(q('.relationship-canvas'),null,{renderer:'canvas'});chart.on('click',chartClick);chart.on('mouseover',event=>{hovered=event.dataType==='node'?event.data:null;});chart.on('mouseout',()=>{hovered=null;});chart.on('graphRoam',afterZoom);}
+  chart.setOption(option,{replaceMerge:['series']});
+  q('[data-rel-status]').hidden=network.nodes.length>0;
+  if(!network.nodes.length)q('[data-rel-status]').textContent='当前筛选范围没有关联记录，请调整领域或日期。';
+ }
+ function renderSearch(){
+  searchResults=searchRelationshipNodes(model,query);
+  const pages=Math.max(1,Math.ceil(searchResults.length/12));searchPage=Math.max(0,Math.min(pages-1,searchPage));
+  q('[data-rel-list-heading]').textContent=query?`找到 ${searchResults.length} 个节点`:'选择领域，或输入关键词';
+  q('[data-rel-list]').innerHTML=searchResults.slice(searchPage*12,searchPage*12+12).map((n,i)=>`<button class="relationship-browser-item" data-rel-result="${searchPage*12+i}"><span><strong>${esc(n.name)}</strong><small>${esc(n.detail)}</small></span><b>${n.count}<span> ›</span></b></button>`).join('')||'<p class="empty">没有匹配节点，请尝试其他名称或别名。</p>';
+  q('[data-rel-pager]').innerHTML=pages>1?`<button data-rel-page="-1" ${searchPage===0?'disabled':''}>上一页</button><span>${searchPage+1} / ${pages}</span><button data-rel-page="1" ${searchPage+1>=pages?'disabled':''}>下一页</button>`:'';
+ }
+ function toggleSearch(open,{focus=true}={}){
+  searchOpen=open;q('[data-rel-search-panel]').hidden=!open;
+  q('.relationship-layout').classList.toggle('search-open',open);
+  q('[data-rel-search-toggle]').setAttribute('aria-expanded',String(open));
+  if(open){renderSearch();if(focus)q('[data-rel-search]').focus({preventScroll:true});}
+  else if(focus)q('[data-rel-search-toggle]').focus({preventScroll:true});
  }
  function render(){
-  scope=relationshipScope(model,state);if(!scope.subject)state.page=scope.page;state.edgePage=scope.edgePage;
-  if(state.subject&&!scope.subject){state.subject='';scope=relationshipScope(model,state);}
-  if(!choices().includes(state.view))state.view=choices()[0];
-  q('[data-rel-search]').value=state.query;
-  const entities=scope.subject?new Set(scope.relations.flatMap(r=>[r.from,r.to])).size:scope.subjects.length;
-  q('[data-rel-stats]').innerHTML=[['主体',entities],['关系记录',scope.relations.length],['来源资料',scope.documents]].map(([label,value])=>`<div><strong>${value.toLocaleString('zh-CN')}</strong><span>${label}</span></div>`).join('');
-  q('[data-rel-breadcrumbs]').innerHTML=`<button data-rel-level="root" ${!state.sector&&!state.entityType&&!scope.subject?'aria-current="page"':''}>全部领域</button>${state.sector?`<span>›</span><button data-rel-level="sector">${esc(topicLabel(state.sector))}</button>`:''}${state.entityType?`<span>›</span><button data-rel-level="type">${esc(state.entityType)}</button>`:''}${scope.subject?`<span>›</span><span aria-current="page">${esc(scope.subject.name)}</span>`:''}`;
-  q('[data-rel-modes]').innerHTML=choices().map(view=>`<button data-rel-view="${view}" aria-pressed="${state.view===view}">${labels[view]}</button>`).join('');
-  q('[data-rel-auto]').textContent=state.auto?'自动演示 · 悬停暂停':'自动演示已暂停';q('[data-rel-auto]').setAttribute('aria-pressed',String(state.auto));
-  q('[data-rel-caption]').textContent=scope.subject?`${scope.subject.name} · ${state.sector?topicLabel(state.sector):'全部领域'} · 图中显示 ${scope.visibleRelations.length?scope.edgeOffset+1:0}–${scope.edgeOffset+scope.visibleRelations.length} / ${scope.relations.length} 条关系记录`:
-   state.entityType?`${state.sector?topicLabel(state.sector)+' / ':''}${state.entityType} · 点击主体进入关系图`:
-   state.sector?`${topicLabel(state.sector)} · 按主体类型继续下钻`:'领域分类 → 主体类型 · 点击分类进入下一级';
-  q('[data-rel-edge-tools]').hidden=!scope.subject;
-  if(scope.subject)q('[data-rel-edge-tools]').innerHTML=`<label>关系类型<select data-rel-relation-type><option value="">全部关系</option>${scope.relationTypes.map(type=>`<option ${state.relationType===type?'selected':''}>${esc(type)}</option>`).join('')}</select></label><div><button data-rel-edges="-1" ${scope.edgePage===0?'disabled':''}>上一组关系</button><span>${scope.edgePage+1} / ${scope.edgePages}</span><button data-rel-edges="1" ${scope.edgePage+1>=scope.edgePages?'disabled':''}>下一组关系</button></div>`;
-  q('[data-rel-legend]').innerHTML=scope.subject?`<span class="relationship-type-keys">${relationshipEntityLegend.filter(t=>scope.visibleRelations.some(r=>model.nodes.get(r.from).type===t.name||model.nodes.get(r.to).type===t.name)).map(t=>`<span><i style="background:${t.color}"></i>${t.name}</span>`).join('')}</span><span>${state.view==='sankey'?'桑基带宽表示关联记录条数，同一主体可出现在起点和对象两侧。':'节点大小表示当前范围内关联记录数，箭头沿用原记录方向；虚线表示尚未人工确认的关系。拖动节点、滚轮缩放，点击连线核对来源。'}</span>`:state.entityType?'每个方块代表一个主体，数字表示关联记录条数；点击进入关系图。':'面积表示领域内主体数，跨领域主体可分别归属；同名主体保留各自档案。';
-  let items,total,page,pages;
-  const button=(attrs,title,subtitle,count)=>`<button class="relationship-browser-item" ${attrs}><span><strong>${esc(title)}</strong><small>${esc(subtitle)}</small></span><b>${count}<span> ›</span></b></button>`;
-  if(!scope.subject&&!state.query&&!state.entityType){
-   items=scope.hierarchy.map(n=>button(n.relationshipKind==='sector'?`data-rel-sector="${esc(n.sector)}"`:`data-rel-type="${esc(n.entityType)}"`,n.relationshipKind==='sector'?topicLabel(n.name):n.name,n.relationshipKind==='sector'?'进入主体类型':'查看具体主体',n.value));
-   total=items.length;page=0;pages=1;q('[data-rel-list-heading]').textContent=state.sector?'选择主体类型':'选择产业领域';
+  network=relationshipNetwork(model,state);
+  q('[data-rel-stats]').innerHTML=[['主体',network.entityCount],['关系记录',network.relations.length],['来源资料',network.documents]].map(([label,value])=>`<div><strong>${value.toLocaleString('zh-CN')}</strong><span>${label}</span></div>`).join('');
+  q('[data-rel-expand]').setAttribute('aria-pressed',String(!state.sector&&!state.entityType&&!state.subject));
+  q('[data-rel-breadcrumbs]').innerHTML=`<button data-rel-level="root" ${!state.sector&&!state.entityType&&!state.subject?'aria-current="page"':''}>全部领域</button>${state.sector?`<span>›</span><button data-rel-level="sector">${esc(topicLabel(state.sector))}</button>`:''}${state.entityType?`<span>›</span><button data-rel-level="type">${esc(state.entityType)}</button>`:''}${network.subject?`<span>›</span><span aria-current="page">${esc(network.subject.name)}</span>`:''}`;
+  q('[data-rel-caption]').textContent=network.subject?`${network.subject.name} · 已展开全部 ${network.relations.length} 条关系记录`:state.entityType?`${state.sector?topicLabel(state.sector)+' / ':''}${state.entityType} · ${network.primaryCount} 个主体及其关联对象`:state.sector?`${topicLabel(state.sector)} · 全部主体类型与关联关系`:`${model.sectors.size} 个领域 · 已展开全部分类、主体与关联关系`;
+  q('[data-rel-edge-tools]').hidden=!network.subject;
+  if(network.subject)q('[data-rel-edge-tools]').innerHTML=`<label>关系类型<select data-rel-relation-type><option value="">全部关系</option>${network.relationTypes.map(type=>`<option ${state.relationType===type?'selected':''}>${esc(type)}</option>`).join('')}</select></label><span>当前范围全部展示</span>`;
+  q('[data-rel-legend]').innerHTML=`<span class="relationship-type-keys">${relationshipEntityLegend.filter(t=>network.nodes.some(n=>n.entityType===t.name)).map(t=>`<span><i style="background:${t.color}"></i>${t.name}</span>`).join('')}</span><span>无箭头连线表示分类归属，箭头表示原文记录的关联；虚线关系尚未人工确认。${network.subject?'':'跨领域主体在各自领域分别出现。'}放大图谱可显示更多主体名称，悬停节点查看完整名称。</span>`;
+  q('.relationship-canvas').setAttribute('aria-label',q('[data-rel-caption]').textContent+'。点击节点放大下钻。');
+  evidence();draw();
+ }
+ function chooseNode(node){
+  if(!node)return;
+  if(node.kind==='root'){zoom('fit');return;}
+  if(node.kind==='entity'){
+   if(!model.nodes.has(node.entityId))return;
+   state.subject=node.entityId;state.sector=node.sector||'';state.entityType=model.nodes.get(node.entityId).type;
   }else{
-   let nodes=scope.subject?[...new Set(scope.relations.flatMap(r=>[r.from,r.to]))].filter(id=>id!==scope.subject.id).map(id=>({...model.nodes.get(id),degree:scope.relations.filter(r=>r.from===id||r.to===id).length})).sort((a,b)=>b.degree-a.degree||a.name.localeCompare(b.name,'zh-CN')):scope.subjects;
-   total=nodes.length;pages=Math.max(1,Math.ceil(total/12));page=Math.max(0,Math.min(pages-1,state.page));state.page=page;
-   items=nodes.slice(page*12,page*12+12).map(n=>button(`data-rel-entity="${esc(n.id)}"`,n.name,n.type+' · '+[...n.sectors].slice(0,2).map(topicLabel).join(' / '),n.degree));
-   q('[data-rel-list-heading]').textContent=(scope.subject?'关联主体':'匹配主体')+' · '+total+' 个';
+   state.sector=node.sector||'';state.entityType=node.kind==='type'?node.entityType:'';state.subject='';
   }
-  q('[data-rel-list]').innerHTML=items.join('')||'<p class="empty">当前分类没有匹配主体</p>';
-  q('[data-rel-pager]').innerHTML=pages>1?`<button data-rel-page="-1" ${page===0?'disabled':''}>上一页</button><span>${page+1} / ${pages}</span><button data-rel-page="1" ${page+1>=pages?'disabled':''}>下一页</button>`:'';
-  q('.relationship-canvas').setAttribute('aria-label',q('[data-rel-caption]').textContent);
-  evidence();draw();save();rotation?.reset();
- }
- function chooseEntity(id){if(!model.nodes.has(id))return;state.subject=id;state.entityType=model.nodes.get(id).type;state.query='';state.page=0;state.edgePage=0;state.relationType='';state.view='graph';selectedRecords=[];render();}
- function chooseBranch(node){
-  if(node.relationshipKind==='entity'){chooseEntity(node.entityId);return;}
-  if(node.relationshipKind==='sector'){state.sector=node.sector;state.entityType='';}
-  if(node.relationshipKind==='type'){state.sector=node.sector||state.sector;state.entityType=node.entityType;}
-  state.subject='';state.page=0;state.edgePage=0;state.relationType='';selectedRecords=[];state.view='treemap';render();
- }
- async function start(){
-  try{
-   engine=await loadRelationshipEngine();if(life.signal.aborted||!host.isConnected)return;
-   rotation=mountChartRotation(host,{views:()=>state.auto&&!reduced?choices():[state.view],current:()=>state.view,select:view=>{state.view=view;render();},interval:8000});
-   visibility=new IntersectionObserver(entries=>rotation?.setVisible(entries.some(e=>e.isIntersecting)));visibility.observe(q('.relationship-canvas'));
-   render();
-  }catch(error){if(!life.signal.aborted){q('[data-rel-status]').hidden=false;q('[data-rel-status]').innerHTML=esc(error.message)+' <button data-rel-retry>重试</button>';}}
+  state.relationType='';selectedRecords=[];evidencePage=0;
+  toggleSearch(false,{focus:false});render();
  }
  function chartClick(event){
-  if(event.dataType==='edge'){selectedRecords=scope.visibleRelations.filter(r=>event.data.recordIds?.includes(r.id));evidencePage=0;evidence();rotation?.reset();return;}
-  if(scope.subject&&event.data?.entityId)chooseEntity(event.data.entityId);else if(event.data?.relationshipKind)chooseBranch(event.data);
+  clearTimeout(drillTimer);
+  if(event.dataType==='edge'){
+   if(event.data.kind==='classification'){chooseNode({kind:event.data.targetKind,sector:event.data.sector,entityType:event.data.entityType,entityId:event.data.entityId});return;}
+   const ids=new Set(event.data.recordIds);selectedRecords=network.relations.filter(r=>ids.has(r.id));evidencePage=0;evidence();return;
+  }
+  chooseNode(event.data);
+ }
+ function afterZoom(){
+  if(!chart)return;
+  const zoomLevel=chart.getOption().series[0].zoom||1,nextDetail=zoomLevel>=1.7;
+  if(nextDetail!==detail){detail=nextDetail;chart.setOption({series:[{id:'industry-relationship-network',data:option.series[0].data.map(n=>({...n,label:{...n.label,show:n.label.show||detail}}))}]});}
+  clearTimeout(drillTimer);
+  if(zoomLevel>=2.2&&hovered&&hovered.kind!=='root'&&!hovered.selected){const node=hovered;drillTimer=setTimeout(()=>{if(!life.signal.aborted)chooseNode(node);},160);}
+ }
+ function zoom(direction){
+  if(!chart)return;
+  if(direction==='fit'){draw();return;}
+  const current=chart.getOption().series[0].zoom||1;
+  chart.setOption({series:[{id:'industry-relationship-network',zoom:Math.max(.35,Math.min(12,current*(direction==='in'?1.45:1/1.45)))}]});afterZoom();
+ }
+ async function start(){
+  try{engine=await loadRelationshipEngine();if(!life.signal.aborted&&host.isConnected)draw();}
+  catch(error){if(!life.signal.aborted){q('[data-rel-status]').hidden=false;q('[data-rel-status]').innerHTML=esc(error.message)+' <button data-rel-retry>重试</button>';}}
  }
  host.addEventListener('click',event=>{
   const b=event.target.closest('button');if(!b)return;
   if(b.dataset.relDocument){openDoc(b.dataset.relDocument);return;}
   if(b.hasAttribute('data-rel-retry')){start();return;}
-  if(b.dataset.relEntity){chooseEntity(b.dataset.relEntity);return;}
-  if(b.dataset.relSector){chooseBranch({relationshipKind:'sector',sector:b.dataset.relSector});return;}
-  if(b.dataset.relType){chooseBranch({relationshipKind:'type',entityType:b.dataset.relType});return;}
-  if(b.dataset.relView){state.view=b.dataset.relView;render();return;}
-  if(b.hasAttribute('data-rel-auto')){state.auto=!state.auto;render();return;}
-  if(b.dataset.relPage){state.page+=Number(b.dataset.relPage);render();return;}
-  if(b.dataset.relEdges){state.edgePage+=Number(b.dataset.relEdges);selectedRecords=[];render();return;}
+  if(b.hasAttribute('data-rel-search-toggle')){toggleSearch(!searchOpen);return;}
+  if(b.hasAttribute('data-rel-search-close')){toggleSearch(false);return;}
+  if(b.hasAttribute('data-rel-result')){chooseNode(searchResults[Number(b.dataset.relResult)]);return;}
+  if(b.dataset.relPage){searchPage+=Number(b.dataset.relPage);renderSearch();return;}
+  if(b.dataset.relZoom){zoom(b.dataset.relZoom);return;}
   if(b.dataset.relEvidencePage){evidencePage+=Number(b.dataset.relEvidencePage);evidence();return;}
-  if(b.hasAttribute('data-rel-reset')||b.dataset.relLevel){
+  if(b.hasAttribute('data-rel-expand')||b.dataset.relLevel){
    const level=b.dataset.relLevel;if(level!=='type')state.entityType='';if(level!=='type'&&level!=='sector')state.sector='';
-   Object.assign(state,{subject:'',query:'',page:0,edgePage:0,relationType:'',view:'treemap'});selectedRecords=[];render();
+   state.subject='';state.relationType='';selectedRecords=[];evidencePage=0;query='';q('[data-rel-search]').value='';toggleSearch(false,{focus:false});render();
   }
  },{signal:life.signal});
- host.addEventListener('input',event=>{if(!event.target.matches('[data-rel-search]'))return;clearTimeout(searchTimer);searchTimer=setTimeout(()=>{state.query=q('[data-rel-search]').value;state.subject='';state.page=0;state.view='treemap';selectedRecords=[];render();},180);},{signal:life.signal});
- host.addEventListener('change',event=>{if(event.target.matches('[data-rel-relation-type]')){state.relationType=event.target.value;state.edgePage=0;selectedRecords=[];render();}},{signal:life.signal});
- const resize=new ResizeObserver(()=>{chart?.resize();const next=q('.relationship-canvas').clientWidth<650;if(next!==compact){compact=next;draw();}});resize.observe(q('.relationship-canvas'));
+ host.addEventListener('input',event=>{if(!event.target.matches('[data-rel-search]'))return;clearTimeout(searchTimer);searchTimer=setTimeout(()=>{query=q('[data-rel-search]').value;searchPage=0;renderSearch();},160);},{signal:life.signal});
+ host.addEventListener('change',event=>{if(event.target.matches('[data-rel-relation-type]')){state.relationType=event.target.value;selectedRecords=[];evidencePage=0;render();}},{signal:life.signal});
+ host.addEventListener('keydown',event=>{if(event.key==='Escape'&&searchOpen){event.preventDefault();toggleSearch(false);}if(event.target===q('[data-rel-search]')&&event.key==='Enter'){clearTimeout(searchTimer);query=event.target.value;renderSearch();chooseNode(searchResults[0]);}},{signal:life.signal});
+ const resize=new ResizeObserver(()=>{chart?.resize();const canvas=q('.relationship-canvas');if(chart&&viewport!==canvas.clientWidth+'x'+canvas.clientHeight)draw();});resize.observe(q('.relationship-canvas'));
  const theme=new MutationObserver(()=>draw());theme.observe(document.body,{attributes:true,attributeFilter:['class']});
  render();start();
- return ()=>{life.abort();clearTimeout(searchTimer);rotation?.dispose();visibility?.disconnect();resize.disconnect();theme.disconnect();chart?.dispose();};
+ return ()=>{life.abort();clearTimeout(searchTimer);clearTimeout(drillTimer);resize.disconnect();theme.disconnect();chart?.dispose();};
 }
+
 export function quantViews(data){return (data.series||[]).filter(s=>s.rows.length&&s.frequency==='月度').map(s=>{
  const rows=s.rows,years=[...new Set(rows.map(r=>r.period.slice(0,4)))],values=new Map(rows.map(r=>[r.period,r.value])),lo=Math.min(...rows.map(r=>r.value)),hi=Math.max(...rows.map(r=>r.value));
  const heat=years.map((year,yi)=>`<text x="8" y="${52+yi*46}">${year}</text>`+Array.from({length:12},(_,mi)=>{const period=year+'-'+String(mi+1).padStart(2,'0'),v=values.get(period),opacity=v===undefined?0:.22+.78*(v-lo)/(hi-lo||1);return `<g><rect x="${65+mi*49}" y="${30+yi*46}" width="44" height="38" rx="6" class="heat-cell" style="fill:${v===undefined?'var(--line)':'var(--accent)'};fill-opacity:${v===undefined?.3:opacity}"/><text x="${87+mi*49}" y="${53+yi*46}" text-anchor="middle" class="heat-value">${v??'—'}</text><title>${period}：${v===undefined?'未提供数据':v+' '+s.unit}</title></g>`;}).join('')).join('');

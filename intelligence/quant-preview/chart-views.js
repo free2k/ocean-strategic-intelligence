@@ -135,3 +135,105 @@ export function relationshipOption(scope,view,{dark=true,reduced=false,width=100
   edgeSymbol:['none','arrow'],edgeSymbolSize:7,label:{position:'right',color:ink},edgeLabel:{show:links.length<=16,color:muted,fontSize:10,formatter:p=>p.data.type},
   emphasis:{focus:'adjacency',label:{show:true},lineStyle:{width:3,opacity:1}},blur:{itemStyle:{opacity:.16},lineStyle:{opacity:.06}}}]};
 }
+
+// The expanded explorer keeps every saved relation in the selected scope. Only
+// search results are paginated; graph nodes and source records are never sampled.
+export function relationshipNetwork(model,state={}){
+ const sector=model.sectors.has(state.sector)?state.sector:'';
+ const base=sector?model.sectors.get(sector).relations:model.relations;
+ const baseIds=new Set(base.flatMap(r=>[r.from,r.to]));
+ const subject=baseIds.has(state.subject)?model.nodes.get(state.subject):null;
+ const primary=new Set([...baseIds].filter(id=>!state.entityType||model.nodes.get(id).type===state.entityType));
+ const related=subject?base.filter(r=>relationTouches(r,subject.id)):base.filter(r=>primary.has(r.from)||primary.has(r.to));
+ const relationTypes=[...new Set(related.map(r=>r.type))].sort((a,b)=>a.localeCompare(b,'zh-CN'));
+ const relations=related.filter(r=>!subject||!state.relationType||r.type===state.relationType);
+ const ids=new Set(relations.flatMap(r=>[r.from,r.to])),degrees=new Map();
+ for(const r of relations)for(const id of new Set([r.from,r.to]))degrees.set(id,(degrees.get(id)||0)+1);
+ const nodes=[],links=[],membership=(id,domain)=>JSON.stringify(['entity',domain,id]);
+ const entity=(id,domain)=>{const n=model.nodes.get(id);return {id:membership(id,domain),name:n.name,entityId:id,sector:domain,entityType:n.type,kind:'entity',count:degrees.get(id)||0,context:!subject&&!!state.entityType&&!primary.has(id)};};
+ const byId=new Map();
+ const add=n=>{nodes.push(n);byId.set(n.id,n);return n;};
+ const classify=(from,to)=>links.push({source:from.id,target:to.id,kind:'classification',targetKind:to.kind,sector:to.sector,entityType:to.entityType,entityId:to.entityId});
+ const polar=(node,r,angle)=>{node.x=r*Math.cos(angle);node.y=r*Math.sin(angle);};
+ if(subject){
+  add({...entity(subject.id,sector),selected:true,x:0,y:0});
+  const neighbors=[...ids].filter(id=>id!==subject.id).sort((a,b)=>relationshipTypes.indexOf(model.nodes.get(a).type)-relationshipTypes.indexOf(model.nodes.get(b).type)||model.nodes.get(a).name.localeCompare(model.nodes.get(b).name,'zh-CN'));
+  const rings=Math.max(1,Math.ceil(Math.sqrt(neighbors.length/28)));
+  neighbors.forEach((id,i)=>{const ring=i%rings,index=Math.floor(i/rings),length=Math.ceil((neighbors.length-ring)/rings);polar(add(entity(id,sector)),320+ring*165,index*2*Math.PI/length-Math.PI/2);});
+ }else if(ids.size){
+  const root=add({id:JSON.stringify(['root',sector,state.entityType||'']),name:state.entityType||topicLabel(sector)||'产业关联',kind:'root',count:state.entityType?primary.size:ids.size,x:0,y:0});
+  if(!sector&&!state.entityType)root.name='产业关联';
+  const domains=[...model.sectors.keys()].filter(name=>!sector||name===sector).sort((a,b)=>{
+   const order=n=>relationshipSectors.includes(n)?relationshipSectors.indexOf(n):99;
+   return order(a)-order(b)||a.localeCompare(b,'zh-CN');
+  }).map(name=>({name,ids:new Set(relations.filter(r=>r.sector===name).flatMap(r=>[r.from,r.to]))})).filter(d=>d.ids.size);
+  const weights=domains.map(d=>Math.pow(Math.max(12,d.ids.size),.7)),total=weights.reduce((a,b)=>a+b,0),minimumSpan=2*Math.PI/domains.length*.58;
+  let start=-Math.PI/2;
+  domains.forEach((domain,di)=>{
+   const span=minimumSpan+(2*Math.PI-minimumSpan*domains.length)*weights[di]/total,angle=start+span/2;
+   const parent=sector?root:add({id:JSON.stringify(['sector',domain.name]),name:topicLabel(domain.name),kind:'sector',sector:domain.name,count:domain.ids.size});
+   if(!sector){polar(parent,310,angle);classify(root,parent);}
+   const groups=relationshipTypes.map(type=>({type,ids:[...domain.ids].filter(id=>model.nodes.get(id).type===type).sort((a,b)=>model.nodes.get(a).name.localeCompare(model.nodes.get(b).name,'zh-CN')||a.localeCompare(b))})).filter(g=>g.ids.length);
+   const groupWeights=groups.map(g=>Math.pow(Math.max(4,g.ids.length),.8)),groupTotal=groupWeights.reduce((a,b)=>a+b,0);
+   let groupStart=start;
+   groups.forEach((group,gi)=>{
+    const groupSpan=span*groupWeights[gi]/groupTotal,groupAngle=groupStart+groupSpan/2;
+    const context=!!state.entityType&&state.entityType!==group.type;
+    const hub=sector&&state.entityType===group.type?root:add({id:JSON.stringify(['type',domain.name,group.type]),name:context?'关联'+group.type:group.type,kind:'type',sector:domain.name,entityType:group.type,count:group.ids.length,context});
+    if(hub!==root){polar(hub,sector?330:660,groupAngle);classify(parent,hub);}
+    group.ids.forEach((id,i)=>{
+     const n=add(entity(id,domain.name)),entityAngle=groupStart+groupSpan*(i+.5)/group.ids.length;
+     polar(n,(sector?720:1090)+(i%5-2)*43,entityAngle);classify(hub,n);
+    });
+    groupStart+=groupSpan;
+   });
+   start+=span;
+  });
+ }
+ const grouped=new Map();
+ for(const r of relations){
+  const source=membership(r.from,subject?sector:r.sector),target=membership(r.to,subject?sector:r.sector),key=JSON.stringify([source,target,r.type]);
+  if(!grouped.has(key))grouped.set(key,{source,target,kind:'relation',type:r.type,from:r.from,to:r.to,recordIds:[],confirmed:true});
+  const edge=grouped.get(key);edge.recordIds.push(r.id);edge.confirmed&&=r.status==='verified'||r.status==='confirmed';
+ }
+ links.push(...grouped.values());
+ return {model,nodes,links,relations,subject,sector,entityType:state.entityType||'',relationTypes,entityCount:ids.size,primaryCount:primary.size,documents:new Set(relations.map(r=>r.document.id)).size};
+}
+
+export function searchRelationshipNodes(model,query=''){
+ const term=relationshipName(query),matches=[];
+ const match=(...values)=>values.some(value=>relationshipName(value).includes(term));
+ for(const group of model.sectors.values()){
+  if(!term||match(group.name,topicLabel(group.name)))matches.push({kind:'sector',id:group.name,name:topicLabel(group.name),sector:group.name,count:group.nodes.size,detail:'产业领域'});
+  if(term)for(const [type,ids] of group.types)if(match(type))matches.push({kind:'type',id:JSON.stringify([group.name,type]),name:type,sector:group.name,entityType:type,count:ids.size,detail:topicLabel(group.name)});
+ }
+ if(term)for(const n of model.nodes.values())if(n.search.includes(term))matches.push({kind:'entity',id:n.id,entityId:n.id,name:n.name,entityType:n.type,count:n.relations.length,detail:n.type+' · '+[...n.sectors].map(topicLabel).join(' / ')});
+ return matches.sort((a,b)=>Number(relationshipName(b.name)===term)-Number(relationshipName(a.name)===term)||b.count-a.count||a.name.localeCompare(b.name,'zh-CN')||a.id.localeCompare(b.id));
+}
+
+export function relationshipGraphOption(network,{dark=true,reduced=false,width=1000,height=690,detail=false}={}){
+ const ink=dark?'#e6f1fa':'#183149',muted=dark?'#96b0c6':'#60788c',panel=dark?'#102131':'#f6f9fc',compact=width<650;
+ const colors=type=>relationshipColors[relationshipTypes.indexOf(type)]||'#65cbbb';
+ const short=name=>Array.from(name).length>18?Array.from(name).slice(0,18).join('')+'…':name;
+ const overview=!network.sector&&!network.entityType&&!network.subject,detailed=detail||network.entityCount<=(compact?20:36);
+ const size=Math.max(160,Math.min(width-(compact?40:130),height-90));
+ const nodes=network.nodes.map(n=>{
+  const isEntity=n.kind==='entity',color=n.kind==='root'?'#65cbbb':n.kind==='sector'?'#80cbd4':colors(n.entityType);
+  const baseSize=n.kind==='root'?55:n.kind==='sector'?32:n.kind==='type'?18:n.selected?58:network.subject?(network.entityCount>80?8:19):Math.min(10,4+Math.sqrt(n.count)*.65);
+  const size=baseSize*(compact?(overview?.55:.85):1);
+  return {...n,symbolSize:size,itemStyle:{color,opacity:n.context?.5:1,borderColor:n.selected?ink:panel,borderWidth:n.selected?3:isEntity?.5:2,shadowBlur:n.selected?20:n.kind==='root'?15:0,shadowColor:color},
+   label:{show:(isEntity?n.selected||detailed:!(compact&&overview&&n.kind==='type'))||detail,position:n.kind==='root'?'inside':'right',color:n.kind==='root'?'#102c3c':ink,fontSize:compact?9:n.kind==='root'?12:n.kind==='sector'?13:11,fontWeight:n.selected||!isEntity?600:400,formatter:n.kind==='type'?n.name+' · '+n.count:compact&&n.kind==='root'&&n.name==='产业关联'?'产业\n关联':short(n.name),distance:isEntity?4:5},
+   emphasis:{label:{show:true,formatter:n.name,fontSize:12,backgroundColor:panel,padding:[5,7],borderRadius:4},itemStyle:{opacity:1,borderColor:ink,borderWidth:2}}};
+ });
+ const links=network.links.map(l=>({...l,value:l.recordIds?.length||1,symbol:l.kind==='relation'?['none','arrow']:['none','none'],symbolSize:5,
+  lineStyle:l.kind==='classification'?{color:dark?'#6d9caa':'#7b9eaf',opacity:.4,width:.9,curveness:0}:{color:dark?'#8ec6c9':'#507f97',opacity:network.subject?.65:.18,width:network.subject?1.5:Math.min(2,.55+Math.log2(l.recordIds.length+1)*.3),type:l.confirmed?'solid':'dashed',curveness:l.source===l.target?.65:.13},
+  label:{show:!!network.subject&&network.links.length<=24&&l.kind==='relation',formatter:l.type,fontSize:10,color:muted}}));
+ return {backgroundColor:'transparent',animation:!reduced,animationDuration:550,animationDurationUpdate:550,animationThreshold:10000,textStyle:{fontFamily:'Segoe UI, Microsoft YaHei, sans-serif'},
+  aria:{enabled:true,description:'已展开的产业关系图。领域连接主体类型，主体类型连接具体主体；箭头表示有原文记录的关系。点击节点放大下钻。'},
+  tooltip:{confine:true,backgroundColor:panel,borderColor:dark?'#28485d':'#c5dce5',textStyle:{color:ink,fontSize:12},extraCssText:'max-width:340px;white-space:normal;line-height:1.8',formatter:p=>{
+   const d=p.data;
+   if(p.dataType==='edge')return d.kind==='classification'?'分类归属连线<br>点击进入对应分类':relationshipEsc(network.model.nodes.get(d.from)?.name)+' → '+relationshipEsc(network.model.nodes.get(d.to)?.name)+'<br>'+relationshipEsc(d.type)+' · '+d.recordIds.length+' 条原文记录<br>点击连线查看来源证据';
+   return relationshipEsc(d.name)+'<br>'+(d.kind==='entity'?relationshipEsc(d.entityType)+' · '+d.count+' 条关联记录':d.count+' 个主体')+'<br>点击放大并展开关联';
+  }},series:[{id:'industry-relationship-network',type:'graph',layout:'none',left:(width-size)/2,top:(height-size)/2,width:size,height:size,zoom:1,center:[0,0],data:nodes,links,
+   roam:true,draggable:true,scaleLimit:{min:.35,max:12},labelLayout:{hideOverlap:true},emphasis:{focus:'adjacency',lineStyle:{opacity:1,width:2.5}},blur:{itemStyle:{opacity:.15},lineStyle:{opacity:.05}}}]};
+}

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildRelationshipModel,relationshipScope,relationshipOption,availableViews} from '../quant-preview/chart-views.js';
+import {buildRelationshipModel,relationshipScope,relationshipOption,availableViews,relationshipNetwork,relationshipGraphOption,searchRelationshipNodes} from '../quant-preview/chart-views.js';
 
 const fixture=()=>({
  entities:[{id:'a',name:'Same',nameZh:'同名企业',type:'公司',aliases:['Alpha']},{id:'b',name:'同名企业',type:'公司'},
@@ -92,4 +92,68 @@ test('tooltips escape source names and quotes; reduced motion and compact hierar
  assert.equal(relationshipOption(root,'treemap',{width:390}).series[0].leafDepth,1);
  assert.equal(relationshipOption(root,'tree',{width:390}).series[0].initialTreeDepth,1);
  assert.deepEqual(availableViews({types:['graph']}),['graph','graphCircular']);
+});
+
+test('expanded network includes every domain, type, subject membership and original relation by default',()=>{
+ const data=fixture(),before=structuredClone(data),model=buildRelationshipModel(data),network=relationshipNetwork(model);
+ assert.equal(network.entityCount,4);assert.equal(network.relations.length,4);
+ assert.equal(network.nodes.filter(n=>n.kind==='sector').length,2);
+ assert.equal(network.nodes.filter(n=>n.kind==='entity').length,5);
+ const ids=new Set(network.nodes.map(n=>n.id));assert.equal(ids.size,network.nodes.length);
+ assert.ok(network.links.every(l=>ids.has(l.source)&&ids.has(l.target)));
+ assert.deepEqual(network.links.filter(l=>l.kind==='relation').flatMap(l=>l.recordIds).sort(),['1','2','3','4']);
+ assert.equal(network.nodes.filter(n=>n.entityId==='a').length,2);
+ assert.deepEqual(data,before);
+});
+
+test('all drill-down levels use graph nodes and preserve incoming, reciprocal and self edges',()=>{
+ const data=fixture();data.relations.push({id:'self',from:'a',to:'a',type:'自关联',documentId:'wind'});
+ const model=buildRelationshipModel(data);
+ for(const state of [{},{sector:'海上风电'},{sector:'海上风电',entityType:'公司'},{sector:'海上风电',entityType:'公司',subject:'a'}]){
+  const network=relationshipNetwork(model,state),option=relationshipGraphOption(network);
+  assert.equal(option.series[0].type,'graph');assert.equal(option.series[0].layout,'none');assert.equal(option.series[0].roam,true);
+  assert.ok(option.series[0].links.every(l=>l.kind==='classification'||l.recordIds.length));
+ }
+ const network=relationshipNetwork(model,{sector:'海上风电',subject:'a'});
+ assert.equal(network.relations.length,3);assert.equal(network.nodes.filter(n=>n.selected).length,1);
+ assert.ok(network.links.some(l=>l.source===l.target&&l.recordIds.includes('self')));
+ assert.equal(relationshipNetwork(model,{sector:'海洋油气',entityType:'地点',subject:'d'}).relations.length,1);
+ assert.equal(relationshipNetwork(model,{sector:'海上风电',subject:'a',relationType:'投资'}).relations.length,1);
+ const typed=relationshipNetwork(model,{sector:'海上风电',entityType:'公司'});
+ assert.equal(typed.nodes.find(n=>n.kind==='root').name,'公司');
+ assert.ok(!typed.nodes.some(n=>n.kind==='type'&&n.entityType==='公司'));
+ assert.ok(network.nodes.every(n=>!n.context));
+});
+
+test('expanded large networks never silently truncate subjects, relation records or classification links',()=>{
+ const data=fixture();data.entities=Array.from({length:1500},(_,i)=>({id:'n'+i,name:'主体'+i,type:'公司'}));
+ data.relations=Array.from({length:1499},(_,i)=>({id:'r'+i,from:'n0',to:'n'+(i+1),type:'合作',documentId:'oil'}));
+ const model=buildRelationshipModel(data);
+ for(const state of [{},{sector:'海洋油气',entityType:'公司'},{subject:'n0'}]){
+  const network=relationshipNetwork(model,state);
+  assert.equal(network.entityCount,1500);assert.equal(network.nodes.filter(n=>n.kind==='entity').length,1500);
+  assert.equal(network.links.filter(l=>l.kind==='relation').flatMap(l=>l.recordIds).length,1499);
+  assert.ok(network.nodes.every(n=>Number.isFinite(n.x)&&Number.isFinite(n.y)));
+ }
+});
+
+test('node search spans domain labels, type branches and normalized aliases while preserving homonyms',()=>{
+ const model=buildRelationshipModel(fixture());
+ assert.equal(searchRelationshipNodes(model,'海洋新能源')[0].sector,'海上风电');
+ assert.equal(searchRelationshipNodes(model,'公司').filter(n=>n.kind==='type').length,2);
+ assert.equal(searchRelationshipNodes(model,'ＡＬＰＨＡ')[0].entityId,'a');
+ assert.deepEqual(searchRelationshipNodes(model,'同名企业').filter(n=>n.kind==='entity').map(n=>n.entityId).sort(),['a','b']);
+ assert.deepEqual(searchRelationshipNodes(model,'不存在'),[]);
+ assert.ok(searchRelationshipNodes(model).every(n=>n.kind==='sector'));
+});
+
+test('expanded graph tooltips escape stored text and classification links cannot appear as evidence',()=>{
+ const data=fixture();data.entities[0].nameZh='<img onerror=alert(1)>';
+ const network=relationshipNetwork(buildRelationshipModel(data)),option=relationshipGraphOption(network,{reduced:true,width:390});
+ assert.equal(option.animation,false);
+ const node=network.nodes.find(n=>n.entityId==='a'),tip=option.tooltip.formatter({dataType:'node',data:node});
+ assert.ok(tip.includes('&lt;img'));assert.ok(!tip.includes('<img'));
+ const link=network.links.find(l=>l.kind==='classification');assert.equal(link.recordIds,undefined);
+ assert.ok(option.tooltip.formatter({dataType:'edge',data:link}).includes('分类归属'));
+ const empty=relationshipNetwork(buildRelationshipModel({}));assert.deepEqual(empty.nodes,[]);assert.deepEqual(empty.links,[]);
 });
