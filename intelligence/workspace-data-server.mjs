@@ -16,7 +16,7 @@ export function createWorkspaceDataServer({upstream='http://127.0.0.1:3101',fetc
   if(url.pathname!=='/api/data'){res.writeHead(404);res.end();return;}
   if(req.method!=='GET'){res.writeHead(405,{Allow:'GET'});res.end();return;}
   const projection=url.searchParams.get('projection');
-  if(projection&&!['summary','relations','full'].includes(projection)){res.writeHead(400,{'Content-Type':'application/json'});res.end('{"error":"页面数据范围无效"}');return;}
+  if(projection&&!['summary','signals','relations','full'].includes(projection)){res.writeHead(400,{'Content-Type':'application/json'});res.end('{"error":"页面数据范围无效"}');return;}
   const abort=new AbortController(),closed=()=>{if(!res.writableFinished)abort.abort();};res.on('close',closed);
   try{
    const source=await fetchImpl(upstream+'/api/data'+url.search,{headers:{cookie:req.headers.cookie||'','accept-encoding':'identity'},signal:AbortSignal.any([abort.signal,AbortSignal.timeout(120000)])});

@@ -5,10 +5,10 @@ const entityFields=['id','name','nameZh','type','aliases'];
 const pick=(row,fields)=>Object.fromEntries(fields.filter(key=>Object.hasOwn(row,key)).map(key=>[key,row[key]]));
 export function workspaceData(snapshot,projection){
  if(!projection)return snapshot;
- if(!['summary','relations','full'].includes(projection))throw new RangeError('Unknown workspace projection');
- const summary=projection==='summary',relations=projection==='relations';
+ if(!['summary','signals','relations','full'].includes(projection))throw new RangeError('Unknown workspace projection');
+ const summary=projection==='summary'||projection==='signals',relations=projection==='relations';
  const proofIds=relations?new Set(snapshot.relations.flatMap(row=>row.evidenceIds||[])):null;
- const documents=summary?[]:snapshot.documents.map(row=>({...pick(row,documentFields),...(row.industry?{industry:pick(row.industry,['primary','status','manual'])}:{})}));
+ const documents=projection==='summary'?[]:snapshot.documents.map(row=>({...pick(row,documentFields),...(row.industry?{industry:pick(row.industry,['primary','status','manual'])}:{})}));
  return {...snapshot,projection,
   scopeCounts:{documents:snapshot.documents.length,seriesRows:(snapshot.series||[]).reduce((count,series)=>count+series.rows.length,0)},
   documents,entities:snapshot.entities.map(row=>pick(row,entityFields)),

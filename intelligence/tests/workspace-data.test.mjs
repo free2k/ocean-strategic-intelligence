@@ -49,3 +49,8 @@ test('an empty filtered snapshot stays empty in every page projection',()=>{
   assert.equal(relationshipNetwork(buildRelationshipModel(data)).relations.length,0);
  }
 });
+import {deriveSignals} from '../public/change-signals.js';
+test('signals projection preserves comparison windows and evidence list without unrelated bulk',()=>{
+ const full=workspaceData(snapshot(),'full');full.documents.forEach((d,i)=>{d.title='offshore wind '+i;d.publishedAt=i?'2026-10-05':'2026-10-15';d.sourceId='source';});
+ const slim=workspaceData(full,'signals');for(const days of [7,30])assert.deepEqual(deriveSignals(slim,days),deriveSignals(full,days));assert.deepEqual(slim.events,[]);assert.deepEqual(slim.evidence,[]);assert.deepEqual(slim.series,[]);
+});
