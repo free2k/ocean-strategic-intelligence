@@ -33,6 +33,9 @@ export function validateRequest(r) {
     else r.constraints.forEach((c,i)=>{if(!isObject(c)||typeof c.id!=='string'||!['pass','fail','pending'].includes(c.status)||typeof c.reason!=='string'||!c.reason.trim())add(`constraints.${i}`,'硬约束须含编号、核验状态与依据');else for(const k of ['objectId','evidence'])if(c[k]!==undefined&&typeof c[k]!=='string')add(`constraints.${i}.${k}`,'须为文本');});
   }
   if (isObject(r.review)) for (const k of ['comparable','constraintsConfirmed']) if (r.review[k] !== undefined && typeof r.review[k] !== 'boolean') add('review.'+k,'须为布尔值');
+  if(r.review?.constraintScope!==undefined&&!['scenario','engineering'].includes(r.review.constraintScope))add('review.constraintScope','约束核定范围无效');
+  if(r.review?.constraintScope==='scenario'&&(r.dataset||r.input?.matrix&&(!Array.isArray(r.input.cellEvidence)||!r.input.cellEvidence.length||r.input.cellEvidence.some(e=>!e||e.nature!=='demo'))))add('review.constraintScope','情景约束核定仅适用于人工情景输入；实际值须另行核定工程适用条件');
+  if(r.researchNotes!=null){if(!isObject(r.researchNotes))add('researchNotes','研判说明须为对象');else{for(const k of ['question','methodRationale','limitations','nextSteps'])if(typeof r.researchNotes[k]!=='string'||r.researchNotes[k].length>4000)add('researchNotes.'+k,'研判说明须为有效文本');if(!Array.isArray(r.researchNotes.findings)||r.researchNotes.findings.length>20||r.researchNotes.findings.some(v=>typeof v!=='string'||v.length>4000))add('researchNotes.findings','研究发现须为文本列表');}}
   // Browser-supplied platform values are intentionally ignored, including malformed replacements.
   if (!r.dataset && isObject(r.input)) validateInput(r.method, r.input, add);
   if (r.dataset && isObject(r.input) && r.input.window!==undefined && (!Number.isInteger(r.input.window)||r.input.window<2)) add('input.window','平滑窗口须为不小于2的整数');

@@ -26,7 +26,7 @@ export function checkStudyReadiness(study, methods) {
   else if(constraints.some(c=>c.status==='pending')||study.confirmed!==true||study.review?.comparable===false||study.review?.constraintsConfirmed===false||study.input?.cellEvidence?.some(e=>e.reviewStatus!=='verified')){dataStatus='needs-review';missingFields.push('数据、来源、可比性及硬约束核定');}
   const engineStatus=method?.status==='ready'?'accepted':'planned';
   const status=dataStatus==='not-applicable'?'not-applicable':dataStatus==='needs-data'?'needs-data':engineStatus==='planned'?'engine-pending':dataStatus==='needs-review'?'needs-review':'ready';
-  return {engineStatus,dataStatus,status,canExecute:status==='ready',missingFields,fieldErrors};
+  return {engineStatus,dataStatus,status,canExecute:status==='ready',missingFields,fieldErrors,...(study.review?.constraintScope==='scenario'?{constraintScope:'scenario',engineeringStatus:'not-assessed',notice:'仅核对情景数值条件与研究边界；实际工程许可、安全和可用能力未核验。'}:{})};
 }
 
 export function validateParameterChanges(previous, patch, actor={id:'authenticated-researcher'}) {

@@ -1,0 +1,92 @@
+{
+  "date": "2026-10-18",
+  "site": "http://49.233.77.111/ocean-intelligence/#research",
+  "serverChecks": {
+    "strategyAndWorkspaceTests": 80,
+    "passed": 80,
+    "failed": 0,
+    "caseGeneratorFollowupTests": 5,
+    "followupPassed": 5
+  },
+  "deployedProgramFileHashes": {
+    "checked": 35,
+    "mismatches": []
+  },
+  "evaluation": {
+    "caseId": "low-carbon-route-evaluation",
+    "revision": "evaluation-v2",
+    "evidenceStatus": "matched",
+    "originalDataStatusUnchanged": true,
+    "nativeFourSteps": true,
+    "matrixScenarioCells": 15,
+    "computedVersions": [
+      {
+        "key": "entropy-base",
+        "id": "4c1e026a-bc14-4896-866c-2ebbe95f36f4",
+        "method": "entropy-topsis"
+      },
+      {
+        "key": "entropy-schedule",
+        "id": "6219cc56-9ebf-4f6b-b7f0-1498acaba0b8",
+        "method": "entropy-topsis"
+      },
+      {
+        "key": "equal-check",
+        "id": "e488fb22-6890-4341-a472-ad6f2c812ceb",
+        "method": "weighted"
+      }
+    ],
+    "sensitivityAndNinePointScan": true,
+    "localSensitivityScoring": "WSM for WSM, TOPSIS for TOPSIS",
+    "scenarioReviewScopeExplicit": true,
+    "expansionPreferenceConfirmed": true,
+    "manualValidation": true,
+    "historicalEnginePreserved": true,
+    "scenarioInputDifferences": 2,
+    "independentEqualWeightCheck": true,
+    "assets": true,
+    "savedQA": 3,
+    "qaReferences": 6,
+    "qaExport": true,
+    "reload": true,
+    "mobile": true,
+    "firstCaseRegression": true,
+    "newVersionsDuringVerification": 0,
+    "pageErrors": [],
+    "modelCalls": 0
+  },
+  "ccus": {
+    "caseId": "northern-lights-ccus",
+    "revision": "workflow-v3",
+    "fourNativeStepsPrefilled": true,
+    "manualMethodValidation": true,
+    "researchNotesArchived": true,
+    "assets": true,
+    "savedAnswers": [
+      {
+        "id": "research_case_8543aebdc92fa38e646521f9b57d12e5",
+        "generated": false
+      },
+      {
+        "id": "research_case_95b3b2fa6c4f5e7dce73cf260e5c8e5e",
+        "generated": false
+      },
+      {
+        "id": "research_case_df360df87d47a9e2cab5c849e96d1949",
+        "generated": false
+      }
+    ],
+    "qaHistory": true,
+    "qaReferencesAndExport": true,
+    "refreshRestoresWorkflow": true,
+    "mobile": true,
+    "newVersionsDuringVerification": 0,
+    "pageErrors": [],
+    "modelCalls": 0
+  },
+  "finalStaticDisplay": {
+    "freshPage": true,
+    "correctWSMSensitivity": true,
+    "internalScoringMetadataHidden": true
+  }
+}
