@@ -83,7 +83,7 @@ function mountRelationshipChart(host,data,openDoc){
   if(node.kind==='root'){zoom('fit');return;}
   if(node.kind==='entity'){
    if(!model.nodes.has(node.entityId))return;
-   state.subject=node.entityId;state.sector=node.sector||'';state.entityType=model.nodes.get(node.entityId).type;
+   state.subject=node.entityId;state.sector=node.sector||toolbarTopic;state.entityType=model.nodes.get(node.entityId).type;
   }else{
    state.sector=node.sector||'';state.entityType=node.kind==='type'?node.entityType:'';state.subject='';
   }

@@ -67,6 +67,11 @@ const deferred = () => {let resolve; const promise = new Promise(r => {resolve =
   assert.equal(await page.locator('[data-rel-domain="海洋油气"]').getAttribute('aria-pressed'), 'true');
   passed.push('domain buttons, toolbar and URL stay in sync');
   await page.locator('[data-rel-domain="海上风电"]').click(); await ready(['rb', 'rc']);
+  await page.locator('[data-rel-search-toggle]').click(); await page.locator('[data-rel-search]').fill('主体4'); await page.locator('[data-rel-search]').press('Enter'); await ready(['rc']);
+  assert.equal(await page.locator('[data-rel-domain="海上风电"]').getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.locator('#topic').inputValue(), '海上风电');
+  await page.locator('[data-rel-expand]').click(); await ready(['rb', 'rc']);
+  passed.push('searching a subject retains its selected toolbar domain');
   await page.selectOption('#country', 'CN'); await ready(['rc']);
   await page.selectOption('#source', 's1'); await ready(['rc']);
   await page.locator('#from').fill('2026-10-16'); await page.locator('#from').dispatchEvent('change'); await ready(['rc']);
