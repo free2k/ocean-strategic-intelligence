@@ -310,7 +310,13 @@ body.light #theme::before { --ui-button-icon: var(--ui-icon-moon); }
 .signal-topic[aria-pressed=true] { background: var(--ui-selected); box-shadow: none; border-color: var(--accent); }
 .relationship-stage-heading { justify-content: center; position: relative; padding-bottom: 8px; }
 .relationship-caption { text-align: center; flex-basis: 100%; }
-.relationship-expanded-badge { margin-left: auto; }
+.relationship-stage-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; width: 100%; min-width: 0; }
+.relationship-stage-actions .relationship-expanded-badge { margin: 0; }
+.relationship-stage-actions .relationship-view-switch { flex-shrink: 0; }
+@media (max-width: 600px) {
+  .relationship-stage-actions { gap: 8px; }
+  .relationship-stage-actions .relationship-view-switch { box-sizing: border-box; width: 100%; }
+}
 progress { accent-color: var(--teal); border: 0; border-radius: 5px; overflow: hidden; }
 progress::-webkit-progress-bar { background: var(--panel2); border-radius: 5px; }
 progress::-webkit-progress-value { background: linear-gradient(90deg, var(--teal), var(--violet)); border-radius: 5px; }
