@@ -4,6 +4,22 @@ export const periodChoices = [
 ];
 export const countrySelection = value => [...new Set(String(value || '').split(',').map(v => v.trim().toUpperCase()).filter(Boolean))].sort();
 
+export const CUSTOM_TOPIC = '__custom__';
+export const isCustomTopic = (draft, topics) => draft.choiceModes?.['scope.topic'] === 'custom'
+  || !!draft.scope.topic && !topics.some(t => t.id === draft.scope.topic);
+export function changeTopicChoice(draft, value, topics) {
+  if (isCustomTopic(draft, topics)) draft.customTopic = draft.scope.topic;
+  draft.choiceModes ||= {};
+  draft.choiceModes['scope.topic'] = value === CUSTOM_TOPIC ? 'custom' : 'preset';
+  draft.scope.topic = value === CUSTOM_TOPIC ? draft.customTopic || '' : value;
+}
+export function customTopicError(draft, topics) {
+  if (!isCustomTopic(draft, topics)) return '';
+  if (!draft.scope.topic.trim()) return '请填写自定义研究领域名称';
+  if (draft.scope.topic.length > 120) return '自定义研究领域名称不能超过120字';
+  return '';
+}
+
 export function recentRange(preset, now = new Date()) {
   const months = {'1m': 1, '3m': 3, '6m': 6, '12m': 12}[preset];
   if (!months) return {from: '', to: ''};

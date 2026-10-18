@@ -34,7 +34,7 @@ try {
   await field('periodPreset').waitFor(); await waitScope();
   for (const p of ['scope.topic', 'scope.sourceId', 'periodPreset']) assert.equal(await field(p).evaluate(el => el.tagName), 'SELECT');
   assert.equal(await field('scope.country').count(), 0);
-  assert.equal(await field('scope.topic').locator('option').count(), initial.filterOptions.topics.length + 1);
+  assert.equal(await field('scope.topic').locator('option').count(), initial.filterOptions.topics.length + 2);
   assert.equal(await field('scope.sourceId').locator('option').count(), initial.filterOptions.sources.length + 1);
   assert.deepEqual(await field('periodPreset').locator('option').evaluateAll(els => els.map(e => e.value)), ['all', '1m', '3m', '6m', '12m', 'custom']);
   await field('title').fill('筛选交互核查（仅浏览器草稿）');

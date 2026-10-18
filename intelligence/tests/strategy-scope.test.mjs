@@ -9,8 +9,8 @@ import {selectRegistries} from '../registry-evidence.mjs';
 import {selectIEA} from '../iea-quant.mjs';
 import {getQuantCatalog} from '../quant-routes.mjs';
 import {safeScope, serveStrategy, buildStudy} from '../strategy/service.mjs';
-import {rawFixture} from './strategy-fixture.mjs';
-import {recentRange, updatePeriod, hydrateScope} from '../public/strategy/scope-state.js';
+import {rawFixture, matrixRequest} from './strategy-fixture.mjs';
+import {recentRange, updatePeriod, hydrateScope, changeTopicChoice, isCustomTopic, customTopicError} from '../public/strategy/scope-state.js';
 import {blankDraft, requestFrom, restoreRecord} from '../public/strategy/state.js';
 
 test('country union filters documents once and agrees across statistics, registries and IEA', () => {
@@ -78,4 +78,34 @@ test('catalog offers full named choices even under an empty filter; calculations
     assert.deepEqual(replay.calculation, record.calculation);
     assert.equal(replay.numericInputHash, record.numericInputHash);
   } finally {await fs.rm(dir, {recursive: true, force: true});}
+});
+
+test('custom research scopes never fall back to all platform data and survive saved-version replay', async () => {
+  const raw = await rawFixture(), topic = '海上CCUS船管运输链（工程验证）';
+  const scope = safeScope({topic}), catalog = getQuantCatalog(raw, scope);
+  assert.equal(catalog.documents.length, 0);
+  assert.equal(catalog.series.length, 0);
+  assert.equal(selectIEA(raw, scope).length, 0);
+  assert.equal(Object.keys(selectRegistries(raw, scope)).length, 0);
+  assert.throws(() => buildStudy(catalog, {title: '自定义范围不可借用其他领域数据', method: 'growth', dataset: {kind: 'series', id: raw.series[0].id}, scope, confirmed: true}), /当前筛选下该序列不可用/);
+  const record = buildStudy(catalog, {...matrixRequest(), scope});
+  assert.equal(record.scope.topic, topic);
+  const restored = restoreRecord(record);
+  assert.equal(requestFrom(restored).scope.topic, topic);
+  assert.ok(isCustomTopic(restored, [{id: '海洋油气'}]));
+  const replay = buildStudy({}, {...matrixRequest(), scope: {}, runMode: 'frozen'}, record);
+  assert.equal(replay.scope.topic, topic);
+  assert.deepEqual(replay.calculation, record.calculation);
+});
+
+test('blank custom selection is incomplete, and preset changes retain the actual custom name privately', () => {
+  const d = blankDraft(), topics = [{id: '海洋油气'}];
+  changeTopicChoice(d, '__custom__', topics);
+  assert.equal(d.scope.topic, ''); assert.match(customTopicError(d, topics), /请填写/);
+  d.scope.topic = '自定义海洋研究';
+  changeTopicChoice(d, '海洋油气', topics);
+  assert.equal(d.scope.topic, '海洋油气'); assert.equal(customTopicError(d, topics), '');
+  changeTopicChoice(d, '__custom__', topics);
+  assert.equal(d.scope.topic, '自定义海洋研究');
+  assert.equal(requestFrom(d).customTopic, undefined);
 });

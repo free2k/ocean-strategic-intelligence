@@ -1,0 +1,29 @@
+{
+  "status": "deployed",
+  "release": "/opt/ocean-intelligence/releases/20261018-strategy-custom-topic-1.5.1",
+  "previousRelease": "/opt/ocean-intelligence/releases/20261018-strategy-discovery-1.5.0",
+  "files": 4,
+  "databaseMigration": false,
+  "dataPreserved": true,
+  "snapshot": {
+    "documents": 1485,
+    "series": 13,
+    "points": 772,
+    "businessHash": "342519c64fc4e3537c601eb540ae50029d13c776faa8a0ec166112591b952aff"
+  },
+  "api": {
+    "countries": 32,
+    "sources": 190,
+    "series": 10,
+    "discoveryVersion": "research-discovery-1.0",
+    "opportunities": 17,
+    "methodEntries": 24,
+    "themes": 12
+  },
+  "baselineFailures": [
+    "CSV supports quoted multiline, escaped quotes and missing capacities"
+  ],
+  "preservedProductionChanges": [
+    "Copy the current production program; apply only the four listed files; retain all other live fixes."
+  ]
+}
