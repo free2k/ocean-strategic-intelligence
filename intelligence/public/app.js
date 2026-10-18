@@ -68,6 +68,16 @@ function setupCountryDossier(){
  const head=mapPanel.querySelector('.panel-head'),canvas=document.createElement('div');canvas.id='country-map-scope';const mapNotice=document.createElement('p');mapNotice.setAttribute('role','status');mapPanel.replaceChildren(head,mapNotice,canvas);
  const host=document.createElement('section');host.className='panel';host.id='country-dossier';mapPanel.after(host);
  const legacy=document.createElement('details');legacy.className='panel';legacy.innerHTML='<summary>展开原有报道与趋势（旧版快照，独立范围）</summary>';content.append(legacy);for(const child of [...content.children])if(![toolbar,mapPanel,host,legacy].includes(child))legacy.append(child);
+ // The current country view has its own versioned data; fetch the legacy snapshot only on expansion.
+ if(data.projection==='summary'){
+  legacy.querySelectorAll(':scope > :not(summary)').forEach(child=>child.remove());
+  const pending=document.createElement('p');pending.textContent='展开后读取原有报道与趋势。';legacy.append(pending);
+  let loading=false,loaded=false;const legacyQuery=queryFor(filters());
+  legacy.addEventListener('toggle',async()=>{if(!legacy.open||loading||loaded)return;loading=true;pending.textContent='正在读取原有报道与趋势…';try{
+   const full=await api('data?'+legacyQuery+(legacyQuery?'&':'')+'projection=full');if(!legacy.isConnected)return;
+   data=full;const holder=document.createElement('div');holder.innerHTML=dashboard();holder.querySelector('.dashboard-map-row')?.firstElementChild?.remove();pending.remove();legacy.append(...holder.children);loaded=true;setupEnhancements(full,openDoc);setupCharts();setupDashboardCharts();
+  }catch(error){if(legacy.isConnected)pending.textContent='旧版资料读取失败，请收起后重新展开：'+error.message;}finally{loading=false;}});
+ }
  const dictionary=world.filter(c=>/^[A-Z]{2}$/.test(c.code)).map(c=>({...c,name:data.countryOptions.find(x=>x.code===c.code)?.name||c.name}));
  countryDispose=mountCountryDossier(host,{toolbar,dictionary,onLoading:({loading,error})=>{canvas.hidden=loading||Boolean(error);mapNotice.hidden=!loading&&!error;mapNotice.textContent=error?'当前范围地图暂不可用：'+error:'正在读取当前研究范围的地图与档案…';},country:$('#country').value,countryCodes:routeState.countryCodes,relationMode:routeState.relationMode||'external',query:new URLSearchParams(filters()).toString(),onState:({selected,mode})=>{routeState.countryCodes=selected;routeState.relationMode=mode;$('#country').value=selected.length===1?selected[0]:'';saveCurrentNavigation();},onScope:(payload,selected,focus)=>{
   if(!canvas.isConnected)return;const counts=new Map(),connections=new Map();for(const e of payload.events)for(const code of e.countries)counts.set(code,(counts.get(code)||0)+1);for(const c of payload.caseStudies||[])for(const code of c.content.countries)counts.set(code,(counts.get(code)||0)+1);
@@ -150,7 +160,7 @@ async function load({navigation=false}={}){
  try{
   const initialQuery=queryFor(tab==='home'||tab==='sources'||tab==='research'?{}:filters());
   const monitorView=tab==='monitor'?parseRoute(location.hash).view:null;
-  const projection=monitorView==='relations'?'relations':tab==='dashboard'||monitorView==='events'?'full':'summary';
+  const projection=monitorView==='relations'?'relations':monitorView==='events'?'full':'summary';
   const dataPath=tab==='sources'?'sensing-summary':'data?'+initialQuery+(initialQuery?'&':'')+'projection='+projection,cached=readCache.get(dataPath);
   const independent=['home','research','analysis'].includes(tab)||tab==='monitor'&&monitorView==='objects';
   const moduleHost=tab==='home'?'#home-release':tab==='research'?'#strategy-root':tab==='analysis'?'#quant-native':'#object-host';
