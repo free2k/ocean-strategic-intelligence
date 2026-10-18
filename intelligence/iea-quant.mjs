@@ -1,3 +1,4 @@
+import {matchesCountry} from './country-filter.mjs';
 import {countries} from './core.mjs';
 const memo=new WeakMap();
 const productSource=s=>s.id==='mp2rss_x:84679163'||s.id==='iea'||s.method==='authenticated-xlsx'||/^iea-(critical-minerals|ccus-projects|hydrogen-production)/.test(s.id);
@@ -16,7 +17,7 @@ export function selectIEA(raw,f={}){
  for(const d of Object.values(raw.ieaDatasets?.datasets||{}))for(const r of d.records||[]){
   if(f.sourceId&&f.sourceId!=='iea'&&f.sourceId!==r.sourceId)continue;
   if(f.topic&&r.classification?.primary!==f.topic)continue;
-  if(f.country&&r.countryCode!==f.country)continue;
+  if(!matchesCountry(r.countryCode,f.country))continue;
   // A release/collection date is not a statistical period. Undated project snapshots are omitted under date filters.
   const period=r.period?String(r.period):'';
   if((f.from||f.to)&&(!period||(f.from&&period+(period.length===4?'-12-31':'')<f.from)||(f.to&&period+(period.length===4?'-01-01':'')>f.to)))continue;

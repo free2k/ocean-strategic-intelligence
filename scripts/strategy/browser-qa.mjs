@@ -2,16 +2,16 @@ import {chromium} from 'playwright-core';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-const out=path.resolve('docs/strategy-workbench/evidence');await fs.mkdir(out,{recursive:true});
+const out=path.resolve(process.env.STRATEGY_QA_OUT||'docs/strategy-workbench/evidence');await fs.mkdir(out,{recursive:true});
 const browser=await chromium.launch({executablePath:'/Users/guangyi/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',headless:true});
 const context=await browser.newContext({viewport:{width:1440,height:1000},acceptDownloads:true});const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
 const base=process.env.STRATEGY_QA_URL||'http://127.0.0.1:3217/';const fill=async(p,v)=>page.locator(`[data-path="${p}"]`).fill(String(v));const check=async(p)=>{const field=page.locator(`[data-path="${p}"]`),parents=field.locator('xpath=ancestor::details[not(@open)]');for(const parent of await parents.all())await parent.locator(':scope > summary').click();await field.check();};const choose=async(p,v)=>page.locator(`[data-path="${p}"]`).selectOption(String(v));
 try{
- await page.goto(base+'#research');await page.locator('#login:not([hidden])').waitFor();await page.locator('#password').fill('strategy-local-test');await page.locator('#login-form button').click();await page.locator('.strategy-entry').first().waitFor();
+ await page.goto(base+'#research');await page.locator('#login:not([hidden])').waitFor();await page.locator('#password').fill(process.env.STRATEGY_QA_PASSWORD||'strategy-local-test');await page.locator('#login-form button').click();await page.locator('.strategy-entry').first().waitFor();
  assert.deepEqual(await page.locator('[data-strategy-tab]').allTextContents(),['工作台总览','智能选题推荐','战略量化研究','战略研究方法库','研究成果管理','循证研究问答']);
  const baseline=await page.evaluate(async()=>await(await fetch('api/strategy/catalog')).json());
  await page.screenshot({path:path.join(out,'overview-dark-1440.png'),fullPage:true});
- await page.locator('#strategy-tab-quant').click();await fill('title','交接包F01参考答案（工程演示，非业务结论）');await fill('period','2025');await page.locator('[data-next="1"]').click();
+ await page.locator('#strategy-tab-quant').click();await fill('title','交接包F01参考答案（工程演示，非业务结论）');await choose('periodPreset','custom');await fill('scope.from','2025-01-01');await fill('scope.to','2025-12-31');await page.locator('[data-next="1"]').click();
  await page.locator('[data-action="add-object"]').click();
  for(let i=0;i<3;i++){await fill(`objects.${i}.label`,['A','B','C'][i]);await choose(`objects.${i}.constraint`,'pass');await fill(`objects.${i}.constraintReason`,'工程固定样本，未评估业务场地');}
  for(let j=0;j<2;j++){await fill(`indicators.${j}.name`,['演示收益','演示成本'][j]);await fill(`indicators.${j}.unit`,'演示单位');await choose(`indicators.${j}.direction`,['benefit','cost'][j]);await choose(`indicators.${j}.nature`,'demo');}

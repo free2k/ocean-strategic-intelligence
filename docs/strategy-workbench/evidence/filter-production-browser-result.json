@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "topics": 6,
+  "countries": 32,
+  "sources": 190,
+  "multiCountry": "NO,US",
+  "frozenDates": {
+    "from": "2026-04-18",
+    "to": "2026-10-18"
+  },
+  "filteredSeries": 6,
+  "validatedPeriods": 4,
+  "viewports": [
+    1440,
+    390
+  ],
+  "savedRequests": 0,
+  "pageErrors": []
+}

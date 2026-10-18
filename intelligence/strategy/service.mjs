@@ -2,6 +2,9 @@ import fs from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import {compute,StrategyError,seriesRows,ENGINE_VERSION} from './engine.mjs';
 import {compute as computeV1} from './engines/1.0.0.mjs';
+import {countries} from '../core.mjs';
+import {standardTopics} from '../industry-topics.mjs';
+import {normalizeCountryFilter} from '../country-filter.mjs';
 import {getQuantCatalog} from '../quant-routes.mjs';
 import {validateRequest,invalid,matrixMethods,isObject} from './contracts.mjs';
 import {checkStudyReadiness,matchMethods,templateReadiness,validateParameterChanges,taskNames} from './governance.mjs';
@@ -11,7 +14,7 @@ const load=async name=>JSON.parse(await fs.readFile(new URL('./'+name,import.met
 export const methodCatalog=await load('methods.json');
 const templates=await load('specs/research-templates.json'),governance=await load('specs/parameter-governance.json'),indicators=await load('specs/indicator-dictionary.json');
 const engines={'1.0.0':computeV1,'1.1.0':compute};
-export const safeScope=input=>Object.fromEntries(['topic','country','sourceId','from','to'].map(k=>[k,input?.[k]||'']));
+export const safeScope=input=>Object.fromEntries(['topic','country','sourceId','from','to'].map(k=>[k,k==='country'?normalizeCountryFilter(input?.[k]):input?.[k]||'']));
 function usableSeries(s){try{seriesRows({rows:s.rows});return !!s.unit;}catch{return false;}}
 export function recommendations(catalog){
  const items=[];
@@ -92,7 +95,7 @@ export async function serveStrategy(req,res,url,{store,dir,serial,body,json}){
  try{
  if(route==='catalog'&&req.method==='GET'){
    const scope=safeScope(Object.fromEntries(url.searchParams)),catalog=getQuantCatalog(store.data,scope),page=await repo.page(),index=await repo.index(),series=(catalog.series||[]).filter(usableSeries).map(s=>({id:s.id,name:s.name,unit:s.unit,frequency:s.frequency,topic:s.topic,count:s.rows.length,from:s.rows[0]?.period,to:s.rows.at(-1)?.period}));
-   json(res,200,{...methodCatalog,methods:methodCatalog.methods.map(m=>({...m,engineStatus:m.status==='ready'?'accepted':'planned',engineVersion:m.status==='ready'?ENGINE_VERSION:null,dataStatus:'needs-data',inputSchema:m.id,outputSchema:'strategy-calculation-v2',diagnostics:m.caution})),scope,series,tasks:taskNames,parameterGovernance:governance,indicatorDictionary:indicators,templates:templates.templates.map(t=>templateReadiness(t,catalog)),recommendations:recommendations(catalog),assets:{snapshotAt:catalog.snapshotAt,insightRevision:catalog.insightRevision||null,articles:(catalog.documents||[]).filter(d=>d.classification?.status==='accepted').length,observations:(catalog.observations||[]).filter(o=>o.included).length,series:series.length,points:series.reduce((n,s)=>n+s.count,0),savedVersions:page.total,savedStudies:page.totalStudies,savedInputs:new Set(index.items.map(r=>r.numericInputHash||r.dataHash)).size,reusedTemplates:new Set(index.items.filter(r=>r.templateId).map(r=>r.templateId)).size,warning:'当前范围快照与真实保存记录；不代表全产业覆盖或业务审核完成'},studies:page.items,pagination:page,warnings:page.warnings});return true;
+   json(res,200,{...methodCatalog,methods:methodCatalog.methods.map(m=>({...m,engineStatus:m.status==='ready'?'accepted':'planned',engineVersion:m.status==='ready'?ENGINE_VERSION:null,dataStatus:'needs-data',inputSchema:m.id,outputSchema:'strategy-calculation-v2',diagnostics:m.caution})),scope,filterOptions:{topics:standardTopics.map(({id,name})=>({id,name})),countries:[...countries.map(({code,name})=>({code,name})),{code:'GLOBAL',name:'跨国 / 全球口径'}],sources:catalog.sources.map(({id,name})=>({id,name}))},series,tasks:taskNames,parameterGovernance:governance,indicatorDictionary:indicators,templates:templates.templates.map(t=>templateReadiness(t,catalog)),recommendations:recommendations(catalog),assets:{snapshotAt:catalog.snapshotAt,insightRevision:catalog.insightRevision||null,articles:(catalog.documents||[]).filter(d=>d.classification?.status==='accepted').length,observations:(catalog.observations||[]).filter(o=>o.included).length,series:series.length,points:series.reduce((n,s)=>n+s.count,0),savedVersions:page.total,savedStudies:page.totalStudies,savedInputs:new Set(index.items.map(r=>r.numericInputHash||r.dataHash)).size,reusedTemplates:new Set(index.items.filter(r=>r.templateId).map(r=>r.templateId)).size,warning:'当前范围快照与真实保存记录；不代表全产业覆盖或业务审核完成'},studies:page.items,pagination:page,warnings:page.warnings});return true;
  }
  if(route==='studies'&&req.method==='GET'){json(res,200,await repo.page({page:Number(url.searchParams.get('page')||1),pageSize:Number(url.searchParams.get('pageSize')||20),studyId:url.searchParams.get('studyId')||undefined}));return true;}
  if(['studies','validate','match','parameter-changes'].includes(route)&&req.method==='POST'){

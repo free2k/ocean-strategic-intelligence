@@ -1,9 +1,10 @@
+import {matchesCountry} from './country-filter.mjs';
 import {countries} from './core.mjs';
 import {inPeriodWindow} from './periods.mjs';
 import {constrainDocuments} from './query.mjs';
 
 export function selectSeries(data,filters={}) {
- return (data.series||[]).filter(s=>(!filters.country||s.country===filters.country)&&(!filters.topic||s.topic===filters.topic)&&(!filters.sourceId||s.sourceId===filters.sourceId))
+ return (data.series||[]).filter(s=>matchesCountry(s.country,filters.country)&&(!filters.topic||s.topic===filters.topic)&&(!filters.sourceId||s.sourceId===filters.sourceId))
   .map(s=>({...s,rows:s.rows.filter(r=>Number.isFinite(r.value)&&inPeriodWindow(r.period,filters)).sort((a,b)=>a.period.localeCompare(b.period))})).filter(s=>s.rows.length);
 }
 function comparison(rows,frequency) {

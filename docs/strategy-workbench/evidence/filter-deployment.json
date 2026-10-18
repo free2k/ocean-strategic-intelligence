@@ -1,0 +1,25 @@
+{
+  "status": "deployed",
+  "release": "/opt/ocean-intelligence/releases/20261018-strategy-filters-1.3.0",
+  "previousRelease": "/opt/ocean-intelligence/releases/20261018-strategy-workbench-1.2.0",
+  "files": 15,
+  "databaseMigration": false,
+  "dataPreserved": true,
+  "snapshot": {
+    "documents": 1484,
+    "series": 13,
+    "points": 772,
+    "businessHash": "5c073d1457af779560ed0fb61101830e9e822006441c68d7c576f10743a9ef24"
+  },
+  "api": {
+    "countries": 32,
+    "sources": 190,
+    "series": 10
+  },
+  "baselineFailures": [
+    "CSV supports quoted multiline, escaped quotes and missing capacities"
+  ],
+  "preservedProductionChanges": [
+    "intelligence/core.mjs"
+  ]
+}
