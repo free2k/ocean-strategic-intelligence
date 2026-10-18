@@ -19,7 +19,16 @@ if incoming.parent != Path('/tmp') or not incoming.name.startswith('ocean-ccus-c
 manifest = json.loads((incoming / 'manifest.json').read_text())
 base = Path('/opt/ocean-intelligence')
 guard = (base / 'ui-publish.lock').open('a'); fcntl.flock(guard, fcntl.LOCK_EX)
-eia_guard = (base / 'eia-daily.lock').open('a'); fcntl.flock(eia_guard, fcntl.LOCK_EX | fcntl.LOCK_NB)
+eia_guard = (base / 'eia-daily.lock').open('a')
+deadline = time.monotonic() + 50
+while True:
+    try:
+        fcntl.flock(eia_guard, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        break
+    except BlockingIOError:
+        if time.monotonic() >= deadline:
+            raise RuntimeError('Background processing still active; live service untouched') from None
+        time.sleep(.1)
 previous = (base / 'current').resolve()
 stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
 release = base / 'releases' / ('ccus-case-' + stamp)
