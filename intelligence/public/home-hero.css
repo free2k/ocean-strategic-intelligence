@@ -1,0 +1,97 @@
+/* The selected photograph shares the homepage's navy surface and horizon. */
+.home-photo-hero {
+  display: block;
+  min-height: 430px;
+  padding: 36px 38px 40px !important;
+  overflow: hidden;
+  background: linear-gradient(125deg, #112b3a, #101f32 60%, #122137);
+  color: #dcecf8;
+}
+.home-photo-hero .home-hero-copy {
+  position: relative;
+  z-index: 2;
+  width: 61%;
+}
+.home-photo-hero h1 { margin: 20px 0 22px; }
+.home-photo-hero .home-hero-copy > small { color: #72c6d2; }
+.home-photo-hero .home-lead { color: #a3bbce; margin-bottom: 24px; }
+.home-photo-hero .home-flow { margin-top: 25px; }
+.home-photo-hero .home-flow > span { color: #c4d5e1; background: #10253699; }
+.home-photo-hero .home-flow b { color: #6fd3d1; }
+.home-photo-hero .meta { color: #8ea8bc; }
+.home-photo-hero .home-primary-link { color: #fff; margin-top: 9px; }
+.home-hero-art {
+  position: absolute;
+  inset: 0 0 0 34%;
+  z-index: 0;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 31%);
+  mask-image: linear-gradient(90deg, transparent, #000 31%);
+}
+.home-hero-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 56% 54%;
+}
+.home-hero-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #112b3a66, transparent 20%, transparent 68%, #101f32ed);
+}
+.home-hero-caption {
+  position: absolute;
+  z-index: 1;
+  right: 30px;
+  bottom: 23px;
+  text-align: right;
+  color: #d6e6ee;
+  text-shadow: 0 1px 5px #07121e;
+}
+.home-hero-caption > span { font-size: 12px; letter-spacing: .12em; }
+.home-photo-hero .home-hero-caption > small { display: block; color: #91aebe; font-size: 9px; letter-spacing: .08em; margin-top: 4px; }
+body.light .home-photo-hero { border-color: #8ba4b5; }
+body.light .home-photo-hero .home-flow > span { border-color: #456578; }
+@media (min-width: 1800px) {
+  .home-photo-hero { min-height: 450px; padding-top: 44px !important; }
+}
+@media (max-width: 1250px) and (min-width: 901px) {
+  .home-photo-hero .home-hero-copy { width: 66%; }
+  .home-photo-hero h1 { font-size: 30px; }
+  .home-photo-hero .home-flow { gap: 7px; }
+  .home-photo-hero .home-flow > span { padding-inline: 8px; font-size: 11px; }
+  .home-hero-caption { right: 20px; }
+}
+@media (min-width: 601px) and (max-width: 900px) {
+  .home-photo-hero { padding: 30px 30px 310px !important; }
+  .home-photo-hero .home-hero-copy { width: 100%; }
+  .home-hero-art {
+    inset: auto 0 0;
+    height: 310px;
+    -webkit-mask-image: linear-gradient(0deg, #000 74%, transparent);
+    mask-image: linear-gradient(0deg, #000 74%, transparent);
+  }
+  .home-hero-art img { object-position: 56% 55%; }
+  .home-hero-art::after { background: linear-gradient(0deg, #101f32, transparent 40%); }
+}
+@media (max-width: 600px) {
+  .home-photo-hero { padding: 26px 23px 270px !important; }
+  .home-photo-hero .home-hero-copy { width: 100%; }
+  .home-photo-hero h1 { font-size: 25px; line-height: 1.55; margin: 17px 0 18px; }
+  .home-photo-hero .home-lead { font-size: 13px; margin-bottom: 18px; }
+  .home-photo-hero .home-flow { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 18px; }
+  .home-photo-hero .home-flow > span { font-size: 11px; padding: 7px 9px; }
+  .home-photo-hero .meta { font-size: 10px; }
+  .home-photo-hero .home-primary-link { font-size: 12px; }
+  .home-hero-art {
+    inset: auto 0 0;
+    height: 274px;
+    -webkit-mask-image: linear-gradient(0deg, #000 74%, transparent);
+    mask-image: linear-gradient(0deg, #000 74%, transparent);
+  }
+  .home-hero-art img { object-position: 56% 55%; }
+  .home-hero-art::after { background: linear-gradient(0deg, #101f32, transparent 40%); }
+  .home-hero-caption { right: 19px; bottom: 16px; }
+}
