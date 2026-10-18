@@ -3,7 +3,6 @@ import {Readable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
 import {gzip} from 'node:zlib';
 import {promisify} from 'node:util';
-import {pathToFileURL} from 'node:url';
 import {workspaceData} from './workspace-data.mjs';
 const compress=promisify(gzip);
 
@@ -35,7 +34,4 @@ export function createWorkspaceDataServer({upstream='http://127.0.0.1:3101',fetc
    if(!abort.signal.aborted&&!res.headersSent){res.writeHead(502,{'Content-Type':'application/json'});res.end('{"error":"页面资料暂不可用，请稍后重试"}');}
   }finally{res.off('close',closed);}
  });
-}
-if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
- createWorkspaceDataServer().listen(Number(process.env.WORKSPACE_DATA_PORT||3104),'127.0.0.1',()=>console.log('Workspace data ready on loopback'));
 }

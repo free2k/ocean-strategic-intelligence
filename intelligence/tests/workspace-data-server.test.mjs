@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
 import {createWorkspaceDataServer} from '../workspace-data-server.mjs';
 const snapshot={metrics:{documents:1},documents:[{id:'d',title:'原文',originalContent:'完整正文',evidenceAssets:[{text:'资产'}]}],entities:[],events:[],relations:[],observations:[{id:'zero',rawValue:'0'}],evidence:[{id:'p',quote:'完整原文证据'}],series:[],sources:[],topics:[]};
 async function fixture(run){
@@ -29,4 +31,13 @@ test('native projections retain their original scope counts after the main servi
  const native={...snapshot,projection:'summary',documents:[],scopeCounts:{documents:123,seriesRows:456}};
  const server=createWorkspaceDataServer({fetchImpl:async()=>Response.json(native)});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  try{const data=await(await fetch('http://127.0.0.1:'+server.address().port+'/api/data?projection=summary')).json();assert.deepEqual(data,native);}finally{await new Promise(resolve=>server.close(resolve));}
+});
+test('executable starts listening when imported by a process manager',async()=>{
+ const entry=new URL('../workspace-data-run.mjs',import.meta.url).href;
+ const child=spawn(process.execPath,['--input-type=module','-e',`await import(${JSON.stringify(entry)});`],{env:{...process.env,WORKSPACE_DATA_PORT:'0'},stdio:['ignore','pipe','pipe']});
+ let timer;
+ try{
+  const [message]=await Promise.race([once(child.stdout,'data'),once(child,'exit').then(()=>{throw Error('Adapter exited before listening');}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Adapter did not listen')),5000);})]);
+  assert.match(String(message),/Workspace data ready on loopback/);
+ }finally{clearTimeout(timer);child.kill();await once(child,'close');}
 });

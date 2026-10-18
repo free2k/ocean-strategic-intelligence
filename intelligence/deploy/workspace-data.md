@@ -7,7 +7,7 @@
 在当前版本的文件已备份、语法与数据完整性校验通过后，启动：
 
 ```sh
-pm2 start /opt/ocean-intelligence/current/intelligence/workspace-data-server.mjs --name ocean-workspace-data --interpreter /usr/bin/node-20 --max-memory-restart 512M
+pm2 start /opt/ocean-intelligence/current/intelligence/workspace-data-run.mjs --name ocean-workspace-data --interpreter /usr/bin/node-20 --max-memory-restart 512M
 ```
 
 将 `workspace-data.nginx.conf` 中的精确 location 放入原 server，执行 `nginx -t`，再平滑重载 Nginx。核对未登录请求、筛选条件、完整旧接口、三个 projection、原文详情和历史版本，确认主服务及在途任务没有中断后执行 `pm2 save`。
