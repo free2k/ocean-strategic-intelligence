@@ -45,7 +45,7 @@ export function mountDataWorkbench(host,{state={},sharedQuery='',onChange=()=>{}
   request?.abort();request=new AbortController();const pending=request;loading=true;$('#dw-records').setAttribute('aria-busy','true');$('#dw-result-label').textContent='读取中…';
   try{const next=await read(api.href+'?'+params(),{signal:pending.signal});if(life.signal.aborted||pending!==request)return;result=next;state.page=next.page;renderResult();}
   catch(error){if(error.name!=='AbortError'&&!life.signal.aborted){notice(error.message,true);$('#dw-result-label').textContent='读取失败';if(!result)$('#dw-records').innerHTML='<div class="dw-empty"><button data-dw="retry">重新加载</button></div>';}}
-  finally{if(pending===request){loading=false;$('#dw-records').removeAttribute('aria-busy');}}
+  finally{if(!life.signal.aborted&&pending===request){loading=false;$('#dw-records')?.removeAttribute('aria-busy');}}
  }
  function fieldHtml(key,value){if(value===null||typeof value!=='object')return `<div class="dw-field"><dt>${esc(names[key]||key)}<small>${esc(key)}</small></dt><dd class="${typeof value==='number'?'dw-numeric':''}">${value===null?'<span class="muted">null</span>':typeof value==='string'&&/^https?:\/\//i.test(value)&&!value.includes('\n')?safeLink(value,value):esc(value===false?'false':value===true?'true':value===''?'（空文本）':value)}</dd></div>`;return `<details class="dw-json-field"><summary>${esc(names[key]||key)} <small>${esc(key)} · ${Array.isArray(value)?value.length+' 项':'对象'}</small></summary><pre>${esc(JSON.stringify(value,null,2))}</pre></details>`;}
  function recordFields(record){return `<dl class="dw-fields">${Object.entries(record).map(([k,v])=>fieldHtml(k,v)).join('')}</dl>`;}

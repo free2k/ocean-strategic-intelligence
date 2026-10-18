@@ -22,4 +22,12 @@ test('writes invalidate snapshots and failed reads never poison the cache',async
  h.tick();h.fail(true);await assert.rejects(h.api('data?'));h.fail(false);await h.api('data?');assert.equal(h.calls(),5);
 });
 
+test('overview metadata cannot satisfy a relationship or complete-list request',async()=>{
+ const h=harness(),summary=await h.api('data?country=CN&projection=summary');
+ const [graph,full]=await Promise.all([h.api('data?country=CN&projection=relations'),h.api('data?country=CN&projection=full')]);
+ assert.equal(h.calls(),3);assert.notEqual(summary.version,graph.version);assert.notEqual(summary.version,full.version);
+ assert.equal(await h.api('data?country=CN&projection=summary'),summary);
+ assert.equal(await h.api('data?country=CN&projection=relations'),graph);assert.equal(h.calls(),3);
+});
+
 // D02 replaces cross-menu resets; shared-state behavior is tested in navigation-state.test.mjs and browser QA.
