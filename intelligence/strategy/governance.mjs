@@ -1,8 +1,8 @@
 import {invalid, matrixMethods, isObject} from './contracts.mjs';
 import {canonicalTopic} from '../industry-topics.mjs';
 
-const tasks={evaluation:['weighted','topsis','entropy-topsis','ahp-topsis','rank-robustness','equal','manual','ahp','entropy','critic'],statistics:['describe','growth','cagr','trend','moving','hhi','gini'],correlation:['pearson','spearman'],economics:['npv','lcoe','lca'],scenario:['scenario'],network:['network-degree'],causal:['did','synthetic-control','event-study'],forecast:['arima','prophet'],optimization:['milp','linear-programming'],spatial:['gis','spatial-did']};
-export const taskNames={evaluation:'方案优选与综合评价',statistics:'统计变化与结构',correlation:'配对相关分析',economics:'技术经济与低碳核算',scenario:'外生情景',network:'证据关系网络',causal:'因果识别',forecast:'未来预测',optimization:'容量与调度优化',spatial:'空间适宜性'};
+import {taskMap as tasks,taskNames} from '../public/strategy/task-map.js';
+export {taskNames};
 export function matchMethods(questionType='evaluation', dataProfile={}, methods=[]) {
   const ids=tasks[questionType]||[];
   return methods.filter(m=>ids.includes(m.id)).map(m=>{

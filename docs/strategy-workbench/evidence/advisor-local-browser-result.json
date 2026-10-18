@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "mode": "ai",
+  "model": "engineering-mock",
+  "registeredCandidates": [
+    "growth"
+  ],
+  "selectedMethod": "growth",
+  "selectedDataset": "eia-offshore-crude",
+  "sourcePeriods": 15,
+  "checked": [
+    "AI interpretation",
+    "task remains unchanged until adoption",
+    "real data matching",
+    "independent engine status",
+    "explicit method confirmation",
+    "no calculation on adoption",
+    "final source review",
+    "changed question invalidates receipt",
+    "clear method search",
+    "responsive dark/light layouts",
+    "planned engine remains disabled",
+    "missing matrix stays missing"
+  ],
+  "viewports": [
+    1440,
+    1024,
+    390
+  ],
+  "savedStudies": 1,
+  "pageErrors": []
+}

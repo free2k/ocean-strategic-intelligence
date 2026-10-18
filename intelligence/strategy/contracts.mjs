@@ -18,6 +18,8 @@ export function validateRequest(r) {
   for (const k of ['scope','input','provenance','configuration','review','parameterChanges']) if (r[k] !== undefined && !isObject(r[k])) add(k, '须为对象');
   for (const k of ['requestId','studyId','parentId','parentVersionId','engineVersion','parameterVersion','taskType','changeClass','runMode','templateId','revisionReason']) if (r[k] != null && (typeof r[k] !== 'string' || r[k].length > 2000)) add(k, '须为文本');
   if (r.requestId !== undefined && !/^[\w.-]{8,128}$/.test(r.requestId)) add('requestId','请求标识须为8—128位字母、数字、点、横线或下划线');
+  if (r.methodSelectionRequired !== undefined && typeof r.methodSelectionRequired !== 'boolean') add('methodSelectionRequired','须为布尔值');
+  if (r.methodSelection !== undefined && (!isObject(r.methodSelection) || typeof r.methodSelection.token !== 'string' || r.methodSelection.token.length > 40000)) add('methodSelection','须为有效的方法确认凭据');
   if (r.dataset != null && (!isObject(r.dataset) || r.dataset.kind !== 'series' || typeof r.dataset.id !== 'string' || !r.dataset.id.trim())) add('dataset','须指定有效的官方序列ID');
   if (isObject(r.scope)) for (const [k,v] of Object.entries(r.scope)) if (!['topic','country','sourceId','from','to'].includes(k) || typeof v !== 'string' || v.length > 120) add('scope.'+k,'范围须为有效文本');
   if (r.scope?.from && r.scope?.to && r.scope.from > r.scope.to) add('scope.to','截止日期不能早于起始日期');

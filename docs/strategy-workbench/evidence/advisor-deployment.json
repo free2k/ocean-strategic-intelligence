@@ -1,0 +1,29 @@
+{
+  "status": "deployed",
+  "release": "/opt/ocean-intelligence/releases/20261018-strategy-method-advisor-1.6.0",
+  "previousRelease": "/opt/ocean-intelligence/releases/20261018-strategy-custom-topic-1.5.1",
+  "files": 13,
+  "databaseMigration": false,
+  "dataPreserved": true,
+  "snapshot": {
+    "documents": 1485,
+    "series": 13,
+    "points": 772,
+    "businessHash": "73dd713a8828da56d8cef2d078478b7e996b8a16c8cf5ccccd1037cf82a3db40"
+  },
+  "api": {
+    "countries": 32,
+    "sources": 190,
+    "series": 10,
+    "discoveryVersion": "research-discovery-1.0",
+    "opportunities": 17,
+    "methodEntries": 24,
+    "themes": 12
+  },
+  "baselineFailures": [
+    "CSV supports quoted multiline, escaped quotes and missing capacities"
+  ],
+  "preservedProductionChanges": [
+    "All files outside the explicit program manifest are copied forward from the current production release."
+  ]
+}
