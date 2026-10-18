@@ -1,0 +1,25 @@
+{
+  "status": "deployed",
+  "release": "/opt/ocean-intelligence/releases/20261018-strategy-guided-1.4.0",
+  "previousRelease": "/opt/ocean-intelligence/releases/20261018-strategy-filters-1.3.0",
+  "files": 9,
+  "databaseMigration": false,
+  "dataPreserved": true,
+  "snapshot": {
+    "documents": 1485,
+    "series": 13,
+    "points": 772,
+    "businessHash": "342519c64fc4e3537c601eb540ae50029d13c776faa8a0ec166112591b952aff"
+  },
+  "api": {
+    "countries": 32,
+    "sources": 190,
+    "series": 10,
+    "inputReferences": 124,
+    "objectChoices": 623
+  },
+  "baselineFailures": [
+    "CSV supports quoted multiline, escaped quotes and missing capacities"
+  ],
+  "preservedProductionChanges": []
+}
