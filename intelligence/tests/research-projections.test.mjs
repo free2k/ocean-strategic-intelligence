@@ -1,4 +1,4 @@
-﻿import test from 'node:test';
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import {PostgresResearchRepository} from '../research/repositories.mjs';
 import {readObjects} from '../research/objects.mjs';
@@ -12,7 +12,9 @@ test('Postgres projections preserve merged objects, scoped histories and summary
   const object=(id,docs,extra={})=>({id,name:id,aliases:[],documentRefs:docs,eventIds:['e'],relationIds:['r'],factIds:['f'],metrics:[],...extra});
   const registry={kind:'registry',objects:[object('a',[ref('d'),ref('d','old')]),object('b',[ref('d2')],{mergedInto:'a'}),object('c',[ref('outside')])],events:[{id:'e',versions:[{...ref('d','old'),title:'before'},{...ref('d'),title:'after'},{...ref('outside'),title:'outside'}]}],relations:[{id:'r',from:'a',to:'c',versions:[ref('d'),ref('outside')]}],facts:[{id:'f',versions:[ref('d2'),ref('outside')]}],operations:[{sourceId:'b',targetId:'a',reason:'verified merge'},{sourceId:'c',targetId:'other'}]};
   await client.query('INSERT INTO projection_records VALUES ($1,$2)',[id,registry]);
+  const countryId='registry_'+'b'.repeat(64),country={kind:'registry',registryType:'country',themes:[{id:'t',versions:[{snapshotId:'old'},{snapshotId:'s'}],members:[{documentId:'d',references:[{quote:'original evidence'}]}]}],events:[],relations:[],countryRoles:[]};await client.query('INSERT INTO projection_records VALUES ($1,$2)',[countryId,country]);
   const projection=new PostgresResearchRepository({query:(sql,args)=>client.query(sql.replaceAll('ocean_research.records','pg_temp.projection_records'),args)});
+  assert.deepEqual(await projection.readCountryOverview(countryId),{...country,themes:country.themes.map(({versions,...theme})=>({...theme,versionCount:versions.length}))});
   const release={releaseId:'release',objectRegistryId:id,snapshotId:'s',batchId:'batch'},snapshot={entries:['d','d2'].map(documentId=>({documentId,body:{title:documentId,sourceId:'source',publishedAt:'2026-01-01'},classification:{status:'accepted'}})),sources:[]},batch={changes:[{documentId:'d',types:['body_updated']}],counts:{changes:{body_updated:1}}};
   const ledger=repository=>({repository,resolveRelease:async()=>release,resolve:async()=>({release,snapshot}),batch:async()=>batch});
   const full=ledger({read:async()=>structuredClone(registry)}),fast=ledger(projection);
