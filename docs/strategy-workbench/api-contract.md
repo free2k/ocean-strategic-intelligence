@@ -4,7 +4,7 @@
 
 | 接口 | 行为 |
 |---|---|
-| GET /api/strategy/catalog | 198条目录、独立引擎状态与数据状态、实际序列覆盖（以返回值为准）、三态推荐、12模板、参数治理、分页摘要 |
+| GET /api/strategy/catalog | 198条目录、独立引擎状态与数据状态、实际序列覆盖（以返回值为准）、分类推荐、可扩展长期跟踪研究主题库、参数治理、分页摘要 |
 | POST /api/strategy/match | 按任务与结构匹配MCDA/经济性/因果/优化等设计，返回理由及专属前提 |
 | POST /api/strategy/validate | 完整嵌套类型、逐格来源、硬约束和方法前提核验；可进行确定性诊断但不保存研究 |
 | POST /api/strategy/studies | 核定后计算并保存；requestId幂等；首次201，重放200，键与内容冲突409 |
@@ -52,3 +52,13 @@ GET catalog 新增 inputOptions：objects（当前证据范围内的对象名称
 年度/月度/季度统计期选择后仍保存为YYYY/YYYY-MM/YYYY-Qn；选择不完整时保持缺失。全部历史资料不能被批量声明为单元格的具体统计期。人工观测按25行分页，提交仍含全部记录。
 
 choiceModes、choiceHistory和periodParts仅属于浏览器私密草稿，不进入计算或事实接口；继续兼容旧自由文本与保存版本。数值算法、研究版本格式和原始数据不迁移。
+
+## 选题分类与长期跟踪主题（1.5.0）
+
+GET /api/strategy/catalog 保留 recommendations、templates，新增 discovery：version、directions、industries、opportunities、counts、policy。同一 dataset.id 的方法归为一个 opportunity，actions 引用推荐的稳定ID。分类读取当前范围数据目录已发布的标准领域和结构化任务；政策序列单独进入政策治理方向。新增数据随目录重读自动归组，缺少受控元数据进入待核定分类，分类不会提高计算可用状态。研究方向互斥计数，领域标签允许交叉；仍按原数据前提优先级和稳定ID排序，无额外模型调用或未经标定的价值分。
+
+主题登记 classification.directionId、industryIds、taskType、tracking.object、refreshTrigger 与 comparisonBasis。前端用稳定ID建立方案，不再维护模板ID到任务的固定映射。主题可扩展，页面数量动态读取；相关序列仅作为线索，所有主题 canExecute 始终 false，具体任务仍走独立输入核定。
+
+选题页分“数据驱动选题”和“长期跟踪研究主题库”，支持研究方向、领域、任务、状态、关键词交叉筛选，每页最多6张卡片。先过滤方法再合并显示，避免状态筛选后出现不匹配入口；两个目录分别保存浏览器筛选与页码，浏览不会修改研究核定、请求ID或计算输入。当前目录在服务端生成，前端过滤及分页只渲染当前页；超过千组选题的工程样本验证了渲染上限。
+
+长期跟踪指同一主题沿用可比对象、指标、期间、单位和方法，人工核定新数据后另建版本比较变化；当前未启用自动定时监测、提醒或后台复算。更新规则、数据缺口和方法边界在主题卡片中可查看。

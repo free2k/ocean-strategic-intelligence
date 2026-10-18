@@ -1,4 +1,5 @@
 import {invalid, matrixMethods, isObject} from './contracts.mjs';
+import {canonicalTopic} from '../industry-topics.mjs';
 
 const tasks={evaluation:['weighted','topsis','entropy-topsis','ahp-topsis','rank-robustness','equal','manual','ahp','entropy','critic'],statistics:['describe','growth','cagr','trend','moving','hhi','gini'],correlation:['pearson','spearman'],economics:['npv','lcoe','lca'],scenario:['scenario'],network:['network-degree'],causal:['did','synthetic-control','event-study'],forecast:['arima','prophet'],optimization:['milp','linear-programming'],spatial:['gis','spatial-did']};
 export const taskNames={evaluation:'方案优选与综合评价',statistics:'统计变化与结构',correlation:'配对相关分析',economics:'技术经济与低碳核算',scenario:'外生情景',network:'证据关系网络',causal:'因果识别',forecast:'未来预测',optimization:'容量与调度优化',spatial:'空间适宜性'};
@@ -39,6 +40,10 @@ export function validateParameterChanges(previous, patch, actor={id:'authenticat
 }
 
 export function templateReadiness(template, catalog) {
-  const series=(catalog.series||[]).filter(s=>s.unit&&s.rows?.length>=2),isSeries=template.id==='TH01';
-  return {...template,engineStatus:['TH05','TH06','TH07','TH08','TH09','TH12'].includes(template.id)?'partial-or-planned':'partial',dataStatus:isSeries&&series.length?'needs-review':'needs-data',canExecute:false,liveReadiness:isSeries&&series.length?`发现${series.length}条官方序列，须逐条核定适用性后建立具体任务`:'当前尚未核定模板所需完整数据；'+template.dataRequirements,missingFields:isSeries&&series.length?['确认具体序列、对象总体和研究期间']:[template.dataRequirements],updatePolicy:'人工审核新数据及口径后另建版本；未启用自动提醒或后台复算'};
+  const topics=new Set((template.seriesTopics||[]).map(canonicalTopic));
+  const series=(catalog.series||[]).filter(s=>s.unit&&s.rows?.length>=2&&topics.has(canonicalTopic(s.topic)));
+  return {...template,engineStatus:template.engineProfile||'partial-or-planned',dataStatus:series.length?'needs-review':'needs-data',canExecute:false,
+    liveReadiness:series.length?`发现${series.length}条相关官方序列，仅作数据线索；须核定对象、口径和完整输入后建立具体任务。`:'当前尚未核定主题所需完整数据；'+template.dataRequirements,
+    missingFields:series.length?['确认具体序列、对象总体、研究期间及主题所需的其余输入']:[template.dataRequirements],
+    updatePolicy:'人工审核新数据及口径后另建版本；未启用自动提醒或后台复算'};
 }

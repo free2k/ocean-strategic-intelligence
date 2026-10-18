@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "classifiedOpportunities": 46,
+  "methodEntries": 89,
+  "themes": 12,
+  "maxCardsPerPage": 6,
+  "checked": [
+    "deduplication",
+    "category counts",
+    "all pages",
+    "cross filters",
+    "search focus",
+    "empty results",
+    "stable dataset action",
+    "stable theme action",
+    "independent persistent filters",
+    "manual update policy",
+    "dark/light responsive layouts"
+  ],
+  "viewportWidths": [
+    1440,
+    1024,
+    390
+  ],
+  "pageErrors": [],
+  "researchWrites": 0
+}

@@ -1,6 +1,6 @@
 {
-  "version": "1.2-target",
-  "meaning": "平台候选研究设计；指标为文献启发下的建议，非逐篇原始指标完整抄录",
+  "version": "1.5",
+  "meaning": "长期跟踪研究主题库；研究设计可随数据积累扩展，须核定输入与专属方法前提后建立具体任务。",
   "templates": [
     {
       "id": "TH01",
@@ -13,7 +13,25 @@
       "dataRequirements": "统计数据源的连续版本；序列缺口和修订标识",
       "references": [],
       "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
-      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "development",
+        "industryIds": [
+          "海洋油气",
+          "海上风电"
+        ]
+      },
+      "taskType": "statistics",
+      "engineProfile": "partial",
+      "seriesTopics": [
+        "海洋油气",
+        "海上风电"
+      ],
+      "tracking": {
+        "object": "产业产量、装机、投资及结构",
+        "refreshTrigger": "官方统计发布或历史修订",
+        "comparisonBasis": "固定对象总体、统计期间、单位与系统边界；口径变化须说明差异后另建版本。"
+      }
     },
     {
       "id": "TH02",
@@ -26,7 +44,23 @@
       "dataRequirements": "企业报告及季度序列；人工核定同口径指标",
       "references": [],
       "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
-      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "development",
+        "industryIds": [
+          "海洋装备"
+        ]
+      },
+      "taskType": "evaluation",
+      "engineProfile": "partial",
+      "seriesTopics": [
+        "海洋装备"
+      ],
+      "tracking": {
+        "object": "重点企业、船队与专用装备",
+        "refreshTrigger": "企业季度/年度报告或船队状态更新",
+        "comparisonBasis": "固定对象总体、统计期间、单位与系统边界；口径变化须说明差异后另建版本。"
+      }
     },
     {
       "id": "TH03",
@@ -41,7 +75,23 @@
         "R01"
       ],
       "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
-      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "development",
+        "industryIds": [
+          "海洋油气",
+          "海上风电",
+          "多能融合"
+        ]
+      },
+      "taskType": "statistics",
+      "engineProfile": "partial",
+      "seriesTopics": [],
+      "tracking": {
+        "object": "去重后的项目及商业化阶段",
+        "refreshTrigger": "项目许可、开工、投运或退役事件",
+        "comparisonBasis": "固定对象总体、统计期间、单位与系统边界；口径变化须说明差异后另建版本。"
+      }
     },
     {
       "id": "TH04",
@@ -58,7 +108,21 @@
         "R06"
       ],
       "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
-      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "decision",
+        "industryIds": [
+          "多能融合"
+        ]
+      },
+      "taskType": "evaluation",
+      "engineProfile": "partial",
+      "seriesTopics": [],
+      "tracking": {
+        "object": "同一海域用途下的候选技术路线",
+        "refreshTrigger": "新增方案、指标证据或专家核定",
+        "comparisonBasis": "固定对象总体、统计期间、单位与系统边界；口径变化须说明差异后另建版本。"
+      }
     },
     {
       "id": "TH05",
@@ -76,7 +140,22 @@
         "R09"
       ],
       "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
-      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "economics",
+        "industryIds": [
+          "海上风电",
+          "多能融合"
+        ]
+      },
+      "taskType": "economics",
+      "engineProfile": "partial-or-planned",
+      "seriesTopics": [],
+      "tracking": {
+        "object": "风电制氢方案与统一交付边界",
+        "refreshTrigger": "成本、资源、电解性能或运输条件修订",
+        "comparisonBasis": "固定对象总体、统计期间、单位与系统边界；口径变化须说明差异后另建版本。"
+      }
     },
     {
       "id": "TH06",
@@ -93,7 +172,23 @@
         "R11"
       ],
       "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
-      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "economics",
+        "industryIds": [
+          "海洋油气",
+          "海洋低碳",
+          "多能融合"
+        ]
+      },
+      "taskType": "economics",
+      "engineProfile": "partial-or-planned",
+      "seriesTopics": [],
+      "tracking": {
+        "object": "平台供能方案、成本与净排放",
+        "refreshTrigger": "负荷、供电构成、燃料或排放因子更新",
+        "comparisonBasis": "固定对象总体、统计期间、单位与系统边界；口径变化须说明差异后另建版本。"
+      }
     },
     {
       "id": "TH07",
@@ -109,7 +204,22 @@
         "R10"
       ],
       "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
-      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "systems",
+        "industryIds": [
+          "多能融合",
+          "海上风电"
+        ]
+      },
+      "taskType": "optimization",
+      "engineProfile": "partial-or-planned",
+      "seriesTopics": [],
+      "tracking": {
+        "object": "同期逐时资源、负荷与容量方案",
+        "refreshTrigger": "新增完整逐时样本或工程约束调整",
+        "comparisonBasis": "固定对象总体、统计期间、单位与系统边界；口径变化须说明差异后另建版本。"
+      }
     },
     {
       "id": "TH08",
@@ -125,7 +235,21 @@
         "R11"
       ],
       "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
-      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "economics",
+        "industryIds": [
+          "海洋低碳"
+        ]
+      },
+      "taskType": "optimization",
+      "engineProfile": "partial-or-planned",
+      "seriesTopics": [],
+      "tracking": {
+        "object": "海上CCUS源汇、路径与投资阶段",
+        "refreshTrigger": "源汇台账、许可、运力或成本更新",
+        "comparisonBasis": "固定对象总体、统计期间、单位与系统边界；口径变化须说明差异后另建版本。"
+      }
     },
     {
       "id": "TH09",
@@ -140,7 +264,23 @@
         "R07"
       ],
       "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
-      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "decision",
+        "industryIds": [
+          "海洋油气",
+          "海上风电",
+          "多能融合"
+        ]
+      },
+      "taskType": "spatial",
+      "engineProfile": "partial-or-planned",
+      "seriesTopics": [],
+      "tracking": {
+        "object": "退役设施、空间约束与改造方案",
+        "refreshTrigger": "设施检测、禁用区图层或改造成本更新",
+        "comparisonBasis": "固定对象总体、统计期间、单位与系统边界；口径变化须说明差异后另建版本。"
+      }
     },
     {
       "id": "TH10",
@@ -155,7 +295,21 @@
         "R01"
       ],
       "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
-      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "policy",
+        "industryIds": [
+          "宏观政策"
+        ]
+      },
+      "taskType": "causal",
+      "engineProfile": "partial",
+      "seriesTopics": [],
+      "tracking": {
+        "object": "政策工具、技术主体与项目节点",
+        "refreshTrigger": "政策生效、失效或新增商业化事件",
+        "comparisonBasis": "固定对象总体、统计期间、单位与系统边界；口径变化须说明差异后另建版本。"
+      }
     },
     {
       "id": "TH11",
@@ -171,7 +325,21 @@
         "R11"
       ],
       "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
-      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "decision",
+        "industryIds": [
+          "多能融合"
+        ]
+      },
+      "taskType": "evaluation",
+      "engineProfile": "partial",
+      "seriesTopics": [],
+      "tracking": {
+        "object": "风渔等融合项目的经济生态表现",
+        "refreshTrigger": "项目收益、养殖产出或生态监测更新",
+        "comparisonBasis": "固定对象总体、统计期间、单位与系统边界；口径变化须说明差异后另建版本。"
+      }
     },
     {
       "id": "TH12",
@@ -187,7 +355,22 @@
         "R09"
       ],
       "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
-      "longTermValue": "持续保存同口径数据与项目事件，复用模板并比较研究版本"
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "economics",
+        "industryIds": [
+          "海上风电",
+          "海洋低碳"
+        ]
+      },
+      "taskType": "economics",
+      "engineProfile": "partial-or-planned",
+      "seriesTopics": [],
+      "tracking": {
+        "object": "统一交付功能单位下的氢载体运输链",
+        "refreshTrigger": "链条清单、损耗、距离、成本或能源因子更新",
+        "comparisonBasis": "固定对象总体、统计期间、单位与系统边界；口径变化须说明差异后另建版本。"
+      }
     }
   ]
 }
