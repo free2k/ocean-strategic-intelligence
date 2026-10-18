@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildRelationshipModel,relationshipScope,relationshipOption,availableViews,relationshipNetwork,relationshipGraphOption,searchRelationshipNodes} from '../quant-preview/chart-views.js';
+import {buildRelationshipModel,refineRelationshipModel,relationshipScope,relationshipOption,availableViews,relationshipNetwork,relationshipGraphOption,searchRelationshipNodes} from '../quant-preview/chart-views.js';
 
 const fixture=()=>({
  entities:[{id:'a',name:'Same',nameZh:'同名企业',type:'公司',aliases:['Alpha']},{id:'b',name:'同名企业',type:'公司'},
@@ -145,6 +145,53 @@ test('node search spans domain labels, type branches and normalized aliases whil
  assert.deepEqual(searchRelationshipNodes(model,'同名企业').filter(n=>n.kind==='entity').map(n=>n.entityId).sort(),['a','b']);
  assert.deepEqual(searchRelationshipNodes(model,'不存在'),[]);
  assert.ok(searchRelationshipNodes(model).every(n=>n.kind==='sector'));
+});
+
+test('secondary filters intersect across all graph levels and keep the other endpoint as context',()=>{
+ const model=buildRelationshipModel(fixture()),before=structuredClone(model);
+ const refined=refineRelationshipModel(model,{entityType:'项目',relationType:'投资'});
+ assert.deepEqual(refined.relations.map(r=>r.id),['1']);
+ assert.deepEqual([...refined.nodes.keys()].sort(),['a','c']);
+ assert.deepEqual([...refined.sectors.keys()],['海上风电']);
+ assert.equal(refined.nodes.get('a').relations.length,1);
+ assert.deepEqual([...refined.nodes.get('a').sectors],['海上风电']);
+ for(const state of [{},{sector:'海上风电'},{sector:'海上风电',entityType:'项目'},{subject:'a'},{subject:'c'}]){
+  const network=relationshipNetwork(refined,state);
+  assert.deepEqual(network.relations.map(r=>r.id),['1']);
+  assert.deepEqual(network.links.filter(l=>l.kind==='relation').flatMap(l=>l.recordIds),['1']);
+ }
+ assert.deepEqual(model,before);
+});
+
+test('refined search membership and counts exclude relations and homonyms outside secondary conditions',()=>{
+ const model=refineRelationshipModel(buildRelationshipModel(fixture()),{entityType:'项目',relationType:'合作'});
+ assert.deepEqual(model.relations.map(r=>r.id),['2']);
+ const matches=searchRelationshipNodes(model,'同名企业').filter(n=>n.kind==='entity');
+ assert.deepEqual(matches.map(n=>[n.entityId,n.count]),[['a',1]]);
+ assert.equal(searchRelationshipNodes(model,'ALPHA')[0].entityId,'a');
+ assert.deepEqual(searchRelationshipNodes(model,'海洋油气'),[]);
+});
+
+test('empty intersections stay empty through expansion, drill-down and search',()=>{
+ const model=buildRelationshipModel(fixture());
+ for(const filters of [{entityType:'项目',relationType:'运营'},{entityType:'不存在'},{relationType:'不存在'}]){
+  const refined=refineRelationshipModel(model,filters);
+  assert.equal(refined.nodes.size,0);assert.equal(refined.sectors.size,0);
+  assert.deepEqual(searchRelationshipNodes(refined,'同名企业'),[]);
+  for(const state of [{},{sector:'海洋油气'},{subject:'a'}]){
+   const network=relationshipNetwork(refined,state);
+   assert.deepEqual(network.nodes,[]);assert.deepEqual(network.relations,[]);
+  }
+ }
+});
+
+test('secondary reset only restores the supplied primary snapshot and never reintroduces foreign documents',()=>{
+ const data=fixture();data.documents=data.documents.filter(d=>d.id==='wind');
+ const primary=buildRelationshipModel(data),narrow=refineRelationshipModel(primary,{relationType:'投资'}),reset=refineRelationshipModel(primary);
+ assert.deepEqual(narrow.relations.map(r=>r.id),['1']);
+ assert.deepEqual(reset.relations.map(r=>r.id),['1','2']);
+ assert.ok(reset.relations.every(r=>r.document.id==='wind'));
+ assert.ok(!reset.nodes.has('b')&&!reset.nodes.has('d'));
 });
 
 test('expanded graph tooltips escape stored text and classification links cannot appear as evidence',()=>{

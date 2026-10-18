@@ -15,6 +15,8 @@ const documents = [
  {id: 'c', topic: '海上风电', country: 'CN', sourceId: 's1', publishedAt: '2026-10-17'}
 ].map(d => ({...d, title: d.id, url: 'https://example.test/' + d.id}));
 const entities = Array.from({length: 6}, (_, i) => ({id: 'n' + i, name: '主体' + i, type: i % 2 ? '项目' : '公司'}));
+entities[3].type = '技术'; entities[5].type = '公司';
+const relationTypes = {a: '投资', b: '合作', c: '供货'};
 const deferred = () => {let resolve; const promise = new Promise(r => {resolve = r;}); return {promise, resolve};};
 
 (async () => {
@@ -33,7 +35,7 @@ const deferred = () => {let resolve; const promise = new Promise(r => {resolve =
    if (query.get('country') === 'US') return json({error: 'Temporarily unavailable'}, 503);
    if (delayed && query.get('topic') === '海洋油气' && query.get('from') === '2026-10-01') await delayed.promise;
    const selected = documents.filter(d => ['topic', 'country', 'sourceId'].every(key => !query.get(key) || d[key] === query.get(key)) && (!query.get('from') || d.publishedAt >= query.get('from')) && (!query.get('to') || d.publishedAt <= query.get('to')));
-   return json({documents: selected, relations: selected.map(d => ({id: 'r' + d.id, from: 'n' + documents.indexOf(d) * 2, to: 'n' + (documents.indexOf(d) * 2 + 1), type: '投资', documentId: d.id})),
+   return json({documents: selected, relations: selected.map(d => ({id: 'r' + d.id, from: 'n' + documents.indexOf(d) * 2, to: 'n' + (documents.indexOf(d) * 2 + 1), type: relationTypes[d.id], documentId: d.id})),
     entities, topics, sources, countryOptions: countries, events: [], observations: [], evidence: [], connections: [], series: [], errors: [], generatedAt: '2026-10-18T00:00:00Z'});
   }
   if (url.pathname === '/world.json') return json(countries);
@@ -55,28 +57,55 @@ const deferred = () => {let resolve; const promise = new Promise(r => {resolve =
    await page.waitForFunction(() => {const el = document.querySelector('.relationship-canvas'); return el && window.echarts?.getInstanceByDom(el) && document.querySelector('[data-relationship-chart]')?.getAttribute('aria-busy') !== 'true';});
    assert.deepEqual(await graphIds(), ids);
    assert.equal(await page.locator('#monitor-filter-slot .filters').count(), 1);
-   assert.equal(await page.locator('[data-rel-domain]').count(), 7);
+   assert.equal(await page.locator('[data-rel-domain]').count(), 0);
+   assert.equal(await page.locator('[data-rel-entity-type]').count(), 1);
+   assert.equal(await page.locator('[data-rel-relation-type]').count(), 1);
   }
   await page.goto(base + '/#monitor?view=relations'); await ready(['ra', 'rb', 'rc']);
   assert.ok(!requests.some(url => url.pathname === '/api/monitor-period'));
   passed.push('relations work without a published brief');
-  await page.locator('[data-rel-domain="海上风电"]').click(); await ready(['rb', 'rc']);
+  await page.selectOption('#topic', '海上风电'); await ready(['rb', 'rc']);
   assert.equal(await page.locator('#topic').inputValue(), '海上风电');
   assert.equal(new URLSearchParams((await page.evaluate(() => location.hash)).split('?')[1]).get('topic'), '海上风电');
   await page.selectOption('#topic', '海洋油气'); await ready(['ra']);
-  assert.equal(await page.locator('[data-rel-domain="海洋油气"]').getAttribute('aria-pressed'), 'true');
-  passed.push('domain buttons, toolbar and URL stay in sync');
-  await page.locator('[data-rel-domain="海上风电"]').click(); await ready(['rb', 'rc']);
-  await page.locator('[data-rel-search-toggle]').click(); await page.locator('[data-rel-search]').fill('主体4'); await page.locator('[data-rel-search]').press('Enter'); await ready(['rc']);
-  assert.equal(await page.locator('[data-rel-domain="海上风电"]').getAttribute('aria-pressed'), 'true');
+  assert.match(await page.locator('[data-rel-primary-scope]').textContent(), /海洋油气/);
+  passed.push('primary toolbar owns domain selection without duplicate secondary controls');
+  await page.selectOption('#topic', '海上风电'); await ready(['rb', 'rc']);
+  const primaryHash = await page.evaluate(() => location.hash), primaryRequests = requests.filter(url => url.pathname === '/api/data').length;
+  await page.selectOption('[data-rel-entity-type]', '公司'); await ready(['rb', 'rc']);
+  await page.selectOption('[data-rel-relation-type]', '供货'); await ready(['rc']);
+  assert.match(await page.locator('[data-rel-refine-count]').textContent(), /一级 2 条关系 → 二级 1 条/);
+  await page.locator('[data-rel-expand]').click(); await ready(['rc']);
+  assert.equal(await page.locator('[data-rel-relation-type]').inputValue(), '供货');
+  await page.locator('[data-rel-search-toggle]').click(); await page.locator('[data-rel-search]').fill('主体2'); await page.locator('[data-rel-search]').press('Enter');
+  assert.equal(await page.locator('[data-rel-result]').count(), 0);
+  await page.locator('[data-rel-search]').fill('主体4'); await page.locator('[data-rel-search]').press('Enter'); await ready(['rc']);
   assert.equal(await page.locator('#topic').inputValue(), '海上风电');
-  await page.locator('[data-rel-expand]').click(); await ready(['rb', 'rc']);
-  passed.push('searching a subject retains its selected toolbar domain');
+  await page.locator('[data-rel-expand]').click(); await ready(['rc']);
+  passed.push('secondary type and relation filters intersect; search and expansion retain them');
+  await page.selectOption('[data-rel-entity-type]', '技术'); await ready([]);
+  assert.equal(await page.locator('[data-rel-relation-type]').inputValue(), '供货');
+  assert.match(await page.locator('[data-rel-relation-type] option:checked').textContent(), /供货 · 0/);
+  await page.locator('[data-rel-expand]').click(); await ready([]);
+  assert.equal(await page.locator('[data-rel-status]').isVisible(), true);
+  await page.locator('[data-rel-refine-reset]').click(); await ready(['rb', 'rc']);
+  assert.equal(await page.evaluate(() => location.hash), primaryHash);
+  assert.equal(requests.filter(url => url.pathname === '/api/data').length, primaryRequests);
+  passed.push('empty intersections never broaden; secondary reset preserves primary scope without API refetch');
+  await page.selectOption('[data-rel-relation-type]', '合作'); await ready(['rb']);
+  await page.selectOption('#topic', '海洋油气'); await ready(['ra']);
+  assert.equal(await page.locator('[data-rel-entity-type]').inputValue(), '');
+  assert.equal(await page.locator('[data-rel-relation-type]').inputValue(), '');
+  assert.deepEqual(await page.locator('[data-rel-relation-type] option').evaluateAll(options => options.map(o => o.value)), ['', '投资']);
+  await page.selectOption('#topic', '海上风电'); await ready(['rb', 'rc']);
+  passed.push('changing the primary scope resets secondary choices to available records');
   await page.selectOption('#country', 'CN'); await ready(['rc']);
   await page.selectOption('#source', 's1'); await ready(['rc']);
   await page.locator('#from').fill('2026-10-16'); await page.locator('#from').dispatchEvent('change'); await ready(['rc']);
   await page.locator('#to').fill('2026-10-18'); await page.locator('#to').dispatchEvent('change'); await ready(['rc']);
-  await page.locator('[data-rel-domain=""]').click(); await ready(['rc']);
+  await page.selectOption('[data-rel-entity-type]', '公司'); await page.selectOption('[data-rel-relation-type]', '供货'); await ready(['rc']);
+  await page.locator('[data-rel-refine-reset]').click(); await ready(['rc']);
+  assert.equal(await page.locator('#topic').inputValue(), '海上风电');
   assert.equal(await page.locator('#country').inputValue(), 'CN'); assert.equal(await page.locator('#source').inputValue(), 's1');
   await page.locator('[data-rel-expand]').click(); await ready(['rc']);
   passed.push('country, source and custom dates combine; expanding never widens filters');
@@ -98,7 +127,8 @@ const deferred = () => {let resolve; const promise = new Promise(r => {resolve =
   await page.goto(base + '/#monitor?view=relations&topic=海上风电&country=CN&sourceId=s1&from=2026-10-16&to=2026-10-18'); await ready(['rc']);
   await page.setViewportSize({width: 390, height: 1000});
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
-  assert.deepEqual(errors, []); passed.push('scoped URLs reload correctly and domain buttons fit mobile');
+  for (const selector of ['[data-rel-entity-type]', '[data-rel-relation-type]']) assert.equal(await page.locator(selector).evaluate(el => {const box = el.getBoundingClientRect(); return box.left >= 0 && box.right <= innerWidth;}), true);
+  assert.deepEqual(errors, []); passed.push('scoped URLs reload correctly and secondary filters fit mobile');
   console.log(JSON.stringify({passed: true, checks: passed, pageErrors: errors}, null, 2));
  } finally {delayed?.resolve(); await browser?.close(); await new Promise(resolve => server.close(resolve));}
 })().catch(error => {console.error(error); process.exitCode = 1;});

@@ -136,6 +136,23 @@ export function relationshipOption(scope,view,{dark=true,reduced=false,width=100
   emphasis:{focus:'adjacency',label:{show:true},lineStyle:{width:3,opacity:1}},blur:{itemStyle:{opacity:.16},lineStyle:{opacity:.06}}}]};
 }
 
+// Refinement operates exclusively on the snapshot selected by the primary
+// toolbar. Rebuild memberships and search counts from the surviving records.
+export function refineRelationshipModel(model,{entityType='',relationType=''}={}){
+ const relations=model.relations.filter(r=>(!entityType||model.nodes.get(r.from).type===entityType||model.nodes.get(r.to).type===entityType)&&(!relationType||r.type===relationType));
+ const nodes=new Map(),sectors=new Map();
+ for(const row of relations){
+  if(!sectors.has(row.sector))sectors.set(row.sector,{name:row.sector,relations:[],nodes:new Set(),types:new Map()});
+  const sector=sectors.get(row.sector);sector.relations.push(row);
+  for(const id of new Set([row.from,row.to])){
+   if(!nodes.has(id))nodes.set(id,{...model.nodes.get(id),relations:[],sectors:new Set()});
+   const node=nodes.get(id);node.relations.push(row);node.sectors.add(row.sector);sector.nodes.add(id);
+   if(!sector.types.has(node.type))sector.types.set(node.type,new Set());sector.types.get(node.type).add(id);
+  }
+ }
+ return {nodes,relations,sectors};
+}
+
 // The expanded explorer keeps every saved relation in the selected scope. Only
 // search results are paginated; graph nodes and source records are never sampled.
 export function relationshipNetwork(model,state={}){

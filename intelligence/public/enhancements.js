@@ -1,6 +1,6 @@
 import {topicLabel,canonicalTopic} from './industry-topics.mjs';
 import {formatDisplayDate} from './preview.js';
-import {buildRelationshipModel,relationshipNetwork,relationshipGraphOption,searchRelationshipNodes,relationshipEntityLegend} from './quant/chart-views.js';
+import {buildRelationshipModel,refineRelationshipModel,relationshipNetwork,relationshipGraphOption,searchRelationshipNodes,relationshipEntityLegend} from './quant/chart-views.js';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let disposeRelationship=()=>{},relationshipEngine;
 export function businessViews(data){
@@ -12,13 +12,13 @@ export function relationshipView(){
  return `<section class="relationship-explorer" data-relationship-chart aria-label="可逐层放大的产业关系图">
   <div class="relationship-top-actions"><button data-rel-expand type="button" aria-pressed="true">一键全展开</button><button data-rel-search-toggle type="button" aria-expanded="false" aria-controls="relationship-search-panel">一键搜索</button></div>
   <div class="relationship-intro"><div><small>INDUSTRY / CONNECTED NETWORK</small><h3>沿节点放大，逐层看清产业关联</h3><p>领域 → 主体类型 → 具体主体 → 关联关系</p></div><div class="relationship-stats" data-rel-stats></div></div>
-  <div class="relationship-domains" data-rel-domains role="group" aria-label="选择产业领域"></div>
+  <section class="relationship-refinements" aria-label="产业关联图谱二级筛选"><div class="relationship-refinement-heading"><strong>二级筛选</strong><span data-rel-refine-count role="status"></span><button data-rel-refine-reset type="button">重置二级</button></div><p class="relationship-primary-scope" data-rel-primary-scope></p><div class="relationship-refinement-fields"><label>主体类型<select data-rel-entity-type aria-label="二级主体类型"></select></label><label>关系类型<select data-rel-relation-type aria-label="二级关系类型"></select></label></div><p class="relationship-refinement-note">在一级范围内进一步筛选；保留所选类型主体及其关联对象。</p></section>
   <nav class="relationship-breadcrumbs" data-rel-breadcrumbs aria-label="当前关系范围"></nav>
   <div class="relationship-layout"><section class="relationship-stage"><div class="relationship-stage-heading"><p class="relationship-caption" data-rel-caption role="status"></p><span class="relationship-expanded-badge">关系图 · 全部展开</span></div>
    <div class="relationship-chart-wrap"><div class="relationship-canvas" role="img" tabindex="0" aria-label="全部展开的产业关系图"></div><div class="relationship-chart-status" data-rel-status role="status">正在准备产业关系图…</div></div>
    <div class="relationship-map-controls"><span data-rel-hint>点击节点放大下钻 · 滚轮缩放 · 拖动画布平移</span><div><button data-rel-zoom="in" aria-label="放大关系图">＋</button><button data-rel-zoom="out" aria-label="缩小关系图">−</button><button data-rel-zoom="fit">适应画布</button></div></div>
-   <div class="relationship-edge-tools" data-rel-edge-tools hidden></div><p class="relationship-legend" data-rel-legend></p>
-  </section><aside class="relationship-browser" id="relationship-search-panel" data-rel-search-panel hidden aria-label="搜索图谱节点"><div class="relationship-search-heading"><strong>搜索并定位节点</strong><button data-rel-search-close aria-label="关闭节点搜索">×</button></div><label>查找领域、主体类型、名称或别名<input data-rel-search type="search" maxlength="180" placeholder="输入关键词，一键定位" autocomplete="off"></label><div class="relationship-browser-heading" data-rel-list-heading></div><div class="relationship-browser-list" data-rel-list></div><div class="relationship-pager" data-rel-pager></div></aside></div>
+   <p class="relationship-legend" data-rel-legend></p>
+  </section><aside class="relationship-browser" id="relationship-search-panel" data-rel-search-panel hidden aria-label="搜索图谱节点"><div class="relationship-search-heading"><strong>搜索并定位主体</strong><button data-rel-search-close aria-label="关闭节点搜索">×</button></div><label>在当前筛选结果中查找主体名称或别名<input data-rel-search type="search" maxlength="180" placeholder="输入主体名称，一键定位" autocomplete="off"></label><div class="relationship-browser-heading" data-rel-list-heading></div><div class="relationship-browser-list" data-rel-list></div><div class="relationship-pager" data-rel-pager></div></aside></div>
   <section class="relationship-evidence" data-rel-evidence aria-live="polite"></section>
  </section>`;
 }
@@ -34,9 +34,11 @@ function mountRelationshipChart(host,data,openDoc){
  // The API snapshot already applies the toolbar's date, country and source scope.
  // Start expanded inside its selected domain; local drill-down never widens it.
  const toolbarTopic=canonicalTopic(document.querySelector('#topic')?.value||'');
- const state={sector:toolbarTopic,entityType:'',subject:'',relationType:''};
- const domains=[...new Set([...(data.topics||[]),...model.sectors.keys()].map(canonicalTopic))];
- let chart,engine,network,option,searchTimer,drillTimer,hovered,viewport='',detail=false,searchOpen=false,query='',searchPage=0,searchResults=[],selectedRecords=[],evidencePage=0;
+ const state={sector:toolbarTopic,entityType:'',subject:''},refinement={entityType:'',relationType:''};
+ const primaryLabel=id=>document.querySelector('#'+id)?.selectedOptions?.[0]?.textContent||'';
+ const from=document.querySelector('#from')?.value,to=document.querySelector('#to')?.value;
+ q('[data-rel-primary-scope]').textContent='一级范围：'+[primaryLabel('topic')||'全部领域',primaryLabel('country')||'全部地域',primaryLabel('source')||'全部来源',from||to?`${from||'不限起始日期'} 至 ${to||'不限结束日期'}`:'全部日期'].join(' · ');
+ let chart,engine,network,refinedModel,option,searchTimer,drillTimer,hovered,viewport='',detail=false,searchOpen=false,query='',searchPage=0,searchResults=[],selectedRecords=[],evidencePage=0;
  function evidence(){
   const rows=selectedRecords.slice(evidencePage*4,evidencePage*4+4);
   q('[data-rel-evidence]').innerHTML=rows.length?`<div class="relationship-evidence-heading"><div><small>RELATION / SOURCE EVIDENCE</small><h4>这条关联来自哪里</h4></div><span>${selectedRecords.length} 条保存记录</span></div><div class="relationship-evidence-rows">${rows.map(r=>`<article><p><strong>${esc(model.nodes.get(r.from).name)}</strong><span>${esc(r.type)} →</span><strong>${esc(model.nodes.get(r.to).name)}</strong></p><blockquote>${esc(r.proof[0]?.quoteZh||r.proof[0]?.quote||'原记录未保存摘录，可查看原文核对。')}</blockquote><div class="relationship-evidence-source"><span>${esc(r.document.titleZh||r.document.title||'来源资料')} · ${esc(formatDisplayDate(r.document.publishedAt||'日期未记录'))} · ${esc({verified:'人工确认',confirmed:'已确认',extracted:'系统提取',candidate:'候选记录'}[r.status]||'保存记录')}</span><button data-rel-document="${esc(r.document.id)}">原文与证据 ↗</button></div></article>`).join('')}</div>${selectedRecords.length>4?`<div class="relationship-pager"><button data-rel-evidence-page="-1" ${evidencePage===0?'disabled':''}>上一组</button><span>${evidencePage+1} / ${Math.ceil(selectedRecords.length/4)}</span><button data-rel-evidence-page="1" ${(evidencePage+1)*4>=selectedRecords.length?'disabled':''}>下一组</button></div>`:''}`:'<p class="meta">点击节点放大并展开下一级关联；点击带箭头的连线查看原文证据。分类归属连线与原文关系分别标识。</p>';
@@ -49,12 +51,12 @@ function mountRelationshipChart(host,data,openDoc){
   if(!chart){chart=engine.init(q('.relationship-canvas'),null,{renderer:'canvas'});chart.on('click',chartClick);chart.on('mouseover',event=>{hovered=event.dataType==='node'?event.data:null;});chart.on('mouseout',()=>{hovered=null;});chart.on('graphRoam',afterZoom);}
   chart.setOption(option,{replaceMerge:['series']});
   q('[data-rel-status]').hidden=network.nodes.length>0;
-  if(!network.nodes.length)q('[data-rel-status]').textContent='当前筛选范围没有关联记录，请调整领域或日期。';
+  if(!network.nodes.length)q('[data-rel-status]').textContent=refinement.entityType||refinement.relationType?'当前二级条件下没有关联记录，可调整条件或重置二级筛选。':'当前一级范围没有关联记录，请调整上方筛选工具区。';
  }
  function renderSearch(){
-  searchResults=searchRelationshipNodes(model,query);
+  searchResults=query.trim()?searchRelationshipNodes(refinedModel,query).filter(n=>n.kind==='entity'):[...refinedModel.nodes.values()].map(n=>({kind:'entity',entityId:n.id,name:n.name,count:n.relations.length,detail:n.type+' · '+[...n.sectors].map(topicLabel).join(' / ')})).sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name,'zh-CN'));
   const pages=Math.max(1,Math.ceil(searchResults.length/12));searchPage=Math.max(0,Math.min(pages-1,searchPage));
-  q('[data-rel-list-heading]').textContent=query?`找到 ${searchResults.length} 个节点`:'选择领域，或输入关键词';
+  q('[data-rel-list-heading]').textContent=query?`当前筛选内找到 ${searchResults.length} 个主体`:`当前筛选内 ${searchResults.length} 个主体`;
   q('[data-rel-list]').innerHTML=searchResults.slice(searchPage*12,searchPage*12+12).map((n,i)=>`<button class="relationship-browser-item" data-rel-result="${searchPage*12+i}"><span><strong>${esc(n.name)}</strong><small>${esc(n.detail)}</small></span><b>${n.count}<span> ›</span></b></button>`).join('')||'<p class="empty">没有匹配节点，请尝试其他名称或别名。</p>';
   q('[data-rel-pager]').innerHTML=pages>1?`<button data-rel-page="-1" ${searchPage===0?'disabled':''}>上一页</button><span>${searchPage+1} / ${pages}</span><button data-rel-page="1" ${searchPage+1>=pages?'disabled':''}>下一页</button>`:'';
  }
@@ -66,39 +68,40 @@ function mountRelationshipChart(host,data,openDoc){
   else if(focus)q('[data-rel-search-toggle]').focus({preventScroll:true});
  }
  function render(){
-  network=relationshipNetwork(model,state);
+  refinedModel=refineRelationshipModel(model,refinement);
+  network=relationshipNetwork(refinedModel,state);
   q('[data-rel-stats]').innerHTML=[['主体',network.entityCount],['关系记录',network.relations.length],['来源资料',network.documents]].map(([label,value])=>`<div><strong>${value.toLocaleString('zh-CN')}</strong><span>${label}</span></div>`).join('');
   q('[data-rel-expand]').setAttribute('aria-pressed',String(state.sector===toolbarTopic&&!state.entityType&&!state.subject));
-  q('[data-rel-domains]').innerHTML=[['','全部领域'],...domains.map(id=>[id,topicLabel(id)])].map(([id,label])=>`<button type="button" data-rel-domain="${esc(id)}" aria-pressed="${state.sector===id}">${esc(label)}</button>`).join('');
+  const types=new Map(),relationTypes=new Map();
+  for(const node of model.nodes.values())types.set(node.type,(types.get(node.type)||0)+1);
+  for(const row of model.relations)if(!refinement.entityType||model.nodes.get(row.from).type===refinement.entityType||model.nodes.get(row.to).type===refinement.entityType)relationTypes.set(row.type,(relationTypes.get(row.type)||0)+1);
+  // Keep a now-empty selection visible instead of silently broadening the result.
+  if(refinement.relationType&&!relationTypes.has(refinement.relationType))relationTypes.set(refinement.relationType,0);
+  const options=(counts,selected,all)=>`<option value="">${all}</option>`+[...counts].sort(([a],[b])=>a.localeCompare(b,'zh-CN')).map(([value,count])=>`<option value="${esc(value)}" ${selected===value?'selected':''}>${esc(value)} · ${count}</option>`).join('');
+  q('[data-rel-entity-type]').innerHTML=options(types,refinement.entityType,'全部主体类型');
+  q('[data-rel-relation-type]').innerHTML=options(relationTypes,refinement.relationType,'全部关系类型');
+  q('[data-rel-refine-count]').textContent=`一级 ${model.relations.length.toLocaleString('zh-CN')} 条关系 → 二级 ${refinedModel.relations.length.toLocaleString('zh-CN')} 条`;
+  q('[data-rel-refine-reset]').disabled=!refinement.entityType&&!refinement.relationType;
   q('[data-rel-breadcrumbs]').innerHTML=`<button data-rel-level="root" ${state.sector===toolbarTopic&&!state.entityType&&!state.subject?'aria-current="page"':''}>${toolbarTopic?'当前筛选范围':'全部领域'}</button>${state.sector?`<span>›</span><button data-rel-level="sector">${esc(topicLabel(state.sector))}</button>`:''}${state.entityType?`<span>›</span><button data-rel-level="type">${esc(state.entityType)}</button>`:''}${network.subject?`<span>›</span><span aria-current="page">${esc(network.subject.name)}</span>`:''}`;
-  q('[data-rel-caption]').textContent=network.subject?`${network.subject.name} · 当前筛选下 ${network.relations.length} 条关系记录`:state.entityType?`${state.sector?topicLabel(state.sector)+' / ':''}${state.entityType} · ${network.primaryCount} 个主体及其关联对象`:state.sector?`${topicLabel(state.sector)} · 当前筛选下全部主体与关联关系`:`当前筛选涵盖 ${model.sectors.size} 个领域 · 已展开全部分类、主体与关联关系`;
-  q('[data-rel-edge-tools]').hidden=!network.subject;
-  if(network.subject)q('[data-rel-edge-tools]').innerHTML=`<label>关系类型<select data-rel-relation-type><option value="">全部关系</option>${network.relationTypes.map(type=>`<option ${state.relationType===type?'selected':''}>${esc(type)}</option>`).join('')}</select></label><span>当前范围全部展示</span>`;
+  q('[data-rel-caption]').textContent=network.subject?`${network.subject.name} · 当前筛选下 ${network.relations.length} 条关系记录`:state.entityType?`${state.sector?topicLabel(state.sector)+' / ':''}${state.entityType} · ${network.primaryCount} 个主体及其关联对象`:state.sector?`${topicLabel(state.sector)} · 当前筛选下全部主体与关联关系`:`当前筛选涵盖 ${refinedModel.sectors.size} 个领域 · 已展开全部分类、主体与关联关系`;
   q('[data-rel-legend]').innerHTML=`<span class="relationship-type-keys">${relationshipEntityLegend.filter(t=>network.nodes.some(n=>n.entityType===t.name)).map(t=>`<span><i style="background:${t.color}"></i>${t.name}</span>`).join('')}</span><span>无箭头连线表示分类归属，箭头表示原文记录的关联；虚线关系尚未人工确认。${network.subject?'':'跨领域主体在各自领域分别出现。'}放大图谱可显示更多主体名称，悬停节点查看完整名称。</span>`;
   q('.relationship-canvas').setAttribute('aria-label',q('[data-rel-caption]').textContent+'。点击节点放大下钻。');
-  evidence();draw();
+  evidence();draw();if(searchOpen)renderSearch();
  }
  function chooseNode(node){
   if(!node)return;
   if(node.kind==='root'){zoom('fit');return;}
   if(node.kind==='entity'){
-   if(!model.nodes.has(node.entityId))return;
-   state.subject=node.entityId;state.sector=node.sector||toolbarTopic;state.entityType=model.nodes.get(node.entityId).type;
+   if(!refinedModel.nodes.has(node.entityId))return;
+   state.subject=node.entityId;state.sector=node.sector||toolbarTopic;state.entityType=refinedModel.nodes.get(node.entityId).type;
   }else{
    state.sector=node.sector||'';state.entityType=node.kind==='type'?node.entityType:'';state.subject='';
   }
-  state.relationType='';selectedRecords=[];evidencePage=0;
+  selectedRecords=[];evidencePage=0;
   toggleSearch(false,{focus:false});render();
  }
- function chooseDomain(topic){
-  const control=document.querySelector('#topic');
-  // Dispatch the same change event as the toolbar so URL, API and graph agree.
-  if(control&&canonicalTopic(control.value)!==topic){
-   if(topic&&![...control.options].some(o=>canonicalTopic(o.value)===topic))control.add(new Option(topicLabel(topic),topic));
-   control.value=[...control.options].find(o=>canonicalTopic(o.value)===topic)?.value||'';
-   control.dispatchEvent(new Event('change',{bubbles:true}));return;
-  }
-  state.sector=topic;state.entityType='';state.subject='';state.relationType='';selectedRecords=[];evidencePage=0;toggleSearch(false,{focus:false});render();
+ function resetNavigation(){
+  state.sector=toolbarTopic;state.entityType='';state.subject='';selectedRecords=[];evidencePage=0;query='';searchPage=0;clearTimeout(searchTimer);q('[data-rel-search]').value='';toggleSearch(false,{focus:false});
  }
  function chartClick(event){
   clearTimeout(drillTimer);
@@ -129,7 +132,7 @@ function mountRelationshipChart(host,data,openDoc){
   const b=event.target.closest('button');if(!b)return;
   if(b.dataset.relDocument){openDoc(b.dataset.relDocument);return;}
   if(b.hasAttribute('data-rel-retry')){start();return;}
-  if(b.hasAttribute('data-rel-domain')){chooseDomain(b.dataset.relDomain);return;}
+  if(b.hasAttribute('data-rel-refine-reset')){refinement.entityType='';refinement.relationType='';resetNavigation();render();return;}
   if(b.hasAttribute('data-rel-search-toggle')){toggleSearch(!searchOpen);return;}
   if(b.hasAttribute('data-rel-search-close')){toggleSearch(false);return;}
   if(b.hasAttribute('data-rel-result')){chooseNode(searchResults[Number(b.dataset.relResult)]);return;}
@@ -138,11 +141,11 @@ function mountRelationshipChart(host,data,openDoc){
   if(b.dataset.relEvidencePage){evidencePage+=Number(b.dataset.relEvidencePage);evidence();return;}
   if(b.hasAttribute('data-rel-expand')||b.dataset.relLevel){
    const level=b.dataset.relLevel;if(level!=='type')state.entityType='';if(level!=='type'&&level!=='sector')state.sector=toolbarTopic;
-   state.subject='';state.relationType='';selectedRecords=[];evidencePage=0;query='';q('[data-rel-search]').value='';toggleSearch(false,{focus:false});render();
+   state.subject='';selectedRecords=[];evidencePage=0;query='';clearTimeout(searchTimer);q('[data-rel-search]').value='';toggleSearch(false,{focus:false});render();
   }
  },{signal:life.signal});
  host.addEventListener('input',event=>{if(!event.target.matches('[data-rel-search]'))return;clearTimeout(searchTimer);searchTimer=setTimeout(()=>{query=q('[data-rel-search]').value;searchPage=0;renderSearch();},160);},{signal:life.signal});
- host.addEventListener('change',event=>{if(event.target.matches('[data-rel-relation-type]')){state.relationType=event.target.value;selectedRecords=[];evidencePage=0;render();}},{signal:life.signal});
+ host.addEventListener('change',event=>{const key=event.target.matches('[data-rel-entity-type]')?'entityType':event.target.matches('[data-rel-relation-type]')?'relationType':'';if(key){refinement[key]=event.target.value;resetNavigation();render();}},{signal:life.signal});
  host.addEventListener('keydown',event=>{if(event.key==='Escape'&&searchOpen){event.preventDefault();toggleSearch(false);}if(event.target===q('[data-rel-search]')&&event.key==='Enter'){clearTimeout(searchTimer);query=event.target.value;renderSearch();chooseNode(searchResults[0]);}},{signal:life.signal});
  const resize=new ResizeObserver(()=>{chart?.resize();const canvas=q('.relationship-canvas');if(chart&&viewport!==canvas.clientWidth+'x'+canvas.clientHeight)draw();});resize.observe(q('.relationship-canvas'));
  const theme=new MutationObserver(()=>draw());theme.observe(document.body,{attributes:true,attributeFilter:['class']});
