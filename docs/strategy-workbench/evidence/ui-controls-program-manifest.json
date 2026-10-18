@@ -1,0 +1,99 @@
+{
+  "release": "20261018-ui-polish-1.7.0",
+  "baseRelease": "/opt/ocean-intelligence/releases/20261018-strategy-method-advisor-1.6.0",
+  "files": [
+    {
+      "path": "intelligence/public/app.js",
+      "sha256": "f88dc623ba4930eaef56888aa0c18f7128391f330071439bd61dc6e45c3ea8a9",
+      "previousSha256": "5cc319c78ffd5d277c0098cf3ca23e68e8a62c2692342e5e846b95c50676ce4a"
+    },
+    {
+      "path": "intelligence/public/country-dossier.js",
+      "sha256": "591832e8e0313f76d42297a40e1d4ffa8abf8dea385bbcb1892e7a71abbf4eba",
+      "previousSha256": "4d9c60220a1927ca4f51d7732545b562c881858abd5657d815875cb0063991a2"
+    },
+    {
+      "path": "intelligence/public/index.html",
+      "sha256": "842b527cc3bc9d3f9beea08564e19c7e047783734b8307e62de9870ce6e71271",
+      "previousSha256": "fd173dc399ccb71c951f6be22edb90c1c144631e64400766cb18a616628d1e73"
+    },
+    {
+      "path": "intelligence/public/multi-select.js",
+      "sha256": "77ebc11aa8fdf8085f81c835e60d7deeb26dd8d6ea9e1816e80facce28e5e3b2",
+      "previousSha256": null
+    },
+    {
+      "path": "intelligence/public/rule-editor.js",
+      "sha256": "efc95cec25109d85e91f353ac364b543349c1e7153a4e37727eab4c846794c63",
+      "previousSha256": "1a12293f21e3bda64e0b88e2db4bf6e64015ae7f0b40193f6e05da7ffa9285c2"
+    },
+    {
+      "path": "intelligence/public/strategy-workbench.js",
+      "sha256": "4f62216d48b372828593583ee3d0e383f2d5242a225d1fa10bf3b21d7b9676cf",
+      "previousSha256": "666de6c38177f803ad56b211ffc41736bd933bacbe47f21c1cc1b548921344af"
+    },
+    {
+      "path": "intelligence/public/strategy/discovery.js",
+      "sha256": "d1b04df37339cf09872a5768f7be3e1ae3de5b909c90223e656a4c6821480e0c",
+      "previousSha256": "80e6ab12b346a5dbdd33ac38541b8a145b57d11d3fcab20fbbbb738c85baa163"
+    },
+    {
+      "path": "intelligence/public/strategy/guided-inputs.js",
+      "sha256": "131de1135f70081d20faabb0e3307484726d8413f4b1c08767e4cab4448ed0af",
+      "previousSha256": "57a31c3bb63b33d71d7c602eb8e8a1a6cb152e1403646deeaee426e8d8e4a30e"
+    },
+    {
+      "path": "intelligence/public/strategy/matrix.js",
+      "sha256": "0439c64c66011c3958cede850e4fc822f4d0939d32e981102ee5443fd5aa24de",
+      "previousSha256": "364592ef8b433469d06ec6322637cf928c7411e9f10ea134d4c0fa223f4aed08"
+    },
+    {
+      "path": "intelligence/public/strategy/scope-fields.js",
+      "sha256": "0fba2ca75d6fe537ea22c2bc6eb068a6ab3d6b497352f786d6b51916aa5002f9",
+      "previousSha256": "1746e0f81f1fe42e52466755dc15ea4cd4a2b86b8012d0cd8ba0c85fe41f04a1"
+    },
+    {
+      "path": "intelligence/public/strategy/wizard.js",
+      "sha256": "6b285840602e232699bfe50f0da1ff802022e33e3fba27ed76c2aa9d20704a99",
+      "previousSha256": "1ac0c488a8399464deff5e450350987f6b4d17dfe61108da0b26281b24844b7b"
+    },
+    {
+      "path": "intelligence/public/ui-controls.css",
+      "sha256": "84b8fe5e4aba6b2e4b535f09c3b469bea62d4df532b68afbb708f418f0b1de6b",
+      "previousSha256": null
+    },
+    {
+      "path": "intelligence/quant-preview/style.css",
+      "sha256": "b16527f2a10a584921805041cd7f29a6a79129286e61d706083f6291b9cc6de4",
+      "previousSha256": "00c8a74e915d4ab1bcdbbc2d96b37fa0acc9ffdce91f29312be653dde1f56c28"
+    },
+    {
+      "path": "intelligence/server.mjs",
+      "sha256": "cfc3d09f213f613e33a606d3a25063090f82c4802f1dbbe1e8b1681b0eff98d8",
+      "previousSha256": "603abec301808c68566a964339b15f0c465507a6132f5fe3dab4386d69846c11"
+    },
+    {
+      "path": "intelligence/tests/strategy-guided-inputs.test.mjs",
+      "sha256": "4baab945efdee289287f47697517cba5d4a32fc288ca69811b1755fc19ee6c57",
+      "previousSha256": "b369166c3f5989051af554e90f302da2383c8f732fc5dd39a1384964a5e094e0"
+    }
+  ],
+  "preservedProductionChanges": [
+    {
+      "path": "intelligence/public/country-dossier.js",
+      "reason": "Preserved live JSON/time-out response handling"
+    },
+    {
+      "path": "intelligence/public/rule-editor.js",
+      "reason": "Preserved live processing panel, source context and lifecycle"
+    },
+    {
+      "path": "intelligence/quant-preview/style.css",
+      "reason": "Preserved live chart heading layout; changed form controls only"
+    },
+    {
+      "path": "all unlisted runtime files",
+      "reason": "Copied forward from the current release, including processing modules and temporal-date fixes"
+    }
+  ]
+}

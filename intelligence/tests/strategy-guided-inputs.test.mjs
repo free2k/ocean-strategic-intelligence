@@ -78,7 +78,7 @@ test('editable inputs across methods and the evidence dialog explain every neces
       d.step = step;
       const {document} = parseHTML('<html><body>' + wizard(d, c) + '</body></html>');
       for (const el of document.querySelectorAll('input:not([readonly]),textarea')) {
-        if (el.dataset.path === 'title' || el.type === 'search' || el.type === 'checkbox' && el.hasAttribute('data-country')) continue;
+        if (el.dataset.path === 'title' || el.type === 'search' || el.type === 'checkbox' && (el.hasAttribute('data-country') || el.hasAttribute('data-multi-value'))) continue;
         assert.ok(el.hasAttribute('data-free-input'), `${method}: ${el.outerHTML}`);
         const note = document.getElementById(el.getAttribute('aria-describedby'));
         assert.ok(note?.textContent.trim().length > 15, `${method}: missing explanation for ${el.dataset.path || el.id}`);

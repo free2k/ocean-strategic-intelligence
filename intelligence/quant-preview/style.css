@@ -40,12 +40,9 @@ header button{flex-shrink:0;font-size:12px}
 .gallery-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;margin-bottom:10px;font-size:11px;color:var(--muted)}
 .gallery-meta button{padding:3px 8px;font-size:11px;background:transparent}
 .chart-card{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:0 0 20px;overflow:hidden}
-.card-head{padding:18px 20px 0;display:grid;gap:14px}
-.chart-heading{min-width:0;text-align:center}
-.card-head h2{margin:0;font-size:20px;line-height:1.5;font-weight:600;overflow-wrap:anywhere;text-wrap:balance}
-.chart-title-part{display:inline-block;max-width:100%;vertical-align:top}
-.chart-caption{max-width:850px;margin:7px auto 0;font-size:12px;line-height:1.75;color:var(--muted);text-wrap:pretty;overflow-wrap:anywhere}
-.chart-tools{display:flex;justify-content:space-between;align-items:center;gap:10px 20px;flex-wrap:wrap;min-width:0}
+.card-head{padding:18px 20px 0;display:flex;justify-content:space-between;gap:16px;align-items:center}
+.chart-heading{min-width:0}
+.card-head h2{margin:6px 0 0;font-size:18px;line-height:1.5;font-weight:600;overflow-wrap:anywhere}
 .chart-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
 .tag{font-size:10px;padding:2px 7px;border-radius:5px;background:#e6f2f3;color:#347582;display:inline-block}
 .views{display:flex;justify-content:flex-end;gap:5px;flex-wrap:wrap}
@@ -108,10 +105,8 @@ body.embedded main{margin:0;padding:0 8px}
  .metrics{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:10px}
  .metric{justify-content:flex-start;padding:0 14px;gap:6px}.metric:nth-child(odd){border-left:0}
  .metric b{font-size:20px}.metric span{font-size:11px}
- .card-head{gap:12px;padding:16px 16px 0}
- .card-head h2{font-size:17px}.chart-caption{font-size:11px}
- .chart-title-part{display:block}.chart-title-separator{display:none}
- .chart-tools,.chart-meta,.views{justify-content:center}.chart-tools>.chart-meta,.chart-tools>.views{width:100%}
+ .card-head{align-items:flex-start;flex-direction:column;gap:12px;padding:16px 16px 0}
+ .card-head h2{font-size:16px}.views{justify-content:flex-start}
  .chart{height:320px}.chart-layout{padding:8px 4px 0}
  .chart-card[data-template="hierarchy"] .chart{height:350px}
  .chart-sources{padding:0 16px 12px}.data-details{padding:10px 16px}
@@ -260,3 +255,14 @@ dialog.dw-dialog{padding:0;margin:auto;width:min(1050px,calc(100vw - 48px));max-
 .dw-filter-actions{grid-column:auto;align-self:end;align-items:center;height:44px;white-space:nowrap}
 @media(max-width:1200px){.dw-filters{grid-template-columns:minmax(140px,1.5fr) repeat(2,minmax(100px,1fr))}.dw-search{grid-column:auto}.dw-filter-actions{grid-column:1/-1}}
 @media(max-width:800px){.dw-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.dw-search{grid-column:1/-1}.dw-filter-actions{grid-column:1/-1}.dw-filter-actions button{flex:1}}
+
+/* Match the shared workspace's control rhythm without changing chart geometry. */
+.control-row { align-items: center; gap: 10px; }
+.control-row > :is(input, select, button), .cohort-control select, .chart-tools select { box-sizing: border-box; min-height: 40px; line-height: 20px; padding: 9px 12px; border-radius: 9px; }
+.dw-view-controls > :is(button, select), .dw-pagination > :is(button, select) { box-sizing: border-box; min-height: 34px; display: inline-flex; align-items: center; line-height: 20px; padding: 6px 9px; }
+.dw-edit-grid { align-items: start; }
+.dw-edit-grid > label { gap: 8px; }
+.dw-edit-grid label > span { min-height: 20px; line-height: 20px; }
+.dw-edit-grid :is(input:not([type=checkbox]), select) { min-height: 44px; line-height: 22px; padding: 10px 12px; }
+.dw-heading-actions { align-items: center; }
+.dw-heading-actions > button { min-height: 36px; }

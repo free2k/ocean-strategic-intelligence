@@ -1,0 +1,46 @@
+{
+  "status": "deployed",
+  "release": "/opt/ocean-intelligence/releases/20261018-ui-polish-1.7.0",
+  "previousRelease": "/opt/ocean-intelligence/releases/20261018-strategy-method-advisor-1.6.0",
+  "files": 15,
+  "databaseMigration": false,
+  "dataPreserved": true,
+  "snapshot": {
+    "documents": 1485,
+    "series": 13,
+    "points": 772,
+    "businessHash": "3a785e59eb7ca6c21d604d79bd9e52fa2e0069826f374c7991b031edf0e412a7"
+  },
+  "api": {
+    "countries": 32,
+    "sources": 190,
+    "series": 10,
+    "methods": 198,
+    "executableMethods": 22,
+    "advisorVersion": "method-advisor-1.0",
+    "aiAvailable": true,
+    "discoveryVersion": "research-discovery-1.0",
+    "uiAssets": 3
+  },
+  "baselineFailures": [
+    "CSV supports quoted multiline, escaped quotes and missing capacities"
+  ],
+  "preservedProductionChanges": [
+    {
+      "path": "intelligence/public/country-dossier.js",
+      "reason": "Preserved live JSON/time-out response handling"
+    },
+    {
+      "path": "intelligence/public/rule-editor.js",
+      "reason": "Preserved live processing panel, source context and lifecycle"
+    },
+    {
+      "path": "intelligence/quant-preview/style.css",
+      "reason": "Preserved live chart heading layout; changed form controls only"
+    },
+    {
+      "path": "all unlisted runtime files",
+      "reason": "Copied forward from the current release, including processing modules and temporal-date fixes"
+    }
+  ]
+}

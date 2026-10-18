@@ -81,7 +81,7 @@ try {
   assert.equal(await choice('provenance.description').count(), 0);
   assert.equal(await page.locator('.strategy-source-readonly').count(), 1);
   await field('comparable').selectOption('true');await field('constraintsConfirmed').selectOption('true');
-  await step(2); assert.equal(await field('confirmed').inputValue(), 'false'); await field('confirmed').selectOption('true');
+  await step(2); await page.locator('[data-confirm-current-method]').click(); await page.locator('[data-method-selection-status]').waitFor(); assert.equal(await field('confirmed').inputValue(), 'false'); await field('confirmed').selectOption('true');
   const validationPromise = page.waitForResponse(r => r.url().includes('/api/strategy/validate') && r.request().method() === 'POST');
   await page.locator('[data-action="validate"]').click(); const response = await validationPromise, validation = await response.json();
   assert.equal(response.status(), 200); assert.equal(validation.canExecute, true, JSON.stringify(validation)); assert.equal(validation.saved, false);

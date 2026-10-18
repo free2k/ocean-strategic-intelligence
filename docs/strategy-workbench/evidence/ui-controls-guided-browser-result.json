@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "sourceReferences": 2,
+  "objectChoices": 0,
+  "indicatorChoices": 13,
+  "methodsChecked": [
+    "topsis",
+    "ahp-weighting",
+    "npv",
+    "scenario",
+    "growth"
+  ],
+  "precisionRetained": 0.600000123,
+  "verifiedPeriods": 15,
+  "viewports": [
+    1440,
+    390
+  ],
+  "productionStudiesCreated": 0,
+  "paidAIRequests": 0,
+  "pageErrors": []
+}

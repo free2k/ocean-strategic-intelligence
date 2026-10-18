@@ -45,8 +45,8 @@ function opportunityCard(item, catalog) {
     <h3>${esc(item.title)}</h3>
     ${item.context ? `<p class="meta">${esc([item.context.sourceName, item.context.country, item.context.frequency].filter(Boolean).join(' · '))}</p>` : ''}
     ${coverage ? `<p>${esc(coverage.from)}—${esc(coverage.to)} · ${coverage.n}期 · ${esc(coverage.unit)}</p>` : `<p>${esc(first.reason)}</p>`}
-    <div class="strategy-discovery-methods">${item.actions.map(r => `<button type="button" data-recommend="${esc(r.id)}">${esc(methodNames[r.method] || r.title)} →</button>`).join('')}</div>
     <p class="meta">${first.status === 'ready' ? '进入任务后仍须核定研究范围、来源与方法前提。' : esc(first.gaps)}</p>
+    <div class="strategy-discovery-methods">${item.actions.map(r => `<button type="button" data-recommend="${esc(r.id)}">${esc(methodNames[r.method] || r.title)} →</button>`).join('')}</div>
     <details><summary>推荐与分类依据</summary><p class="meta">${esc(item.classification.reason)}</p>${item.actions.map(r => `<p class="meta"><b>${esc(methodNames[r.method] || r.method)}</b>：${esc(r.reason)} ${esc(r.gaps)} 引擎：${r.engineStatus === 'accepted' ? '已接入' : '待接入'}。</p>`).join('')}<small class="meta">规则 ${esc(item.classification.version)} · ${esc(item.classification.ruleId)}</small></details>
   </article>`;
 }

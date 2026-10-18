@@ -1,0 +1,1133 @@
+{
+  "passed": true,
+  "pageLayouts": 42,
+  "alignmentGroups": 56,
+  "pages": [
+    {
+      "view": "home",
+      "width": 1440,
+      "theme": "dark"
+    },
+    {
+      "view": "sources",
+      "width": 1440,
+      "theme": "dark"
+    },
+    {
+      "view": "library",
+      "width": 1440,
+      "theme": "dark"
+    },
+    {
+      "view": "monitor",
+      "width": 1440,
+      "theme": "dark"
+    },
+    {
+      "view": "dashboard",
+      "width": 1440,
+      "theme": "dark"
+    },
+    {
+      "view": "analysis",
+      "width": 1440,
+      "theme": "dark"
+    },
+    {
+      "view": "research",
+      "width": 1440,
+      "theme": "dark"
+    },
+    {
+      "view": "home",
+      "width": 1440,
+      "theme": "light"
+    },
+    {
+      "view": "sources",
+      "width": 1440,
+      "theme": "light"
+    },
+    {
+      "view": "library",
+      "width": 1440,
+      "theme": "light"
+    },
+    {
+      "view": "monitor",
+      "width": 1440,
+      "theme": "light"
+    },
+    {
+      "view": "dashboard",
+      "width": 1440,
+      "theme": "light"
+    },
+    {
+      "view": "analysis",
+      "width": 1440,
+      "theme": "light"
+    },
+    {
+      "view": "research",
+      "width": 1440,
+      "theme": "light"
+    },
+    {
+      "view": "home",
+      "width": 1024,
+      "theme": "dark"
+    },
+    {
+      "view": "sources",
+      "width": 1024,
+      "theme": "dark"
+    },
+    {
+      "view": "library",
+      "width": 1024,
+      "theme": "dark"
+    },
+    {
+      "view": "monitor",
+      "width": 1024,
+      "theme": "dark"
+    },
+    {
+      "view": "dashboard",
+      "width": 1024,
+      "theme": "dark"
+    },
+    {
+      "view": "analysis",
+      "width": 1024,
+      "theme": "dark"
+    },
+    {
+      "view": "research",
+      "width": 1024,
+      "theme": "dark"
+    },
+    {
+      "view": "home",
+      "width": 1024,
+      "theme": "light"
+    },
+    {
+      "view": "sources",
+      "width": 1024,
+      "theme": "light"
+    },
+    {
+      "view": "library",
+      "width": 1024,
+      "theme": "light"
+    },
+    {
+      "view": "monitor",
+      "width": 1024,
+      "theme": "light"
+    },
+    {
+      "view": "dashboard",
+      "width": 1024,
+      "theme": "light"
+    },
+    {
+      "view": "analysis",
+      "width": 1024,
+      "theme": "light"
+    },
+    {
+      "view": "research",
+      "width": 1024,
+      "theme": "light"
+    },
+    {
+      "view": "home",
+      "width": 390,
+      "theme": "dark"
+    },
+    {
+      "view": "sources",
+      "width": 390,
+      "theme": "dark"
+    },
+    {
+      "view": "library",
+      "width": 390,
+      "theme": "dark"
+    },
+    {
+      "view": "monitor",
+      "width": 390,
+      "theme": "dark"
+    },
+    {
+      "view": "dashboard",
+      "width": 390,
+      "theme": "dark"
+    },
+    {
+      "view": "analysis",
+      "width": 390,
+      "theme": "dark"
+    },
+    {
+      "view": "research",
+      "width": 390,
+      "theme": "dark"
+    },
+    {
+      "view": "home",
+      "width": 390,
+      "theme": "light"
+    },
+    {
+      "view": "sources",
+      "width": 390,
+      "theme": "light"
+    },
+    {
+      "view": "library",
+      "width": 390,
+      "theme": "light"
+    },
+    {
+      "view": "monitor",
+      "width": 390,
+      "theme": "light"
+    },
+    {
+      "view": "dashboard",
+      "width": 390,
+      "theme": "light"
+    },
+    {
+      "view": "analysis",
+      "width": 390,
+      "theme": "light"
+    },
+    {
+      "view": "research",
+      "width": 390,
+      "theme": "light"
+    }
+  ],
+  "alignments": [
+    {
+      "name": "home-dark-1440",
+      "rows": []
+    },
+    {
+      "name": "sources-dark-1440",
+      "rows": []
+    },
+    {
+      "name": "library-dark-1440",
+      "rows": [
+        {
+          "row": "classification-filters",
+          "controls": 4,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "monitor-dark-1440",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 5,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dashboard-dark-1440",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 4,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "analysis-dark-1440",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 5,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44,
+            44,
+            44
+          ]
+        },
+        {
+          "row": "dw-filters",
+          "controls": 3,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "research-dark-1440",
+      "rows": []
+    },
+    {
+      "name": "home-light-1440",
+      "rows": []
+    },
+    {
+      "name": "sources-light-1440",
+      "rows": []
+    },
+    {
+      "name": "library-light-1440",
+      "rows": [
+        {
+          "row": "classification-filters",
+          "controls": 4,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "monitor-light-1440",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 5,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dashboard-light-1440",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 4,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "analysis-light-1440",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 5,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44,
+            44,
+            44
+          ]
+        },
+        {
+          "row": "dw-filters",
+          "controls": 3,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "research-light-1440",
+      "rows": []
+    },
+    {
+      "name": "home-dark-1024",
+      "rows": []
+    },
+    {
+      "name": "sources-dark-1024",
+      "rows": []
+    },
+    {
+      "name": "library-dark-1024",
+      "rows": [
+        {
+          "row": "classification-filters",
+          "controls": 4,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "monitor-dark-1024",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 3,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44
+          ]
+        },
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dashboard-dark-1024",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 3,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "analysis-dark-1024",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 3,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44
+          ]
+        },
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        },
+        {
+          "row": "dw-filters",
+          "controls": 3,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "research-dark-1024",
+      "rows": []
+    },
+    {
+      "name": "home-light-1024",
+      "rows": []
+    },
+    {
+      "name": "sources-light-1024",
+      "rows": []
+    },
+    {
+      "name": "library-light-1024",
+      "rows": [
+        {
+          "row": "classification-filters",
+          "controls": 4,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "monitor-light-1024",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 3,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44
+          ]
+        },
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dashboard-light-1024",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 3,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "analysis-light-1024",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 3,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44
+          ]
+        },
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        },
+        {
+          "row": "dw-filters",
+          "controls": 3,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "research-light-1024",
+      "rows": []
+    },
+    {
+      "name": "home-dark-390",
+      "rows": []
+    },
+    {
+      "name": "sources-dark-390",
+      "rows": []
+    },
+    {
+      "name": "library-dark-390",
+      "rows": []
+    },
+    {
+      "name": "monitor-dark-390",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        },
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dashboard-dark-390",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "analysis-dark-390",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        },
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        },
+        {
+          "row": "dw-filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "research-dark-390",
+      "rows": []
+    },
+    {
+      "name": "home-light-390",
+      "rows": []
+    },
+    {
+      "name": "sources-light-390",
+      "rows": []
+    },
+    {
+      "name": "library-light-390",
+      "rows": []
+    },
+    {
+      "name": "monitor-light-390",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        },
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dashboard-light-390",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "analysis-light-390",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        },
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        },
+        {
+          "row": "dw-filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "research-light-390",
+      "rows": []
+    },
+    {
+      "name": "discovery-filters",
+      "rows": [
+        {
+          "row": "strategy-discovery-filters",
+          "controls": 4,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "method-library",
+      "rows": [
+        {
+          "row": "strategy-form-row",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "research-scope",
+      "rows": [
+        {
+          "row": "strategy-form-row strategy-scope-selectors",
+          "controls": 3,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44
+          ]
+        },
+        {
+          "row": "strategy-form-row",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        },
+        {
+          "row": "strategy-form-row",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source-subscription-1440",
+      "rows": []
+    },
+    {
+      "name": "period-settings-1440",
+      "rows": [
+        {
+          "row": "tools",
+          "controls": 3,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44
+          ]
+        },
+        {
+          "row": "classification-filters",
+          "controls": 4,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "manual-intake-1440",
+      "rows": [
+        {
+          "row": "form-grid",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        },
+        {
+          "row": "form-grid",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        },
+        {
+          "row": "form-grid",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        },
+        {
+          "row": "tools",
+          "controls": 3,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44
+          ]
+        },
+        {
+          "row": "classification-filters",
+          "controls": 4,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "data-editor-1440",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 5,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44,
+            44,
+            44
+          ]
+        },
+        {
+          "row": "dw-filters",
+          "controls": 3,
+          "delta": 0,
+          "heights": [
+            44,
+            44,
+            44
+          ]
+        },
+        {
+          "row": "dw-edit-grid",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source-subscription-390",
+      "rows": []
+    },
+    {
+      "name": "period-settings-390",
+      "rows": [
+        {
+          "row": "tools",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "manual-intake-390",
+      "rows": [
+        {
+          "row": "tools",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "name": "data-editor-390",
+      "rows": [
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        },
+        {
+          "row": "filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        },
+        {
+          "row": "dw-filters",
+          "controls": 2,
+          "delta": 0,
+          "heights": [
+            44,
+            44
+          ]
+        }
+      ]
+    }
+  ],
+  "popups": [
+    {
+      "name": "countries-dark-1440",
+      "x": 662.328125,
+      "y": 521.515625,
+      "right": 1022.328125,
+      "bottom": 988,
+      "height": 466.484375,
+      "width": 1440,
+      "viewportHeight": 1000,
+      "topLayer": true
+    },
+    {
+      "name": "countries-light-1440",
+      "x": 662.328125,
+      "y": 521.515625,
+      "right": 1022.328125,
+      "bottom": 988,
+      "height": 466.484375,
+      "width": 1440,
+      "viewportHeight": 1000,
+      "topLayer": true
+    },
+    {
+      "name": "countries-dark-1024",
+      "x": 495.65625,
+      "y": 564.265625,
+      "right": 855.65625,
+      "bottom": 988,
+      "height": 423.734375,
+      "width": 1024,
+      "viewportHeight": 1000,
+      "topLayer": true
+    },
+    {
+      "name": "countries-light-1024",
+      "x": 495.65625,
+      "y": 564.265625,
+      "right": 855.65625,
+      "bottom": 988,
+      "height": 423.734375,
+      "width": 1024,
+      "viewportHeight": 1000,
+      "topLayer": true
+    },
+    {
+      "name": "countries-dark-390",
+      "x": 18,
+      "y": 447.40625,
+      "right": 378,
+      "bottom": 929.40625,
+      "height": 482,
+      "width": 390,
+      "viewportHeight": 1000,
+      "topLayer": true
+    },
+    {
+      "name": "countries-light-390",
+      "x": 18,
+      "y": 447.40625,
+      "right": 378,
+      "bottom": 929.40625,
+      "height": 482,
+      "width": 390,
+      "viewportHeight": 1000,
+      "topLayer": true
+    },
+    {
+      "name": "countries-short-screen",
+      "x": 18,
+      "y": 79,
+      "right": 378,
+      "bottom": 561,
+      "height": 482,
+      "width": 390,
+      "viewportHeight": 640,
+      "topLayer": true
+    },
+    {
+      "name": "source-links",
+      "x": 313,
+      "y": 521.984375,
+      "right": 753,
+      "bottom": 988,
+      "height": 466.015625,
+      "width": 1440,
+      "viewportHeight": 1000,
+      "topLayer": true
+    },
+    {
+      "name": "dossier-countries",
+      "x": 296,
+      "y": 429.75,
+      "right": 736,
+      "bottom": 705.75,
+      "height": 276,
+      "width": 1440,
+      "viewportHeight": 1000,
+      "topLayer": true
+    }
+  ],
+  "checked": [
+    "consistent 44px controls",
+    "same-row alignment",
+    "no horizontal overflow",
+    "dark/light",
+    "viewport-bound top-layer popups",
+    "search and empty state",
+    "multi-selection remains open",
+    "outside click",
+    "Escape and focus restoration",
+    "keyboard navigation",
+    "source links synchronize with draft and original select",
+    "reload persistence",
+    "clear selection",
+    "custom source explanation"
+  ],
+  "apiWrites": [],
+  "readOnlyPreviews": 8,
+  "pageErrors": []
+}

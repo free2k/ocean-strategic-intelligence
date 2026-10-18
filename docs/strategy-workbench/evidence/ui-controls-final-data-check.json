@@ -1,0 +1,10 @@
+{
+  "release": "/opt/ocean-intelligence/releases/20261018-ui-polish-1.7.0",
+  "snapshotUnchanged": true,
+  "businessHash": "3a785e59eb7ca6c21d604d79bd9e52fa2e0069826f374c7991b031edf0e412a7",
+  "databaseTablesUnchanged": true,
+  "tablesChecked": 9,
+  "originalStudyFilesUnchanged": true,
+  "studyFilesAdded": 0,
+  "programMatchesManifest": true
+}

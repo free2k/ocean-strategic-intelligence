@@ -1,0 +1,107 @@
+/* Shared field rhythm, including the sensing views inside their shadow root. */
+:root, :host { --control-height: 44px; --field-label-height: 20px; --field-gap: 8px; }
+.filters { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)) auto; align-items: start; gap: 12px; }
+.filters > label { display: flex; flex-direction: column; gap: var(--field-gap); min-width: 0; width: auto; margin: 0; }
+.filters label > span { min-height: var(--field-label-height); line-height: 20px; margin: 0; font-size: 12px; }
+.filters :is(input, select), .filters > button { box-sizing: border-box; width: 100%; min-width: 0; max-width: none; height: var(--control-height); margin: 0; padding: 10px 12px; line-height: 22px; border-radius: 9px; }
+.filters > button { align-self: start; margin-top: 28px; white-space: nowrap; }
+.filters > #scope-note { grid-column: 1 / -1; }
+.searchbar { align-items: start; }
+.searchbar :is(input, button), .earth-tools select, .dashboard-chart-tabs select { min-height: var(--control-height); }
+.searchbar button { white-space: nowrap; }
+#event-form .form-grid, .form-grid { align-items: start; }
+.form-grid > label { display: flex; flex-direction: column; gap: var(--field-gap); min-width: 0; }
+.form-grid :is(input:not([type=checkbox]):not([type=file]), select), #event-form > label :is(input:not([type=file]), select) { height: var(--control-height); line-height: 22px; margin: 0; }
+.form-grid > button { min-height: var(--control-height); align-self: end; }
+.classification-filters { grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start; gap: 16px; }
+.classification-filters label { gap: var(--field-gap); font-size: 13px; line-height: 20px; }
+.classification-filters select { height: var(--control-height); padding: 10px 12px; line-height: 22px; }
+.period-reports .tools { align-items: start; gap: 16px; }
+.period-reports .tools > label { flex: 1 1 150px; line-height: 20px; gap: var(--field-gap); }
+.period-reports .tools :is(select, input), .period-reports .tools > button { height: var(--control-height); padding: 10px 12px; line-height: 22px; margin: 0; }
+.period-reports .tools > button { margin-top: 28px; }
+.sensing-shell .toolbar > input, .sensing-shell .toolbar .tools > button { height: var(--control-height); min-height: var(--control-height); margin: 0; }
+.sensing-shell .toolbar > label { display: flex; align-items: center; gap: 8px; }
+.sensing-shell .toolbar > label select { height: var(--control-height); margin: 0; }
+.rule-save-bar > button, .object-detail-toolbar > button, .country-actions > button { min-height: var(--control-height); }
+.rule-keyword-grid > label { display: grid; grid-template-rows: subgrid; grid-row: span 3; gap: 8px; }
+.rule-keyword-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 20px; line-height: 20px; }
+.rule-keyword-heading .keyword-count { color: var(--muted); font-size: 12px; font-weight: 400; }
+
+.strategy-form-row { align-items: flex-start; }
+.strategy-form-row > .strategy-field { flex: 1 1 160px; min-width: 0; margin: 0; gap: var(--field-gap); }
+.strategy-form-row > label { margin: 0; gap: var(--field-gap); }
+.strategy-field > span:first-child, .strategy-form-row > label > span:first-child { min-height: var(--field-label-height); line-height: 20px; font-size: 13px; font-weight: 500; }
+.strategy-shell :is(input:not([type=checkbox]):not([type=radio]):not([type=file]), select:not([multiple])) { height: var(--control-height); min-height: var(--control-height); padding: 10px 12px; line-height: 22px; border-radius: 9px; }
+.strategy-form-row > button { height: var(--control-height); margin-top: 28px; }
+.strategy-shell .strategy-form-row > .strategy-field { min-width: 160px; }
+.strategy-shell .strategy-form-row > .strategy-country-field { min-width: 0; }
+.strategy-scope-period { align-items: flex-start; }
+.strategy-scope-period > .strategy-period-description { margin: 28px 0 0; min-height: var(--control-height); display: flex; align-items: center; line-height: 1.65; }
+.strategy-field > .meta, .strategy-control > .meta { margin: 0; letter-spacing: 0; font-size: 12px; line-height: 1.7; }
+.strategy-actions > :is(button, a[download]) { min-height: var(--control-height); display: inline-flex; align-items: center; justify-content: center; line-height: 22px; }
+.strategy-entry { display: flex; flex-direction: column; align-items: flex-start; }
+.strategy-entry > button { margin-top: auto; min-height: var(--control-height); }
+.strategy-entry > .meta { margin-bottom: 24px; }
+.strategy-discovery-card > .strategy-discovery-methods { margin-top: auto; margin-bottom: 16px; padding-top: 16px; }
+.strategy-discovery-card > button { margin-top: auto; min-height: var(--control-height); }
+.strategy-discovery-card > details { margin-top: 0; }
+.strategy-advice-card > button { margin-top: auto; min-height: var(--control-height); }
+.strategy-advice-card > details { margin-bottom: 20px; }
+.strategy-section-title > .strategy-actions { margin: 0; }
+.strategy-tabs > button { line-height: 22px; }
+.strategy-shell .ui-multi-search > input[type=search] { height: 40px; min-height: 40px; padding: 8px 0; border: 0; border-radius: 0; }
+
+/* Multi-select: one trigger, a bounded floating surface, and a fixed action footer. */
+.ui-multiselect { --ui-ink: var(--ink, var(--text)); --ui-accent: var(--accent); position: relative; min-width: 0; width: 100%; color: var(--ui-ink); }
+.ui-multiselect.country-picker { padding: 0; border: 0; background: transparent; }
+.ui-multiselect > summary { box-sizing: border-box; display: flex; align-items: center; gap: 10px; width: 100%; height: var(--control-height); min-height: var(--control-height); padding: 10px 12px; margin: 0; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); color: inherit; font-size: 14px; font-weight: 400; line-height: 22px; list-style: none; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.ui-multiselect > summary::-webkit-details-marker { display: none; }
+.ui-multiselect > summary:hover { border-color: color-mix(in srgb, var(--ui-accent) 60%, var(--line)); }
+.ui-multiselect[open] > summary { border-color: var(--ui-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-accent) 12%, transparent); }
+.ui-multiselect > summary:focus-visible { outline: 2px solid var(--ui-accent); outline-offset: 3px; }
+[data-multi-summary] { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-multi-count { flex: none; display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 7px; background: color-mix(in srgb, var(--ui-accent) 13%, var(--panel)); color: var(--ui-accent); font-size: 12px; font-variant-numeric: tabular-nums; }
+.ui-multi-chevron { width: 18px; height: 18px; flex: none; stroke: var(--muted); stroke-width: 1.5; transition: transform .15s; }
+.ui-multiselect[open] .ui-multi-chevron { transform: rotate(180deg); }
+.ui-multi-menu { box-sizing: border-box; display: none; flex-direction: column; position: fixed; inset: auto; z-index: 50; margin: 0; padding: 0; width: 380px; max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--ui-ink); box-shadow: 0 18px 55px #0003, 0 3px 12px #0002; overflow: hidden; font-size: 14px; line-height: 1.5; }
+.ui-multi-menu:popover-open, .ui-multi-menu.is-visible { display: flex; }
+.ui-multi-heading { display: flex; flex: none; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 16px 10px; }
+.ui-multi-heading strong { font-size: 14px; font-weight: 600; }
+.ui-multi-menu button { display: inline-flex; align-items: center; justify-content: center; flex: none; min-height: 32px; padding: 5px 9px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--ui-accent); font: inherit; font-size: 12px; line-height: 20px; cursor: pointer; }
+.ui-multi-menu button:hover { background: color-mix(in srgb, var(--ui-accent) 8%, transparent); }
+.ui-multi-menu button:disabled { opacity: .4; cursor: default; }
+.ui-multi-menu .ui-multi-dismiss { width: 30px; min-height: 30px; padding: 5px; color: var(--muted); }
+.ui-multi-dismiss svg, .ui-multi-search svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.5; flex: none; }
+.ui-multi-search { display: flex; flex: none; align-items: center; gap: 9px; margin: 0 16px; padding: 0 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--muted); }
+.ui-multi-search:focus-within { border-color: var(--ui-accent); }
+.ui-multi-search > input[type=search] { box-sizing: border-box; flex: 1; width: 100%; min-width: 0; max-width: none; height: 40px; min-height: 40px; padding: 8px 0; border: 0; border-radius: 0; background: transparent; color: var(--ui-ink); font: inherit; font-size: 14px; line-height: 24px; margin: 0; outline: none; box-shadow: none; }
+.ui-multi-toolbar { display: flex; flex: none; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 16px; color: var(--muted); font-size: 12px; }
+.ui-multi-options { display: flex; flex-direction: column; flex: 0 1 auto; gap: 3px; min-height: 0; max-height: 272px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--line) transparent; margin: 0; padding: 0 8px 8px; }
+.ui-multi-options > .ui-multi-option { box-sizing: border-box; display: flex; align-items: center; flex: none; gap: 12px; min-height: 44px; margin: 0; padding: 10px 12px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ui-ink); cursor: pointer; font-size: 14px; font-weight: 400; line-height: 20px; }
+.ui-multi-options > .ui-multi-option:hover { background: color-mix(in srgb, var(--ui-accent) 6%, var(--panel)); }
+.ui-multi-options > .ui-multi-option:has(input:checked) { background: color-mix(in srgb, var(--ui-accent) 10%, var(--panel)); border-color: color-mix(in srgb, var(--ui-accent) 22%, var(--line)); }
+.ui-multi-option > input[type=checkbox] { box-sizing: border-box; appearance: auto; flex: none; width: 17px !important; height: 17px; min-width: 17px; margin: 0; padding: 0; accent-color: var(--ui-accent); }
+.ui-multi-option:focus-within { outline: 2px solid var(--ui-accent); outline-offset: -2px; }
+.ui-multi-option-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; overflow-wrap: anywhere; }
+.ui-multi-option-copy > small { margin: 0; font-size: 11px; line-height: 17px; letter-spacing: 0; color: var(--muted); }
+.ui-multi-empty { margin: 0; padding: 24px 16px; text-align: center; color: var(--muted); font-size: 13px; }
+.ui-multi-footer { display: flex; flex: none; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; border-top: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 35%, var(--panel)); }
+.ui-multi-footer > span { max-width: 240px; font-size: 11px; color: var(--muted); }
+.ui-multi-footer > button { min-height: 34px; padding: 6px 12px; border-color: color-mix(in srgb, var(--ui-accent) 45%, var(--line)); background: color-mix(in srgb, var(--ui-accent) 10%, var(--panel)); }
+.ui-multi-menu :is(button, input):focus-visible { outline: 2px solid var(--ui-accent); outline-offset: 2px; }
+.ui-multiselect [hidden], .ui-multi-menu [hidden] { display: none !important; }
+@media (max-width: 1100px) { .filters { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1000px) { .classification-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) {
+  .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .filters > label:nth-child(3), .filters > button { grid-column: 1 / -1; }
+  .filters > button { margin-top: 0; }
+  .period-reports .tools > button { margin-top: 0; width: 100%; }
+  .ui-multi-search > input[type=search] { font-size: 16px; }
+  .strategy-shell .strategy-form-row > .strategy-field { flex-basis: 100%; min-width: 0; }
+  .strategy-scope-period > .strategy-period-description { min-height: 0; margin: 8px 0 0; }
+  .strategy-form-row > button { margin-top: 0; }
+}
+@media (max-width: 600px) { .classification-filters { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .ui-multiselect > summary, .ui-multi-chevron { transition: none; } }
