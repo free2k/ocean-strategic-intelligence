@@ -10,7 +10,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
   const response=await ctx.request.get(base+'api/strategy/cases/northern-lights-ccus');assert.equal(response.status(),200);const c=await response.json();assert.equal(c.revision,'workflow-v3');assert.equal(c.qaRecords.length,3);assert.equal(c.evidenceStatus,'matched');
   const baseRecord=c.tasks.find(t=>t.key==='npv-base').record;assert.equal(baseRecord.review.constraintScope,'scenario');assert.equal(baseRecord.engineVersion,'1.1.1');
   const before=await (await ctx.request.get(base+'api/strategy/studies?page=1&pageSize=100')).json();
-  await page.goto(base+'#research',{waitUntil:'domcontentloaded'});await page.locator('[data-case-open]').first().click({timeout:45000});
+  await page.goto(base+'#research',{waitUntil:'domcontentloaded'});await page.locator('[data-case-open="northern-lights-ccus"]').click({timeout:45000});
   await page.locator('[data-case-step-material="0"]').waitFor();
   const draft=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('ocean-strategy-draft-v2')));
   assert.equal(draft.title,baseRecord.title);assert.equal(draft.step,0);assert.equal(draft.cashflows.length,13);
