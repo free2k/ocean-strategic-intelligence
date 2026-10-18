@@ -47,6 +47,7 @@ function opportunityCard(item, catalog) {
     ${coverage ? `<p>${esc(coverage.from)}—${esc(coverage.to)} · ${coverage.n}期 · ${esc(coverage.unit)}</p>` : `<p>${esc(first.reason)}</p>`}
     <p class="meta">${first.status === 'ready' ? '进入任务后仍须核定研究范围、来源与方法前提。' : esc(first.gaps)}</p>
     <div class="strategy-discovery-methods">${item.actions.map(r => `<button type="button" data-recommend="${esc(r.id)}">${esc(methodNames[r.method] || r.title)} →</button>`).join('')}</div>
+    ${(catalog.caseStudies||[]).filter(c=>c.recommendationId===item.id).map(c=>`<button type="button" class="primary" data-case-open="${esc(c.id)}">查看已预填的综合评价研究 →</button><p class="meta">真实资料确定背景，矩阵缺项逐格标为研究情景；不提高原始数据就绪状态。</p>`).join('')}
     <details><summary>推荐与分类依据</summary><p class="meta">${esc(item.classification.reason)}</p>${item.actions.map(r => `<p class="meta"><b>${esc(methodNames[r.method] || r.method)}</b>：${esc(r.reason)} ${esc(r.gaps)} 引擎：${r.engineStatus === 'accepted' ? '已接入' : '待接入'}。</p>`).join('')}<small class="meta">规则 ${esc(item.classification.version)} · ${esc(item.classification.ruleId)}</small></details>
   </article>`;
 }
@@ -58,6 +59,7 @@ function themeCard(t, catalog) {
     <p class="meta">跟踪对象：${esc(t.tracking?.object || t.indicators)}</p>
     <p class="meta">更新依据：${esc(t.tracking?.refreshTrigger || '新增相关数据后人工审核')}</p>
     <button type="button" data-template="${esc(t.id)}">建立研究方案 →</button>
+    ${(catalog.caseStudies||[]).filter(c=>c.templateId===t.id).map(c=>`<button type="button" class="primary" data-case-open="${esc(c.id)}">打开已计算的研究案例 →</button><p class="meta">案例已补充局部计算；本主题的完整优化数据与引擎要求仍保留。</p>`).join('')}
     <details><summary>数据要求与跟踪边界</summary><p>${esc(t.liveReadiness)}</p><p class="meta">所需指标：${esc(t.indicators)}</p><p class="meta">方法：${esc(t.methods)}</p><p class="meta">边界：${esc(t.guardrail)}</p><p class="meta">${esc(t.tracking?.comparisonBasis || '')}</p><p class="meta">${esc(t.updatePolicy)}</p><p class="meta">${esc(t.classification.reason)}</p><small class="meta">规则 ${esc(t.classification.version)}</small></details>
   </article>`;
 }

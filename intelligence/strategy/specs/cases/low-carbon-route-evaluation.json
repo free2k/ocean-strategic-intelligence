@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 1,
+  "id": "low-carbon-route-evaluation",
+  "revision": "evaluation-v2",
+  "kind": "evaluation",
+  "recommendationId": "matrix:海洋低碳",
+  "templateId": "CASE-LOW-CARBON-EVALUATION",
+  "topic": "海洋低碳",
+  "title": "海洋低碳：CO₂ 运输接入方案综合评价",
+  "subtitle": "从数据驱动选题进入，基于库内官方路线与协议边界，比较同一服务目标下的研究情景方案。",
+  "asOf": "2026-10-18",
+  "boundary": "仅比较同一瑞典—挪威 CO₂ 接入链条的研究设计方案；矩阵值为显式研究情景，非企业报价或项目实绩。排序是条件性相对评价，不代表工程可实施性、真实项目优劣、最优源汇匹配或全生命周期净减排。",
+  "sources": [
+    {
+      "number": 1,
+      "documentId": "doc_5fa769fdbb7678854950",
+      "title": "Northern Lights 与 Öresundskraft 的运输封存协议",
+      "url": "https://norlights.com/news/northern-lights-signs-agreement-with-oresundskraft-for-co2-transport-and-storage-from-sweden/",
+      "publishedAt": "2026-10-01",
+      "requiredFragments": [
+        "up to 200,000 tonnes",
+        "fourth quarter of 2029",
+        "Port of Halland in Halmstad",
+        "Øygarden"
+      ]
+    },
+    {
+      "number": 2,
+      "documentId": "doc_52414a56734e578d5d81",
+      "title": "Northern Lights 新增运输船与交付窗口",
+      "url": "https://norlights.com/news/northern-lights-expands-the-fleet-with-four-more-co%e2%82%82-ships/",
+      "publishedAt": "2026-01-29",
+      "requiredFragments": [
+        "12,000 m3",
+        "second half of 2028 to first half of 2029"
+      ]
+    },
+    {
+      "number": 3,
+      "documentId": "doc_f5e1bb3c20328f993f83",
+      "title": "Northern Lights 二期建设进展",
+      "url": "https://norlights.com/news/northern-lights-phase-2-expanding-europes-co%e2%82%82-storage-capacity/",
+      "publishedAt": "2026-03-17",
+      "requiredFragments": [
+        "1.5 million",
+        "more than 5 million",
+        "by 2028",
+        "from four to eight"
+      ]
+    }
+  ],
+  "facts": [
+    {
+      "label": "瑞典协议服务规模上限",
+      "display": "20 万吨 CO₂ / 年",
+      "value": 200000,
+      "unit": "t CO₂/年",
+      "nature": "协议上限，非实际封存量",
+      "source": 1
+    },
+    {
+      "label": "瑞典协议目标启动窗口",
+      "display": "2029 年第四季度",
+      "nature": "目标日期，附约定条件",
+      "source": 1
+    },
+    {
+      "label": "官方披露的运输组织方式",
+      "display": "共享船队物流模式",
+      "nature": "协议披露事实；不自动证明各方案成本",
+      "source": 1
+    },
+    {
+      "label": "新增船舶首批单船舱容",
+      "display": "12,000 m³（首批三艘）",
+      "nature": "当时官方披露的新船设计舱容；不是吨位或年运量",
+      "source": 2
+    },
+    {
+      "label": "新增船舶计划服务窗口",
+      "display": "2028 年下半年至 2029 年上半年",
+      "nature": "2026-01-29 披露的未来交付计划",
+      "source": 2
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "matrix",
+      "label": "完整方案矩阵",
+      "value": "方案×指标的数值均为研究情景设定",
+      "explanation": "官方资料尚无同口径的报价、建设投入、工期、方案运量和运输排放矩阵，不把背景资料链接当作数值原表。每格保留相同性质与期间及独立说明。"
+    },
+    {
+      "id": "readiness",
+      "label": "情景就绪窗口阈值",
+      "value": "36 个月",
+      "explanation": "自设的比较阈值，不是官方工期或许可承诺；与协议目标日期分开。"
+    },
+    {
+      "id": "weights",
+      "label": "赋权与归一化",
+      "value": "主任务熵权；等权 WSM 交叉比较；按列 min–max",
+      "explanation": "熵权由本情景矩阵差异计算，不代表社会偏好或因果重要性；等权是研究设定，不冒充专家调查。"
+    },
+    {
+      "id": "emissions",
+      "label": "运输排放边界",
+      "value": "仅运输接入环节，kg CO₂e / 吨服务量",
+      "explanation": "情景排放强度不含完整捕集、液化、永久封存及全生命周期清单，不能据此推算净减排。"
+    },
+    {
+      "id": "update",
+      "label": "加快专用运力准备情景",
+      "value": "准备期由 30 降至 18 个月；投入由 32 增至 38 百万欧元",
+      "explanation": "假设以追加投入加快准备；其余指标不变。这不是已发生的工程变化。"
+    },
+    {
+      "id": "expansion",
+      "label": "扩容与冗余偏好",
+      "value": "满足参考需求后，保留年服务保障能力越大越优",
+      "explanation": "用户确认本研究同时考虑未来扩容与冗余；这是研究目标设定，不代表额外能力必然带来经济收益。"
+    },
+    {
+      "id": "currency-year",
+      "label": "币值基年",
+      "value": "2026 年不变欧元",
+      "explanation": "用于统一情景比较的研究设定；没有真实报价和价格指数转换，不声称已完成实际物价平减。"
+    }
+  ],
+  "workflow": {
+    "taskKey": "entropy-base",
+    "title": "海洋低碳：技术路线／项目综合评价｜同一 CO₂ 接入链条的运力与接口方案优选",
+    "decisionQuestion": "在满足同一 CO₂ 接入参考服务目标的前提下，兼顾未来扩容与服务冗余，共享运力、专用运力和分阶段租赁如何在成本、投入、就绪期、保障能力与运输排放之间权衡，排序是否依赖权重和工程情景？",
+    "coverage": "真实协议及官方船队资料确定研究背景；输入矩阵为显式情景。许可、安全、实际可用运力和工程造价未核验，不作实际项目实施或投资承诺。",
+    "gaps": [
+      "分环节同口径报价、资本性投入与造价基年",
+      "船舶周转、港口接口能力、实际服务保障与建设进度",
+      "真实运输能耗、排放因子与完整生命周期清单",
+      "项目许可、安全、合同可接入性及实际剩余能力核验"
+    ]
+  },
+  "evaluation": {
+    "period": "资料冻结截至 2026-10-18；对 2029 目标窗口进行同口径研究情景比较",
+    "objects": [
+      {
+        "id": "shared-fleet",
+        "label": "共享船队与现有接口复用",
+        "description": "以协议已披露的共享物流模式为背景设计；不声称该设计的具体成本已由企业披露。"
+      },
+      {
+        "id": "dedicated-fleet",
+        "label": "专用运力与新增接口",
+        "description": "以官方新增运输船及接口扩容为背景设计；不是已确定的瑞典项目实施方案。"
+      },
+      {
+        "id": "phased-charter",
+        "label": "分阶段租赁与模块化接口",
+        "description": "为比较灵活接入而设置的研究设计，未声称存在真实投标方案。"
+      }
+    ],
+    "indicators": [
+      {
+        "indicatorId": "variable-cost",
+        "name": "单位运输接入可变成本",
+        "unit": "欧元/吨 CO₂",
+        "direction": "cost",
+        "definition": "仅运输与接入的可变成本，不含资本折旧、捕集、液化及永久封存收费，避免与前期投入重复计价。"
+      },
+      {
+        "indicatorId": "interface-capex",
+        "name": "前期接口建设投入",
+        "unit": "百万欧元",
+        "direction": "cost",
+        "definition": "一次性接口投入的研究设定，非企业工程报价。"
+      },
+      {
+        "indicatorId": "readiness-months",
+        "name": "投运准备时间",
+        "unit": "月",
+        "direction": "cost",
+        "definition": "共同假设决策时点起的准备期；不等于官方交付日期。"
+      },
+      {
+        "indicatorId": "assured-throughput",
+        "name": "年服务保障能力",
+        "unit": "吨 CO₂/年",
+        "direction": "benefit",
+        "definition": "方案设计的情景服务能力，不以船舶舱容直接换算年运量。本研究兼顾未来扩容与服务冗余，达标后的能力仍作为效益指标；不据此推定额外合同收入或利用率。"
+      },
+      {
+        "indicatorId": "transport-emissions",
+        "name": "运输环节排放强度",
+        "unit": "kg CO₂e/吨 CO₂",
+        "direction": "cost",
+        "definition": "情景运输排放强度，不能代替生命周期净减排。"
+      }
+    ],
+    "matrix": [
+      [
+        28,
+        18,
+        18,
+        220000,
+        14
+      ],
+      [
+        24,
+        32,
+        30,
+        260000,
+        10
+      ],
+      [
+        32,
+        22,
+        12,
+        240000,
+        18
+      ]
+    ],
+    "updatedMatrix": [
+      [
+        28,
+        18,
+        18,
+        220000,
+        14
+      ],
+      [
+        24,
+        38,
+        18,
+        260000,
+        10
+      ],
+      [
+        32,
+        22,
+        12,
+        240000,
+        18
+      ]
+    ],
+    "serviceTarget": 200000,
+    "maxReadinessMonths": 36
+  },
+  "tasks": [
+    {
+      "key": "entropy-base",
+      "method": "entropy-topsis",
+      "label": "熵权 TOPSIS 基准评价",
+      "kind": "scenario",
+      "why": "用同口径情景矩阵计算熵权与 TOPSIS 排序，并保存 WSM 同权交叉比较、单项权重扰动及九点扫描。"
+    },
+    {
+      "key": "entropy-schedule",
+      "method": "entropy-topsis",
+      "label": "追加投入加快准备情景",
+      "kind": "scenario",
+      "parentKey": "entropy-base",
+      "why": "保留对象、指标及单位，只修改专用方案的准备期和投入；标准化与熵权随矩阵重算，排序变化不能仅归因于准备期缩短。"
+    },
+    {
+      "key": "equal-check",
+      "method": "weighted",
+      "label": "等权 WSM 交叉评价",
+      "kind": "scenario",
+      "why": "以等权加权综合评价交叉检查偏好设定影响；更换方法建立独立研究，不伪装为同一方法的版本更新。"
+    }
+  ],
+  "questions": [
+    "这个海洋低碳综合评价案例中，哪些来自库内事实，哪些是预填的情景设定？",
+    "熵权 TOPSIS 得到什么排序，权重扰动与九点扫描说明什么？",
+    "加快准备情景和等权交叉评价怎样帮助检验方案排序？"
+  ]
+}
