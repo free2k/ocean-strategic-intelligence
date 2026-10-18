@@ -71,7 +71,17 @@ export class PostgresResearchRepository{
  'events',(SELECT coalesce(jsonb_agg(jsonb_build_object('id',e->'id','versions',v.versions)),'[]'::jsonb) FROM jsonb_array_elements(payload->'events') e CROSS JOIN LATERAL (SELECT jsonb_agg(item ORDER BY n) versions,count(*) count FROM (SELECT item,n FROM jsonb_array_elements(e->'versions') WITH ORDINALITY AS x(item,n) WHERE item->>'documentId'=ANY($3::text[]) ORDER BY n DESC LIMIT 2) last_versions) v WHERE v.count=2))::text payload FROM record`,[snapshotId,[...documentIds].sort()]);}
  // The overview displays history counts, not the full historical manifests.
  async readCountryOverview(id){return this.readProjection(id,'country-overview',`SELECT (payload-'themes'||jsonb_build_object('themes',(SELECT coalesce(jsonb_agg(t-'versions'||jsonb_build_object('versionCount',jsonb_array_length(t->'versions'))),'[]'::jsonb) FROM jsonb_array_elements(payload->'themes') t)))::text payload FROM ocean_research.records WHERE id=$1`);}
- async readSnapshotIndex(id){return this.readProjection(id,'snapshot-index',`SELECT jsonb_build_object('kind',payload->'kind','entries',(SELECT jsonb_agg(jsonb_build_object('documentId',e->'documentId','classification',e->'classification','body',jsonb_build_object('sourceId',e->'body'->'sourceId','publishedAt',e->'body'->'publishedAt'))) FROM jsonb_array_elements(payload->'entries') e))::text payload FROM ocean_research.records WHERE id=$1`);}
+ async readSnapshotIndex(id){return this.readProjection(id,'snapshot-index',`SELECT jsonb_build_object('kind',payload->'kind','entries',(SELECT coalesce(jsonb_agg(jsonb_build_object('documentId',e->'documentId','bodyVersionId',e->'bodyVersionId','classification',e->'classification','body',jsonb_build_object('sourceId',e->'body'->'sourceId','publishedAt',e->'body'->'publishedAt'))),'[]'::jsonb) FROM jsonb_array_elements(payload->'entries') e))::text payload FROM ocean_research.records WHERE id=$1`);}
+ async readCountryProductReleases(id){
+  const result=await this.readProjection(id,'country-product-releases',`WITH RECURSIVE chain AS (
+ SELECT r.id,r.payload,ARRAY[r.id] AS visited,0 AS depth FROM ocean_research.records r WHERE r.id=$1
+ UNION ALL SELECT r.id,r.payload,c.visited||r.id,c.depth+1 FROM chain c JOIN ocean_research.records r ON r.id=c.payload->>'previousReleaseId' WHERE NOT r.id=ANY(c.visited)
+ ) SELECT jsonb_build_object('releases',coalesce(jsonb_agg(jsonb_build_object('releaseId',id,'snapshotId',payload->'snapshotId','publishedAt',payload->'publishedAt',
+ 'dossierProducts',(SELECT coalesce(jsonb_agg(p),'[]'::jsonb) FROM jsonb_array_elements(coalesce(payload->'dossierProducts','[]'::jsonb)) p WHERE p->'scope'->>'kind'='country'),
+ 'countryCases',coalesce(payload->'countryCases','[]'::jsonb)) ORDER BY depth),'[]'::jsonb))::text payload FROM chain
+ WHERE jsonb_array_length(coalesce(payload->'countryCases','[]'::jsonb))>0 OR EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(payload->'dossierProducts','[]'::jsonb)) p WHERE p->'scope'->>'kind'='country')`);
+  return result.releases;
+ }
  async isPublished(id){check(id);return (await this.pool.query(`WITH RECURSIVE chain AS (
  SELECT r.id,r.payload,ARRAY[r.id] AS visited FROM ocean_research.head h JOIN ocean_research.records r ON r.id=h.payload->>'releaseId' WHERE h.id='latest'
  UNION ALL SELECT r.id,r.payload,c.visited||r.id FROM chain c JOIN ocean_research.records r ON r.id=c.payload->>'previousReleaseId' WHERE NOT r.id=ANY(c.visited)

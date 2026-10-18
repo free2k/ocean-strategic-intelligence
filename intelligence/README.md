@@ -22,6 +22,10 @@
 
 程序重启不再写入采集状态文件；实际采集任务仍按原有流程保存状态。升级只替换程序文件，不执行采集、导入或数据库迁移。
 
+国别态势研判支持全球汇总、单国档案和多国联合研判，案例与研判分别展示。领域、来源与北京时间发布日期筛选会核对成果实际引用的全部资料；完整证据不匹配时显示排除原因，并提供清除资料筛选的入口。
+
+每份成果保留资料版本、原发布版本及固定版本原文入口。发布新资料版本后，旧成果仍可在“历史已发布成果”中查阅；历史成果单独标明版本，本期角色、关系与事件统计只使用当前版本记录。历史版本链接可刷新恢复，也可返回最新版本。
+
 验证：`node --test intelligence/performance.test.mjs`，以及浏览器中的连续切换、慢请求、研究输入保留和绘图依据展开检查。
 
 ## 运行
@@ -33,7 +37,7 @@ node --env-file=.env intelligence/collect.mjs
 node intelligence/refine-snapshot.mjs
 node --env-file=.env intelligence/import-series.mjs
 node --env-file=.env intelligence/server.mjs
-node --test intelligence/tests/*.test.mjs
+npm run test:intelligence
 ```
 
 本地读取 `.data/intelligence/snapshot.json`。生产通过 `run.mjs` 使用已有 PostgreSQL 连接，但只创建/写入独立 `ocean_intel` schema。密码使用既有 `SITE_PASSWORD`。没有密码时默认不放行；仅本地开发可设置 `INTEL_ALLOW_NO_AUTH=true`。
@@ -100,4 +104,4 @@ node --env-file=.env intelligence/import-eia.mjs
 - 情报事件可人工录入，原始链接、出处、证据、事件日期、发布日期必填，初始状态待核验。人工条目在后续采集导入时保留。
 - 文章可触发规则实体关系提取，保留既有核验结果；词典与句内规则仍可能误判，新增关系不能直接当作事实。
 - 采集仍为脚本人工触发，未启用定时刷新；全球信息感知隐藏页面筛选。刷新浏览器不触发采集。
-- 验证：`node --test intelligence/tests/*.test.mjs`；`qa-upgrade.cjs`覆盖新交互，默认使用隔离的3102本地实例；线上模式只检查录入表单，不写入测试事件。
+- 验证：`npm run test:intelligence`；Node 测试通过加载器复用服务端的浏览器资源映射。国别成果用例覆盖全球／单国／多国、完整证据筛选、版本发布与历史原文；设置 `TEST_PROJECTION_DATABASE_URL` 可执行数据库投影验证。`qa-upgrade.cjs`覆盖新交互，默认使用隔离的3102本地实例；线上模式只检查录入表单，不写入测试事件。

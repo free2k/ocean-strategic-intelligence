@@ -80,7 +80,7 @@ function setupCountryDossier(){
   }catch(error){if(legacy.isConnected)pending.textContent='旧版资料读取失败，请收起后重新展开：'+error.message;}finally{loading=false;}});
  }
  const dictionary=world.filter(c=>/^[A-Z]{2}$/.test(c.code)).map(c=>({...c,name:data.countryOptions.find(x=>x.code===c.code)?.name||c.name}));
- countryDispose=mountCountryDossier(host,{toolbar,dictionary,onLoading:({loading,error})=>{canvas.hidden=loading||Boolean(error);mapNotice.hidden=!loading&&!error;mapNotice.textContent=error?'当前范围地图暂不可用：'+error:'正在读取当前研究范围的地图与档案…';},country:$('#country').value,countryCodes:routeState.countryCodes,relationMode:routeState.relationMode||'external',query:new URLSearchParams(filters()).toString(),onState:({selected,mode})=>{routeState.countryCodes=selected;routeState.relationMode=mode;$('#country').value=selected.length===1?selected[0]:'';saveCurrentNavigation();},onScope:(payload,selected,focus)=>{
+ countryDispose=mountCountryDossier(host,{toolbar,dictionary,releaseId:routeState.releaseId,onLoading:({loading,error})=>{canvas.hidden=loading||Boolean(error);mapNotice.hidden=!loading&&!error;mapNotice.textContent=error?'当前范围地图暂不可用：'+error:'正在读取当前研究范围的地图与档案…';},country:$('#country').value,countryCodes:routeState.countryCodes,relationMode:routeState.relationMode||'external',query:new URLSearchParams(filters()).toString(),onState:({selected,mode})=>{routeState.countryCodes=selected;routeState.relationMode=mode;$('#country').value=selected.length===1?selected[0]:'';saveCurrentNavigation();},onScope:(payload,selected,focus)=>{
   if(!canvas.isConnected)return;const counts=new Map(),connections=new Map();for(const e of payload.events)for(const code of e.countries)counts.set(code,(counts.get(code)||0)+1);for(const c of payload.caseStudies||[])for(const code of c.content.countries)counts.set(code,(counts.get(code)||0)+1);
   for(const r of [...payload.coOccurrences,...(payload.confirmedRelations||[])]){const key=r.countryA+'|'+r.countryB,edge=connections.get(key)||{from:r.countryA,to:r.countryB,count:0,eventIds:[],proofs:[]};edge.count++;if(r.eventId)edge.eventIds.push(r.eventId);edge.proofs.push(r);connections.set(key,edge);}
   countryMapData={...data,countries:data.countryOptions.filter(c=>counts.has(c.code)).map(c=>({...c,count:counts.get(c.code)})),connections:[...connections.values()],events:payload.events,evidence:[]};
@@ -171,7 +171,7 @@ async function load({navigation=false}={}){
    rendered=true;
   }
   if(tab==='sources')prefetchSources();
-  if(tab==='dashboard'){const p=new URLSearchParams(filters());p.delete('country');p.set('countryCodes',(routeState.countryCodes??(filters().country?[filters().country]:[])).join(','));p.set('relationMode',routeState.relationMode||'external');loadCountryPayload(p).catch(()=>{});}
+  if(tab==='dashboard'){const p=new URLSearchParams(filters());p.delete('country');p.set('countryCodes',(routeState.countryCodes??(filters().country?[filters().country]:[])).join(','));p.set('relationMode',routeState.relationMode||'external');if(routeState.releaseId)p.set('releaseId',routeState.releaseId);loadCountryPayload(p).catch(()=>{});}
   if(navigation&&!rendered){
    if(tab!=='monitor'&&(cached||data&&displayedQuery===dataPath)){data=cached?.value||data;displayedQuery=dataPath;render();rendered=true;}
    else{quantView?.dispose();quantView=null;quantHost=null;disposeDashboardCharts();$('#content').innerHTML='<section class="panel" role="status">正在加载当前范围的资料…</section>';setupMapFlow();setupGlobe(world,{},'',()=>{});}

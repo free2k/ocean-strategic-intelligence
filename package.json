@@ -11,7 +11,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "import": "tsx scripts/import-articles.ts",
-    "test": "vitest --run"
+    "test": "vitest --run",
+    "test:intelligence": "node --loader ./intelligence/tests/browser-route-loader.mjs --test intelligence/tests/*.test.mjs"
   },
   "dependencies": {
     "@iconify-json/heroicons": "^1.2.3",
