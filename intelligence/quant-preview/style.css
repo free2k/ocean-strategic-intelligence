@@ -40,8 +40,9 @@ header button{flex-shrink:0;font-size:12px}
 .gallery-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;margin-bottom:10px;font-size:11px;color:var(--muted)}
 .gallery-meta button{padding:3px 8px;font-size:11px;background:transparent}
 .chart-card{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:0 0 20px;overflow:hidden}
-.card-head{padding:18px 20px 0;display:flex;justify-content:space-between;gap:16px;align-items:center}
-.chart-heading{min-width:0}
+.card-head{padding:18px 20px 0;display:flex;flex-direction:column;gap:16px;align-items:stretch}
+.chart-heading{min-width:0;text-align:center}
+.chart-tools{align-self:flex-end;min-width:0;max-width:100%}
 .card-head h2{margin:6px 0 0;font-size:18px;line-height:1.5;font-weight:600;overflow-wrap:anywhere}
 .chart-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
 .tag{font-size:10px;padding:2px 7px;border-radius:5px;background:#e6f2f3;color:#347582;display:inline-block}
@@ -105,7 +106,8 @@ body.embedded main{margin:0;padding:0 8px}
  .metrics{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:10px}
  .metric{justify-content:flex-start;padding:0 14px;gap:6px}.metric:nth-child(odd){border-left:0}
  .metric b{font-size:20px}.metric span{font-size:11px}
- .card-head{align-items:flex-start;flex-direction:column;gap:12px;padding:16px 16px 0}
+ .card-head{gap:12px;padding:16px 16px 0}
+ .chart-tools{align-self:stretch}
  .card-head h2{font-size:16px}.views{justify-content:flex-start}
  .chart{height:320px}.chart-layout{padding:8px 4px 0}
  .chart-card[data-template="hierarchy"] .chart{height:350px}
