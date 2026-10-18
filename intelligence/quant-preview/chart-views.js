@@ -254,3 +254,99 @@ export function relationshipGraphOption(network,{dark=true,reduced=false,width=1
   }},series:[{id:'industry-relationship-network',type:'graph',layout:'none',left:(width-size)/2,top:(height-size)/2,width:size,height:size,zoom:1,center:[0,0],data:nodes,links,
    roam:true,draggable:true,scaleLimit:{min:.35,max:12},labelLayout:{hideOverlap:true},emphasis:{focus:'adjacency',lineStyle:{opacity:1,width:2.5}},blur:{itemStyle:{opacity:.15},lineStyle:{opacity:.05}}}]};
 }
+
+// The tree is another projection of the exact graph scope. Repeated appearances
+// of an entity reference the same stable ID; leaves retain every source record
+// and its direction, including incoming edges, parallel records and self-links.
+export function relationshipTree(network,{page=0,pageSize=12,expanded=false}={}){
+ const {model,relations,subject,sector,entityType}=network;
+ const id=(...path)=>JSON.stringify(['relationship-tree',...path]);
+ const sortNodes=(a,b)=>a.name.localeCompare(b.name,'zh-CN')||a.entityId.localeCompare(b.entityId);
+ const entityNode=(entityId,domain,rows)=>{
+  const entity=model.nodes.get(entityId),groups=new Map();
+  for(const row of rows){
+   const other=row.from===entityId?row.to:row.from,key=JSON.stringify([row.from,row.to,row.type]);
+   if(!groups.has(key))groups.set(key,{id:id('relation',domain,entityId,key),kind:'relation',name:model.nodes.get(other).name,
+    entityId:other,entityType:model.nodes.get(other).type,sector:domain,from:row.from,to:row.to,type:row.type,
+    direction:row.from===entityId?'out':'in',recordIds:[],children:[]});
+   groups.get(key).recordIds.push(row.id);
+  }
+  const children=[...groups.values()].map(n=>({...n,count:n.recordIds.length})).sort((a,b)=>a.type.localeCompare(b.type,'zh-CN')||sortNodes(a,b));
+  return {id:id('entity',domain,entityId),kind:'entity',name:entity.name,entityId,entityType:entity.type,sector:domain,count:rows.length,children};
+ };
+ let root;
+ if(subject){
+  root={...entityNode(subject.id,sector,relations),kind:'root',selected:true};
+  const groups=new Map();
+  for(const leaf of root.children){
+   const key=JSON.stringify([leaf.type,leaf.direction]);
+   if(!groups.has(key))groups.set(key,{id:id('relationType',subject.id,key),kind:'relationType',name:leaf.type,sector,
+    direction:leaf.direction,recordIds:[],count:0,children:[]});
+   const group=groups.get(key);group.children.push(leaf);group.recordIds.push(...leaf.recordIds);group.count+=leaf.count;
+  }
+  root.children=[...groups.values()];
+ }else{
+  const domains=new Map();
+  for(const row of relations){
+   if(!domains.has(row.sector))domains.set(row.sector,{rows:[],byEntity:new Map()});
+   const domain=domains.get(row.sector);domain.rows.push(row);
+   for(const entityId of new Set([row.from,row.to])){
+    if(!domain.byEntity.has(entityId))domain.byEntity.set(entityId,[]);
+    domain.byEntity.get(entityId).push(row);
+   }
+  }
+  const branches=[...domains].sort(([a],[b])=>{
+   const order=name=>relationshipSectors.includes(name)?relationshipSectors.indexOf(name):99;
+   return order(a)-order(b)||a.localeCompare(b,'zh-CN');
+  }).map(([domain,{byEntity}])=>{
+   const children=relationshipTypes.flatMap(type=>{
+    const nodes=[...byEntity].filter(([entityId])=>model.nodes.get(entityId).type===type).map(([entityId,rows])=>entityNode(entityId,domain,rows)).sort(sortNodes);
+    return nodes.length?[{id:id('type',domain,type),kind:'type',name:type,sector:domain,entityType:type,count:nodes.length,children:nodes}]:[];
+   });
+   return {id:id('sector',domain),kind:'sector',name:topicLabel(domain),sector:domain,count:byEntity.size,children};
+  });
+  if(entityType){
+   const children=branches.flatMap(branch=>branch.children.filter(n=>n.entityType===entityType).flatMap(n=>n.children));
+   root={id:id('root',sector,entityType),kind:'root',name:entityType,sector,entityType,count:children.length,children};
+  }else if(sector)root={...(branches[0]||{id:id('root',sector),name:topicLabel(sector),children:[],count:0}),kind:'root'};
+  else root={id:id('root'),kind:'root',name:'产业关联',count:network.entityCount,children:branches};
+ }
+ const depth=expanded?Infinity:subject?2:1;
+ const paged=!expanded&&(!!subject||!!entityType),items=subject?root.children.flatMap(group=>group.children):root.children;
+ const total=items.length,size=Math.max(1,Math.floor(pageSize)||12),pages=paged?Math.max(1,Math.ceil(total/size)):1;
+ const current=Math.max(0,Math.min(pages-1,Number.isInteger(page)?page:0));
+ if(paged){
+  const selected=new Set(items.slice(current*size,(current+1)*size).map(n=>n.id));
+  root={...root,children:subject?root.children.map(group=>({...group,children:group.children.filter(n=>selected.has(n.id))})).filter(group=>group.children.length):root.children.filter(n=>selected.has(n.id))};
+ }
+ const leaves=(node,level=0)=>level>=depth||!node.children.length?1:node.children.reduce((n,child)=>n+leaves(child,level+1),0);
+ return {root:relations.length?root:null,depth,expanded,page:current,pages,total,from:total?current*size+1:0,to:paged?Math.min(total,(current+1)*size):total,
+  unit:subject?'组关联':'个主体',height:Math.min(expanded?1800:3000,Math.max(620,leaves(root)*60+120)),recordIds:relations.map(r=>r.id)};
+}
+
+export function relationshipTreeOption(tree,{dark=true,reduced=false,width=1000}={}){
+ const ink=dark?'#dfecfa':'#213a53',muted=dark?'#9ab3cf':'#61758d',panel=dark?'#122030':'#fff',line=dark?'#36566b':'#b9cedb';
+ const accent=dark?'#83d4d2':'#087f88',purple=dark?'#b7a8ef':'#7250b3',compact=width<650;
+ const short=(value,n=15)=>Array.from(value).length>n?Array.from(value).slice(0,n).join('')+'…':value;
+ const nodeOption=(node,depth=0)=>{
+  const color=node.kind==='root'?accent:node.kind==='sector'?'#7db9dd':relationshipEntityLegend.find(t=>t.name===node.entityType)?.color||purple;
+  const label=node.kind==='relation'?`${node.direction==='in'?'← ':''}${node.type}${node.direction==='out'?' → ': ' · '}${node.name}`:node.kind==='relationType'?`${node.direction==='in'?'← ':''}${node.name}${node.direction==='out'?' →':''}`:node.name;
+  const size=compact?(node.kind==='root'?[108,56]:node.kind==='sector'?[108,48]:node.kind==='type'?[108,42]:[144,44]):node.kind==='root'?[150,58]:node.kind==='sector'?[146,48]:node.kind==='type'?[126,38]:[194,44];
+  const meta=node.kind==='root'?(node.selected?'条关联':'个主体'):node.kind==='sector'||node.kind==='type'?'个主体':node.kind==='relation'||node.kind==='relationType'?'条原文记录':'条关联';
+  return {...node,collapsed:depth>=tree.depth,children:node.children.map(n=>nodeOption(n,depth+1)),symbol:'roundRect',symbolSize:size,
+   itemStyle:{color:dark?(node.kind==='root'?'#173b47':'#152a3c'):(node.kind==='root'?'#e5f5f4':'#f4f8fc'),borderColor:color,borderWidth:node.kind==='root'?1.8:1,shadowBlur:node.kind==='root'?18:0,shadowColor:dark?'#64cbd426':'#64cbd414'},
+   label:{show:true,position:'inside',align:'center',verticalAlign:'middle',formatter:`{name|${short(label,compact?(node.kind==='relation'?12:8):node.kind==='relation'?20:15)}}\n{meta|${node.count.toLocaleString('zh-CN')} ${meta}}`,
+    rich:{name:{color:ink,fontSize:compact?11:node.kind==='root'?13:12,fontWeight:node.kind==='root'||node.kind==='sector'?600:500,lineHeight:19},meta:{color:muted,fontSize:9,lineHeight:14}}},
+   emphasis:{itemStyle:{borderColor:accent,borderWidth:2,shadowBlur:16,shadowColor:dark?'#65cbbb33':'#65cbbb22'},label:{show:true}}};
+ };
+ return {backgroundColor:'transparent',animation:!reduced,animationDuration:400,animationDurationUpdate:400,animationThreshold:10000,
+  textStyle:{fontFamily:'Segoe UI, Microsoft YaHei, sans-serif'},aria:{enabled:true,description:'产业关系树状图，按领域、主体类型、具体主体及其原文关联逐层展示。点击分支聚焦，点击关联查看原文证据。'},
+  tooltip:{confine:true,backgroundColor:panel,borderColor:line,textStyle:{color:ink,fontSize:12},extraCssText:'max-width:340px;white-space:normal;line-height:1.8',formatter:params=>{
+   const n=params.data;if(!n)return '';
+   if(n.kind==='relation')return relationshipEsc(n.name)+'<br>'+relationshipEsc(n.type)+(n.direction==='in'?' · 指向当前主体':' · 来自当前主体')+'<br>'+n.count+' 条保存记录 · 点击查看原文证据';
+   return relationshipEsc(n.name)+'<br>'+n.count+(n.kind==='entity'||n.kind==='relationType'?' 条关联记录':' 个主体')+'<br>'+(n.kind==='root'?'当前层级起点':'点击聚焦这一分支');
+  }},series:[{id:'industry-relationship-tree',type:'tree',layout:'orthogonal',orient:'LR',data:tree.root?[nodeOption(tree.root)]:[],
+   left:compact?62:105,right:compact?82:130,top:45,bottom:45,edgeShape:'polyline',edgeForkPosition:'52%',lineStyle:{color:line,width:1.25},
+   roam:true,zoom:1,scaleLimit:{min:.3,max:120},nodeScaleRatio:0,expandAndCollapse:false,initialTreeDepth:-1,
+   emphasis:{focus:'relative'},labelLayout:{hideOverlap:true}}]};
+}
