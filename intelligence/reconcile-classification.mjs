@@ -1,3 +1,4 @@
+import {resolveClassificationResult} from './classification-result.mjs';
 import {attachPublishedRules} from './published-rules.mjs';
 import {processSemanticQueue} from './semantic-classification.mjs';
 import fs from 'node:fs/promises';
@@ -25,9 +26,9 @@ export async function reconcileClassification(pool,data,semanticOptions={}){
  if(!jobs.length)throw Error('数据库尚无已生效分类规则，请先发布规则版本后生成快照');
  // A saved draft rule is not silently applied to the published intelligence snapshot.
  const targeted=jobs[0].scope.targeted===true,config=jobs[0].config,compiled=attachPublishedRules(data,jobs[0]);
- const rows=(await pool.query(`SELECT c.*,a.title,a.link,a.published_at,a.source_id,a.manual_classify,a.classify_method,a.filter_status,a.matched_topic,a.reject_reason,s.name source_name,s.type source_kind,CASE WHEN i.id IS NOT NULL THEN jsonb_build_object('hash',i.content_hash,'language',i.payload->>'language','source',i.payload->'source') END mp_payload,i.subscription_id,i.classification mp_classification FROM classification.articles c JOIN public.articles a ON a.id=c.article_id LEFT JOIN public.sources s ON s.id=a.source_id LEFT JOIN mp2rss.items i ON i.article_id=a.id WHERE ($1::bigint IS NULL OR c.job_id=$1 OR c.job_id IS NULL) ORDER BY a.id`,[targeted?jobs[0].id:null])).rows;
+ const rows=(await pool.query(`SELECT c.*,a.title,a.link,a.published_at,a.source_id,a.manual_classify,a.classify_method,a.filter_status,a.matched_topic,a.reject_reason,s.name source_name,s.type source_kind,CASE WHEN i.id IS NOT NULL THEN jsonb_build_object('hash',i.content_hash,'language',i.payload->>'language','source',i.payload->'source') END mp_payload,i.subscription_id,i.classification mp_classification,i.updated_at mp_classification_updated_at FROM classification.articles c JOIN public.articles a ON a.id=c.article_id LEFT JOIN public.sources s ON s.id=a.source_id LEFT JOIN mp2rss.items i ON i.article_id=a.id WHERE ($1::bigint IS NULL OR c.job_id=$1 OR c.job_id IS NULL) ORDER BY a.id`,[targeted?jobs[0].id:null])).rows;
  const byUrl=new Map(data.documents.map(d=>[d.url,d]));const idsByJob=new Map();
- for(const a of rows){let doc=byUrl.get(a.link);const p=a.mp_payload,decision=a.manual_classify||a.classify_method==='manual'?decideArticle(a,compiled).decision:p?a.mp_classification:a.classification;
+ for(const a of rows){let doc=byUrl.get(a.link);const p=a.mp_payload,decision=a.manual_classify||a.classify_method==='manual'?decideArticle(a,compiled).decision:resolveClassificationResult({classification:a.classification,updatedAt:a.updated_at},{classification:a.mp_classification,updatedAt:a.mp_classification_updated_at});
   if(!doc&&decision.status!=='accepted')continue;
   const body=(await pool.query("SELECT CASE WHEN i.id IS NOT NULL THEN i.payload->>'content' ELSE a.content END content FROM public.articles a LEFT JOIN mp2rss.items i ON i.article_id=a.id WHERE a.id=$1",[a.article_id])).rows[0];
   const content=textBody(body?.content);

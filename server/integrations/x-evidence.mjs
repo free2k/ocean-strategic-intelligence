@@ -1,3 +1,4 @@
+import {publicationDates} from '../../intelligence/temporal-dates.mjs';
 import {remainingMs,boundedLookup} from './evidence-budget.mjs';
 import {parseHTML} from 'linkedom';
 import {Readability} from '@mozilla/readability';
@@ -32,7 +33,7 @@ const trim=x=>String(x||'').replace(/\s+/g,' ').trim();
 export function parseArticle(html,url){
  const {document}=parseHTML(html);const meta=(key)=>document.querySelector(`meta[property="${key}"],meta[name="${key}"]`)?.getAttribute('content');
  const jsonld=[...document.querySelectorAll('script[type="application/ld+json"]')].flatMap(s=>{const r=json(s.textContent,{});return Array.isArray(r)?r:r['@graph']||[r];});const article=jsonld.find(x=>/Article|Report|BlogPosting/.test(String(x['@type'])))||{};
- const date=meta('article:published_time')||article.datePublished||document.querySelector('time[datetime]')?.getAttribute('datetime');const publishedAt=date&&Number.isFinite(Date.parse(date))?new Date(date).toISOString():null;
+ const event=jsonld.find(x=>/Event/.test(String(x['@type'])))||{};const publishedDateSource=meta('article:published_time')?'article:published_time':article.datePublished?'datePublished':null;const date=meta('article:published_time')||article.datePublished;const publishedAt=date&&Number.isFinite(Date.parse(date))?new Date(date).toISOString():null;const scheduledAt=event.startDate||(/\/events?\//i.test(new URL(url).pathname)?document.querySelector('time[datetime]')?.getAttribute('datetime'):null);
  const restricted=article.isAccessibleForFree===false||article.isAccessibleForFree==='False'||!!document.querySelector('[class*="paywall"],[id*="paywall"]');
  const parsed=new Readability(document.cloneNode(true),{charThreshold:180}).parse();
  const oilprice=new URL(url).hostname==='oilprice.com'?document.querySelector('#article-content,#news-content')?.cloneNode(true):null;
@@ -47,7 +48,7 @@ export function parseArticle(html,url){
  const attachments=[...body.querySelectorAll('a[href]')].map(a=>{try{return canonicalUrl(a.getAttribute('href'),url);}catch{return null;}}).filter(u=>u&&/\.(pdf|csv|xlsx?)(\?|$)/i.test(u));
  body.querySelectorAll('p,h1,h2,h3,h4,li,tr,div').forEach(n=>n.appendChild(body.createTextNode('\n')));
  const content=(body.body?.textContent?.trim()||body.documentElement?.textContent?.trim()||trim(parsed?.textContent)).replace(/[ \t]+/g,' ').replace(/\n\s*\n+/g,'\n\n').trim();
- return {url,title:trim(meta('og:title')||article.headline||parsed?.title||document.querySelector('title')?.textContent),content,publishedAt,publishedPrecision:date?/T/.test(date)?'second':'day':null,author:trim(article.author?.name||meta('author')||new URL(url).hostname),language:/[\u4e00-\u9fff]/.test(content.slice(0,500))?'zh':'en',access:restricted?'restricted':content.length<180?'partial':'public',tables,assets,attachments,references};
+ return {...publicationDates({url,publishedAt,publishedDateSource,scheduledAt}),title:trim(meta('og:title')||article.headline||parsed?.title||document.querySelector('title')?.textContent),content,publishedPrecision:date?/T/.test(date)?'second':'day':null,author:trim(article.author?.name||meta('author')||new URL(url).hostname),language:/[\u4e00-\u9fff]/.test(content.slice(0,500))?'zh':'en',access:restricted?'restricted':content.length<180?'partial':'public',tables,assets,attachments,references};
 }
 export async function getResource(start,{proxy=process.env.MP2_EVIDENCE_PROXY||process.env.DOWNLOAD_PROXY,maxBytes=12*1024*1024,deadline=Date.now()+120000}={}){
  const chain=[];let url=start;
