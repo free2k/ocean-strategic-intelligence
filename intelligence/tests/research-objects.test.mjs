@@ -41,3 +41,8 @@ test('old object registries expose a schedule without mutating stored history',a
  const ledger={resolveRelease:async()=>({snapshotId:'s',objectRegistryId:'r'}),repository:{read:async()=>registry}};
  const rows=await readObjects(ledger);assert.equal(rows.data[0].latestEventAt,null);assert.equal(rows.data[0].latestActivityAt,'2026-08-24');assert.equal(registry.events[0].versions[0].occurredAt,'2027-01-01');
 });
+test('search and pagination reuse the compact index without fetching full registry',async()=>{
+ let reads=0;const registry={kind:'registry',objects:['Petroleum','Wind'].map((name,i)=>({id:String(i),name,type:'公司',aliases:[],eventIds:[],documentRefs:[{documentId:String(i),snapshotId:'s',publishedAt:'2026-01-01'}]})),events:[]};
+ const ledger={resolveRelease:async()=>({snapshotId:'s',objectRegistryId:'r'}),repository:{read:async()=>{throw Error('full archive must not load');},readObjectIndex:async()=>{reads++;return registry;}}};
+ assert.equal((await readObjects(ledger)).total,2);assert.equal((await readObjects(ledger,{q:'petroleum'})).total,1);assert.equal((await readObjects(ledger,{q:'missing'})).total,0);assert.equal((await readObjects(ledger,{q:'wind',type:'项目'})).total,0);assert.equal(reads,1);
+});

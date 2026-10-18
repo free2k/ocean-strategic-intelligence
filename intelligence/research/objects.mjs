@@ -72,11 +72,12 @@ export async function readObjects(ledger,query={},id=null,documentIds=null){
  const limit=Number(query.limit||12),offset=Number(query.offset||0);if(!Number.isInteger(limit)||limit<1||limit>50||!Number.isInteger(offset)||offset<0)fail('INVALID_PAGINATION','分页参数无效');
  const meta={releaseId:release.releaseId,snapshotId:release.snapshotId,registryId:release.objectRegistryId,generatedAt:release.publishedAt,timeBasis:'document_publication',historyPolicy:'matched_documents_all_saved_versions'};
  let cache=objectListCaches.get(ledger.repository);if(!cache){cache=new Map();objectListCaches.set(ledger.repository,cache);}
- const cacheKey=JSON.stringify([release.objectRegistryId,query.q||'',query.type||'',query.topic||'',query.sourceId||'',query.from||'',query.to||'',documentIds?[...documentIds].sort():null]);
- if(!id&&cache.has(cacheKey)){const rows=cache.get(cacheKey);return {data:structuredClone(rows.slice(offset,offset+limit)),total:rows.length,offset,limit,meta};}
- const registry=structuredClone(await ledger.repository.read(release.objectRegistryId));if(!registry||registry.kind!=='registry')fail('REGISTRY_NOT_FOUND','对象档案版本不存在',404);
- for(const o of registry.objects)o.documentRefs=o.documentRefs.map(r=>publicationDates(r));
- for(const e of registry.events)e.versions=e.versions.map(v=>eventDates(publicationDates(v)));
+ const cacheKey=JSON.stringify([release.objectRegistryId,release.snapshotId,query.topic||'',query.sourceId||'',query.from||'',query.to||'',documentIds?[...documentIds].sort():null]);
+ const filterRows=rows=>rows.filter(o=>(!query.type||o.type===query.type)&&(!query.q||[o.name,...o.aliases].join(' ').toLowerCase().includes(query.q.trim().toLowerCase())));
+ if(!id&&cache.has(cacheKey)){const rows=filterRows(cache.get(cacheKey));return {data:structuredClone(rows.slice(offset,offset+limit)),total:rows.length,offset,limit,meta};}
+ const storedRegistry=!id&&ledger.repository.readObjectIndex?await ledger.repository.readObjectIndex(release.objectRegistryId,release.snapshotId):await ledger.repository.read(release.objectRegistryId);const registry=storedRegistry?{...storedRegistry}:null;if(!registry||registry.kind!=='registry')fail('REGISTRY_NOT_FOUND','对象档案版本不存在',404);
+ registry.objects=registry.objects.map(o=>({...o,documentRefs:o.documentRefs.map(r=>publicationDates(r))}));
+ registry.events=registry.events.map(e=>({...e,versions:e.versions.map(v=>eventDates(publicationDates(v)))}));
  const matches=r=>(!documentIds||documentIds.has(r.documentId))&&r.snapshotId===release.snapshotId&&(!query.topic||r.topic===query.topic)&&(!query.sourceId||r.sourceId===query.sourceId)&&(start===null||Date.parse(r.publishedAt)>=start)&&(end===null||Date.parse(r.publishedAt)<end);
  const visible=o=>o.documentRefs.some(matches);
  if(id){const object=registry.objects.find(o=>o.id===id);if(!object)fail('OBJECT_NOT_FOUND','对象不存在于该版本',404);if(!visible(object))fail('OBJECT_SCOPE_MISMATCH','对象不在当前资料范围内',409);
@@ -87,7 +88,7 @@ export async function readObjects(ledger,query={},id=null,documentIds=null){
  }
  const eventIndex=new Map(registry.events.map(e=>[e.id,e]));
  const time=v=>Number.isFinite(Date.parse(v))?Date.parse(v):0;
- const rows=registry.objects.filter(o=>!o.mergedInto&&visible(o)&&(!query.type||o.type===query.type)&&(!query.q||[o.name,...o.aliases].join(' ').toLowerCase().includes(query.q.toLowerCase()))).map(o=>{
+ const rows=registry.objects.filter(o=>!o.mergedInto&&visible(o)).map(o=>{
   const refs=o.documentRefs.filter(matches),docs=new Set(refs.map(r=>r.documentId));
   const events=o.eventIds.map(id=>eventIndex.get(id)).filter(e=>e?.versions.some(v=>docs.has(v.documentId)));
   const latest=events.flatMap(e=>e.versions.filter(v=>docs.has(v.documentId))).sort((a,b)=>time(b.occurredAt||b.publishedAt)-time(a.occurredAt||a.publishedAt)||time(b.publishedAt)-time(a.publishedAt))[0];
@@ -95,5 +96,5 @@ export async function readObjects(ledger,query={},id=null,documentIds=null){
   return {id:o.id,name:o.name,type:o.type,aliases:o.aliases,identityWarning:o.identityWarning||null,documents:docs.size,events:events.length,firstSeenAt:o.firstSeenAt,latestEventAt:latest?.occurredAt||null,latestPublishedAt:latest?.publishedAt||latestPublishedAt,latestActivityAt:latest?.occurredAt||latest?.publishedAt||latestPublishedAt};
  }).sort((a,b)=>Number(b.events>0)-Number(a.events>0)||time(b.latestActivityAt)-time(a.latestActivityAt)||a.id.localeCompare(b.id));
  if(cache.size>=8)cache.delete(cache.keys().next().value);cache.set(cacheKey,rows);
- return {data:structuredClone(rows.slice(offset,offset+limit)),total:rows.length,offset,limit,meta};
+ const filtered=filterRows(rows);return {data:structuredClone(filtered.slice(offset,offset+limit)),total:filtered.length,offset,limit,meta};
 }

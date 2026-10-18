@@ -44,6 +44,17 @@ export class PostgresResearchRepository{
   // Immutable records are cached; callers receive an independent mutable copy.
   return encoded?JSON.parse(encoded):null;
  }
+ async readProjection(id,view,sql,params=[]){
+  check(id);const key=view+':'+id+':'+JSON.stringify(params);this.projections||=new Map();this.projectionPending||=new Map();
+  if(this.projections.has(key))return JSON.parse(this.projections.get(key));
+  if(!this.projectionPending.has(key))this.projectionPending.set(key,(async()=>{const value=(await this.pool.query(sql,[id,...params])).rows[0]?.payload;if(!value)return null;const text=typeof value==='string'?value:JSON.stringify(value);if(Buffer.byteLength(text)<16*1024*1024){while(this.projections.size>=2)this.projections.delete(this.projections.keys().next().value);this.projections.set(key,text);}return text;})().finally(()=>this.projectionPending.delete(key)));
+  const text=await this.projectionPending.get(key);return text?JSON.parse(text):null;
+ }
+ async readObjectIndex(id,snapshotId){return this.readProjection(id,'object-index',`SELECT jsonb_build_object('kind',payload->'kind','objects',
+ (SELECT coalesce(jsonb_agg(jsonb_build_object('id',o->'id','name',o->'name','type',o->'type','aliases',o->'aliases','identityWarning',o->'identityWarning','mergedInto',o->'mergedInto','firstSeenAt',o->'firstSeenAt','eventIds',o->'eventIds','documentRefs',
+ (SELECT coalesce(jsonb_agg(DISTINCT jsonb_build_object('documentId',d->'documentId','snapshotId',d->'snapshotId','publishedAt',d->'publishedAt','topic',d->'topic','sourceId',d->'sourceId')),'[]'::jsonb) FROM jsonb_array_elements(o->'documentRefs') d WHERE d->>'snapshotId'=$2))), '[]'::jsonb) FROM jsonb_array_elements(payload->'objects') o),
+ 'events',(SELECT coalesce(jsonb_agg(jsonb_build_object('id',e->'id','versions',(SELECT coalesce(jsonb_agg(DISTINCT jsonb_build_object('documentId',v->'documentId','occurredAt',v->'occurredAt','publishedAt',v->'publishedAt','dateQuote',v->'dateQuote','scheduledAt',v->'scheduledAt')),'[]'::jsonb) FROM jsonb_array_elements(e->'versions') v))),'[]'::jsonb) FROM jsonb_array_elements(payload->'events') e))::text payload FROM ocean_research.records WHERE id=$1`,[snapshotId]);}
+ async readSnapshotIndex(id){return this.readProjection(id,'snapshot-index',`SELECT jsonb_build_object('kind',payload->'kind','entries',(SELECT jsonb_agg(jsonb_build_object('documentId',e->'documentId','classification',e->'classification','body',jsonb_build_object('sourceId',e->'body'->'sourceId','publishedAt',e->'body'->'publishedAt'))) FROM jsonb_array_elements(payload->'entries') e))::text payload FROM ocean_research.records WHERE id=$1`);}
  async isPublished(id){check(id);return (await this.pool.query(`WITH RECURSIVE chain AS (
  SELECT r.id,r.payload,ARRAY[r.id] AS visited FROM ocean_research.head h JOIN ocean_research.records r ON r.id=h.payload->>'releaseId' WHERE h.id='latest'
  UNION ALL SELECT r.id,r.payload,c.visited||r.id FROM chain c JOIN ocean_research.records r ON r.id=c.payload->>'previousReleaseId' WHERE NOT r.id=ANY(c.visited)
