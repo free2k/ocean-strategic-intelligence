@@ -46,5 +46,8 @@ test('scenario review is explicit in records, round trips and UI; actual cells c
  d.step=1;const step1=wizard(d,catalog);assert.match(step1,/实际工程条件仍待核验/);assert.doesNotMatch(step1,/已核对禁用、安全和工程适用性等硬约束/);
  d.step=2;assert.doesNotMatch(wizard(d,catalog),/含AHP一致性/);
  assert.match(resultView(record),/局部敏感性（WSM）/);
+ const previous=structuredClone(record);previous.configuration.baseYear='原研究设定';
+ const upgraded=buildStudy({},{...request,parentId:previous.id,studyId:previous.studyId},previous);
+ assert.equal(upgraded.parentId,previous.id);assert.equal(upgraded.comparison.resultComparable,false);assert.ok(upgraded.revisionReason);
  const invalid=structuredClone(request);invalid.input.cellEvidence[0].nature='actual';assert.throws(()=>buildStudy({},invalid),/结构化输入校验|输入校验|输入不完整|请求未通过|情景约束/);
 });
