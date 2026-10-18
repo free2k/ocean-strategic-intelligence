@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>深海一号 · 首页效果</title></head>
+<body>
+<script type="module">
+  import { homeView } from '/intelligence/public/home.js';
+  const light = new URLSearchParams(location.search).get('theme') === 'light';
+  const response = await fetch('/intelligence/public/index.html');
+  if (!response.ok) throw new Error('无法读取首页布局');
+  const shell = new DOMParser().parseFromString(await response.text(), 'text/html');
+  shell.querySelectorAll('script').forEach(script => script.remove());
+  const base = document.createElement('base');
+  base.href = '/intelligence/public/';
+  document.head.replaceChildren(base, ...shell.head.childNodes);
+  document.title = '深海一号 · 首页效果';
+  document.body.replaceChildren(...shell.body.childNodes);
+  document.body.dataset.view = 'home';
+  document.body.classList.toggle('light', light);
+  document.querySelector('#page-name').textContent = '首页';
+  document.querySelector('#asof').textContent = '海洋能源 · 战略智能智库';
+  document.querySelector('#logout').hidden = true;
+  for (const selector of ['.hero', '.filters', '#notice']) document.querySelector(selector).remove();
+  document.querySelector('#content').innerHTML = homeView({ topics: ['海洋油气', '海上风电', '海洋低碳', '多能融合', '宏观政策', '海洋装备'] });
+  document.querySelector('#home-release').textContent = '从原始资料出发，以证据连接研究。';
+  document.querySelector('#home-week-trend').innerHTML = '<small>六领域资料 · 证据与研究成果</small>';
+  for (const element of document.querySelectorAll('[id^="home-product-"]')) element.textContent = '查看已发布研究成果';
+  for (const element of document.querySelectorAll('[data-home-topic]')) element.textContent = '查看本领域资料';
+  document.querySelector('#theme').addEventListener('click', () => document.body.classList.toggle('light'));
+  document.addEventListener('click', event => { if (event.target.closest('a')) event.preventDefault(); });
+  await document.querySelector('.home-hero-art img').decode();
+  await document.fonts.ready;
+  document.body.dataset.previewReady = 'true';
+</script>
+</body>
+</html>

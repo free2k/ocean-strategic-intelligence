@@ -1,0 +1,38 @@
+{
+  "status": "deployed",
+  "sourceCommit": "abca71813f7ab3b40a28d1d38535d0609f96ba98",
+  "release": "/opt/ocean-intelligence/releases/home-hero-20261018T120952Z-abca718",
+  "previousRelease": "/opt/ocean-intelligence/releases/ccus-case-inputs-20261018T112241Z",
+  "backup": "/opt/ocean-intelligence/backups/home-hero-20261018T120952Z-abca718",
+  "files": 5,
+  "healthBefore": {
+    "ok": true,
+    "backend": "postgres",
+    "documents": 1497
+  },
+  "healthAfter": {
+    "ok": true,
+    "backend": "postgres",
+    "documents": 1497
+  },
+  "servedFiles": [
+    "index.html",
+    "home.js",
+    "home-hero.css",
+    "shenhai-no1-hero.webp"
+  ],
+  "snapshotBefore": {
+    "documents": 1497,
+    "series": 13,
+    "sha256": "95d06115788cded6104fbcd633b44646540240d5c0e2e80f097bfc5d8cd0f741"
+  },
+  "snapshotAfter": {
+    "documents": 1497,
+    "series": 13,
+    "sha256": "95d06115788cded6104fbcd633b44646540240d5c0e2e80f097bfc5d8cd0f741"
+  },
+  "businessSnapshotUnchanged": true,
+  "databaseMigration": false,
+  "dataImport": false,
+  "preservedProductionServer": true
+}

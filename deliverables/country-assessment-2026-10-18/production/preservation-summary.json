@@ -1,0 +1,32 @@
+{
+  "existingRecordsVerified": {
+    "ocean_intel.documents": 1497,
+    "ocean_intel.document_versions": 1615,
+    "ocean_intel.research": 39,
+    "ocean_research.records": 917
+  },
+  "snapshot": {
+    "documents": 1497,
+    "series": 13,
+    "businessHash": "95d06115788cded6104fbcd633b44646540240d5c0e2e80f097bfc5d8cd0f741"
+  },
+  "health": {
+    "ok": true,
+    "backend": "postgres",
+    "documents": 1497
+  },
+  "processes": [
+    {
+      "name": "knowledge-base",
+      "pid": 2238067,
+      "status": "online"
+    },
+    {
+      "name": "ocean-intelligence",
+      "pid": 2386379,
+      "status": "online"
+    }
+  ],
+  "currentRelease": "/opt/ocean-intelligence/releases/country-assessments-20261018T121120Z",
+  "rollbackAvailable": true
+}

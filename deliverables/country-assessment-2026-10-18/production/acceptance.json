@@ -1,0 +1,112 @@
+{
+  "status": "deployed_and_verified",
+  "verifiedAt": "2026-10-18T12:24:08.477921+00:00",
+  "site": "http://49.233.77.111/ocean-intelligence/#dashboard",
+  "codeRelease": "/opt/ocean-intelligence/releases/country-assessments-20261018T121120Z",
+  "previousCodeRelease": "/opt/ocean-intelligence/releases/home-hero-20261018T120952Z-abca718",
+  "dataRelease": "release_3b77bd98d8f74352da50fa8fffab462fe1da6a9fc1449686628e5dae57f50528",
+  "snapshotId": "snapshot_0a5e7377a036c03bf7c52df0d205811945a2046fb1200a402645f65350255b94",
+  "realData": {
+    "events": 966,
+    "savedCountryProductsInDatabase": 1,
+    "currentAssessments": 0,
+    "currentCases": 0,
+    "historicalProducts": 1,
+    "independentCountryDossiers": 0,
+    "allSavedPublishedProductsVisible": true,
+    "semanticReviewDigestUnchanged": true,
+    "filterQueriesPassed": 10,
+    "pinnedOriginalBodiesPassed": 3,
+    "originalPublicationLinksPassed": 1,
+    "officialSourceLinksPassed": 3
+  },
+  "browser": {
+    "site": "public_production",
+    "browser": "Google Chrome",
+    "verified": [
+      "全球默认展示全部已有历史成果",
+      "历史案例展开与版本标签",
+      "单国挪威筛选",
+      "挪威与瑞典多国筛选",
+      "只看所选之间",
+      "挪威档案切换保留案例",
+      "Northern Lights来源匹配",
+      "领域条件不匹配时解释原因并提供恢复链接",
+      "清除资料筛选恢复已有成果",
+      "固定历史发布版本跳转及刷新恢复",
+      "返回最新版本后历史入口保留",
+      "固定版本原文弹窗",
+      "打开官方网站原始文章",
+      "清空国别返回全球"
+    ],
+    "topicFilterObservation": "历史案例引用的原资料版本未保存领域分类；选择海洋低碳会明确提示完整证据不匹配，清除资料筛选即可恢复。",
+    "screenshot": "global-history.png",
+    "originalScreenshot": "original-body.png"
+  },
+  "tests": {
+    "productionNodeVersion": "20.20.0",
+    "tests": 376,
+    "pass": 371,
+    "fail": 2,
+    "skipped": 3,
+    "preExistingFailuresConfirmedOnPreviousRelease": [
+      "CSV supports quoted multiline, escaped quotes and missing capacities",
+      "capture reader preserves Unicode source separators and escaped newlines across records"
+    ],
+    "newRegressions": 0,
+    "postgresTempTableParityTestsPassed": 2,
+    "local": {
+      "tests": 399,
+      "pass": 398,
+      "fail": 0,
+      "skipped": 1,
+      "command": "npm run test:intelligence",
+      "countryFilterVersionMatrix": 70,
+      "finalViewAndNavigationRetest": {
+        "passed": 9,
+        "failed": 0
+      },
+      "skippedTest": "原有 research-projections.test.mjs 需要 TEST_PROJECTION_DATABASE_URL；本次新增国别数据库校验已执行"
+    },
+    "fullMatrixCombinations": 70
+  },
+  "preservation": {
+    "existingDataPreserved": true,
+    "databaseMigration": false,
+    "businessWritesByAcceptance": 0,
+    "paidModelRequests": 0,
+    "otherServicePidUnchanged": true,
+    "staticAssetsVerified": 5,
+    "existingRecordsVerified": {
+      "ocean_intel.documents": 1497,
+      "ocean_intel.document_versions": 1615,
+      "ocean_intel.research": 39,
+      "ocean_research.records": 917
+    },
+    "snapshot": {
+      "documents": 1497,
+      "series": 13,
+      "businessHash": "95d06115788cded6104fbcd633b44646540240d5c0e2e80f097bfc5d8cd0f741"
+    },
+    "health": {
+      "ok": true,
+      "backend": "postgres",
+      "documents": 1497
+    },
+    "processes": [
+      {
+        "name": "knowledge-base",
+        "pid": 2238067,
+        "status": "online"
+      },
+      {
+        "name": "ocean-intelligence",
+        "pid": 2386379,
+        "status": "online"
+      }
+    ],
+    "currentRelease": "/opt/ocean-intelligence/releases/country-assessments-20261018T121120Z",
+    "rollbackAvailable": true,
+    "backup": "/opt/ocean-intelligence/backups/country-assessments-20261018T121120Z"
+  }
+}
