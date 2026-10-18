@@ -53,7 +53,7 @@ for item in manifest['files']:
     if sha(p) != item['after']: raise RuntimeError('Checksum failed')
     if p.suffix in ['.js', '.mjs']: subprocess.run(['node', '--check', str(p)], check=True, capture_output=True)
 backup.mkdir(parents=True)
-tests = ['strategy-review-fixes', 'evaluation-case', 'strategy-cases', 'strategy-discovery', 'strategy-engine', 'strategy-workbench']
+tests = ['strategy-review-fixes', 'evaluation-case', 'strategy-cases', 'strategy-discovery', 'strategy-engine', 'strategy-workbench', 'strategy-advisor', 'strategy-guided-inputs', 'strategy-scope', 'workspace-data', 'workspace-data-server', 'navigation-cache']
 with (backup / 'tests.log').open('w') as output:
     result = subprocess.run(['node', '--test', *['intelligence/tests/' + t + '.test.mjs' for t in tests]], cwd=release, stdout=output, stderr=subprocess.STDOUT, timeout=120)
 if result.returncode:
