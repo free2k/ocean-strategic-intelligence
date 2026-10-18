@@ -1,3 +1,4 @@
+import {publicationDates,eventDates} from '../temporal-dates.mjs';
 import {readDossier} from './dossier-products.mjs';
 import {digest,fail} from './ledger.mjs';
 const uniq=a=>[...new Set(a)];
@@ -30,7 +31,7 @@ export function buildObjects(snapshot,batch,release,previous=null){
    // Ambiguous changed assertions remain separate candidates, never asserted as real-world change.
    const id=result.eventMap[key]||'event_'+digest({documentId:entry.documentId,type:event.type,occurredAt:event.eventDate||null,objects:ids,assertions:quotes.length?quotes:normalized(event.title)});result.eventMap[key]=id;
    let item=events.get(id);if(!item){item={id,firstSeenAt:at,legacyIds:[],versions:[],objectIds:ids};events.set(id,item);}item.legacyIds=uniq([...item.legacyIds,event.id]);item.objectIds=uniq([...item.objectIds,...ids]);
-   const version={...ref(entry),title:event.title,type:event.type,summary:event.summary,occurredAt:event.eventDate||null,dateQuote:event.dateQuote||null,dateEvidenceIds:event.dateEvidenceIds||[],dateBasis:event.dateBasis||'发生日期未明确',status:event.status||'candidate',observedAt:at,changeTypes:batch.baseline?['baseline']:changes.get(entry.documentId)||[],evidenceIds:event.evidenceIds||[]};
+   const version={...ref(entry),title:event.title,type:event.type,summary:event.summary,occurredAt:event.eventDate||null,scheduledAt:event.scheduledAt||null,dateRole:event.dateRole||null,dateQuote:event.dateQuote||null,dateEvidenceIds:event.dateEvidenceIds||[],dateBasis:event.dateBasis||'发生日期未明确',status:event.status||'candidate',observedAt:at,changeTypes:batch.baseline?['baseline']:changes.get(entry.documentId)||[],evidenceIds:event.evidenceIds||[]};
    const versionKey=digest({body:entry.bodyVersionId,structure:entry.structureVersionId,event});if(!item.versions.some(v=>v.versionKey===versionKey))item.versions.push({...version,versionKey});
    for(const oid of ids){const o=objects.get(oid);o.eventIds=uniq([...o.eventIds,id]);attach(o,entry,event.evidenceIds);}
   }
@@ -73,7 +74,9 @@ export async function readObjects(ledger,query={},id=null,documentIds=null){
  let cache=objectListCaches.get(ledger.repository);if(!cache){cache=new Map();objectListCaches.set(ledger.repository,cache);}
  const cacheKey=JSON.stringify([release.objectRegistryId,query.q||'',query.type||'',query.topic||'',query.sourceId||'',query.from||'',query.to||'',documentIds?[...documentIds].sort():null]);
  if(!id&&cache.has(cacheKey)){const rows=cache.get(cacheKey);return {data:structuredClone(rows.slice(offset,offset+limit)),total:rows.length,offset,limit,meta};}
- const registry=await ledger.repository.read(release.objectRegistryId);if(!registry||registry.kind!=='registry')fail('REGISTRY_NOT_FOUND','对象档案版本不存在',404);
+ const registry=structuredClone(await ledger.repository.read(release.objectRegistryId));if(!registry||registry.kind!=='registry')fail('REGISTRY_NOT_FOUND','对象档案版本不存在',404);
+ for(const o of registry.objects)o.documentRefs=o.documentRefs.map(r=>publicationDates(r));
+ for(const e of registry.events)e.versions=e.versions.map(v=>eventDates(publicationDates(v)));
  const matches=r=>(!documentIds||documentIds.has(r.documentId))&&r.snapshotId===release.snapshotId&&(!query.topic||r.topic===query.topic)&&(!query.sourceId||r.sourceId===query.sourceId)&&(start===null||Date.parse(r.publishedAt)>=start)&&(end===null||Date.parse(r.publishedAt)<end);
  const visible=o=>o.documentRefs.some(matches);
  if(id){const object=registry.objects.find(o=>o.id===id);if(!object)fail('OBJECT_NOT_FOUND','对象不存在于该版本',404);if(!visible(object))fail('OBJECT_SCOPE_MISMATCH','对象不在当前资料范围内',409);

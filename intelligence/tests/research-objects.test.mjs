@@ -36,3 +36,8 @@ test('object listing prioritizes event dates then publication dates, never inges
  assert.equal((await readObjects(ledger,{offset:'1',limit:'1'})).data[0].latestEventAt,'2020-01-01');
  assert.equal((await readObjects(ledger,{from:'2026-10-17'})).data[0].id,'old');
 });
+test('old object registries expose a schedule without mutating stored history',async()=>{
+ const registry={kind:'registry',objects:[{id:'o',name:'Company',type:'公司',aliases:[],documentRefs:[{documentId:'d',snapshotId:'s',publishedAt:'2026-08-24'}],eventIds:['e'],relationIds:[],factIds:[],metrics:[]}],events:[{id:'e',versions:[{documentId:'d',occurredAt:'2027-01-01',publishedAt:'2026-08-24',dateQuote:'Supplies will start on 1 January 2027'}]}],relations:[],facts:[],operations:[]};
+ const ledger={resolveRelease:async()=>({snapshotId:'s',objectRegistryId:'r'}),repository:{read:async()=>registry}};
+ const rows=await readObjects(ledger);assert.equal(rows.data[0].latestEventAt,null);assert.equal(rows.data[0].latestActivityAt,'2026-08-24');assert.equal(registry.events[0].versions[0].occurredAt,'2027-01-01');
+});
