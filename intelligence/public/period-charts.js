@@ -1,7 +1,7 @@
 import {escapeHtml as esc} from './preview.js';
 import {canonicalTopic} from './industry-topics.mjs';
+import {styleOption} from './quant/charts.js';
 
-const palette=['#78cfc3','#a997ee','#7db9dd','#e0b874','#d998af','#82b995'];
 export function periodChartData(job){
  const days=[];
  for(let t=Date.parse(job.range.from+'T00:00:00Z');t<=Date.parse(job.range.to+'T00:00:00Z');t+=86400000)days.push(new Date(t).toISOString().slice(0,10));
@@ -23,7 +23,7 @@ export function periodChartData(job){
 let engine;
 function loadEngine(){return window.echarts?Promise.resolve(window.echarts):(engine||=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='quant/echarts.js';s.onload=()=>resolve(window.echarts);s.onerror=()=>{engine=null;s.remove();reject(Error('图表加载失败，请刷新重试'));};document.head.append(s);}));}
 export function mountPeriodCharts(host,job){
- let disposed=false,charts=[],resize;
+ let disposed=false,charts=[],resize,theme;
  const data=periodChartData(job);
  if(!data.total){host.innerHTML='';return()=>{};}
  const cards=[['pie','六领域文章占比','每篇按主行业计一次。'],['flow','发布来源 → 六领域','展示文章最多的 8 个来源，其余合并；线宽表示文章篇数。'],['daily','各领域每日发布分布','按原文发布日期统计，堆叠高度表示当天选用篇数。'],['heat','发布频率热力图','北京时间：横轴日期，纵轴小时；0 表示本期没有选用该时段文章。'],['tree','领域与来源矩形树图','矩形面积表示本次选用文章数，点击领域可下钻查看来源。'],['sources','来源文章数量','展示前 12 个来源，其余合并；不代表来源影响力排名。']];
@@ -31,7 +31,23 @@ export function mountPeriodCharts(host,job){
  loadEngine().then(echarts=>{
   if(disposed)return;
   const text=document.body.classList.contains('light')?'#335269':'#b9cddd';
-  function draw(id,option){const el=host.querySelector(`[data-period-chart="${id}"]`),chart=echarts.init(el);chart.setOption({backgroundColor:'transparent',color:palette,textStyle:{color:text},tooltip:{trigger:'item',confine:true,renderMode:'richText'},...option});charts.push(chart);}
+  function paint(entry){
+   const dark=!document.body.classList.contains('light'),compact=entry.el.clientWidth<520;
+   const option=styleOption({backgroundColor:'transparent',tooltip:{trigger:'item',confine:true,renderMode:'richText'},toolbox:{right:4,top:0,feature:{saveAsImage:{title:'保存图表',pixelRatio:2,name:entry.title}}},...entry.option},dark,{width:entry.el.clientWidth,total:data.total});
+   for(const series of option.series){
+    // A stack is one total: repeated background columns can look like extra data.
+    if(series.stack){series.showBackground=false;series.itemStyle.borderRadius=0;}
+    if(series.type==='pie'){series.labelLayout={hideOverlap:true};series.minShowLabelAngle=4;if(compact){series.label.show=false;series.labelLine={show:false};}}
+    if(series.type==='sankey'){series.right=compact?78:110;series.label={...series.label,width:compact?72:120,overflow:'truncate'};}
+    if(series.type==='treemap')series.name='本期选用文章';
+   }
+   if(entry.id==='pie'){
+    option.legend={...option.legend,type:compact?'plain':'scroll',itemGap:compact?12:16};
+    if(compact)option.graphic=[{type:'text',left:'center',top:'35%',silent:true,style:{text:data.total+'\n篇文章',fill:dark?'#d9edf8':'#29465d',fontFamily:'SFMono-Regular, Consolas, monospace',fontSize:20,lineHeight:24,textAlign:'center'}}];
+   }
+   entry.chart.setOption(option,true);
+  }
+  function draw(id,option){const el=host.querySelector(`[data-period-chart="${id}"]`),entry={id,title:cards.find(c=>c[0]===id)[1],el,chart:echarts.init(el),option};paint(entry);charts.push(entry);}
   const axes={axisLabel:{color:text},axisLine:{lineStyle:{color:'#526577'}},splitLine:{lineStyle:{color:'#263b49'}}};
   draw('pie',{legend:{bottom:0,textStyle:{color:text}},series:[{type:'pie',radius:['35%','62%'],center:['50%','43%'],label:{color:text,formatter:'{b}\n{c} 篇 ({d}%)'},data:data.domains.map(d=>({name:d.name,value:d.count}))}]});
   const top=new Set(data.sources.slice(0,8).map(([name])=>name)),sourceNodes=[...top];if(data.sources.length>8)sourceNodes.push('其他来源');
@@ -42,7 +58,8 @@ export function mountPeriodCharts(host,job){
   draw('tree',{series:[{type:'treemap',roam:false,leafDepth:1,breadcrumb:{show:true},label:{formatter:'{b}\n{c} 篇'},upperLabel:{show:true,height:25},data:data.domains.filter(d=>d.count).map(d=>({name:d.name,value:d.count,children:[...d.sources].map(([name,value])=>({name,value}))}))}]});
   const ranked=data.sources.slice(0,12);if(data.sources.length>12)ranked.push(['其余来源',data.sources.slice(12).reduce((n,s)=>n+s[1],0)]);
   draw('sources',{grid:{left:135,right:35,top:10,bottom:25},xAxis:{...axes,type:'value',minInterval:1},yAxis:{...axes,type:'category',inverse:true,data:ranked.map(s=>s[0]),axisLabel:{color:text,width:120,overflow:'truncate'}},series:[{type:'bar',data:ranked.map(s=>s[1]),label:{show:true,position:'right',color:text}}]});
-  resize=new ResizeObserver(()=>charts.forEach(c=>c.resize()));resize.observe(host);
+  resize=new ResizeObserver(()=>charts.forEach(entry=>{entry.chart.resize();if(entry.width!==entry.el.clientWidth){entry.width=entry.el.clientWidth;paint(entry);}}));resize.observe(host);
+  theme=new MutationObserver(()=>charts.forEach(paint));theme.observe(document.body,{attributes:true,attributeFilter:['class']});
  }).catch(e=>{if(!disposed)host.innerHTML=`<p role="status">${esc(e.message)}</p>`;});
- return()=>{disposed=true;resize?.disconnect();charts.forEach(c=>c.dispose());};
+ return()=>{disposed=true;resize?.disconnect();theme?.disconnect();charts.forEach(entry=>entry.chart.dispose());};
 }
