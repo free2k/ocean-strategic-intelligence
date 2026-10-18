@@ -37,7 +37,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
   await page.waitForFunction(()=>document.querySelector('#answer')?.textContent.includes('案例研究整理'));
   assert.equal(await page.locator('#references .row').count(),6);assert.ok(await page.locator('#answer a').count()>0);
   await page.locator('[data-case-answer]').nth(1).click();assert.match(await page.locator('#answer').innerText(),/368\.07/);assert.match(await page.locator('#answer').innerText(),/非AI生成/);
-  await page.waitForFunction(()=>window.researchHistory?.filter(r=>r.caseId==='northern-lights-ccus').length===3);
+  await page.waitForFunction(ids=>ids.every(id=>window.researchHistory?.some(r=>r.id===id)),c.qaRecords.map(r=>r.id));
   assert.equal(await page.locator('#qa-topic').inputValue(),'海洋低碳');
   await page.screenshot({path:path.join(dir,'06-evidence-qa.png')});
   await page.locator('#export-brief').click();await page.locator('#detail[open]').waitFor();assert.match(await page.locator('#detail-body').innerText(),/368\.07/);await page.keyboard.press('Escape');
