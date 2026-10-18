@@ -1,0 +1,50 @@
+{
+  "url": "http://49.233.77.111/ocean-intelligence/#home",
+  "sourceCommit": "abca71813f7ab3b40a28d1d38535d0609f96ba98",
+  "checks": [
+    {
+      "width": 1600,
+      "overflow": false,
+      "imageLoaded": true,
+      "copyBottom": 560.6875,
+      "contentBottom": 560.6875,
+      "artTop": 160
+    },
+    {
+      "width": 900,
+      "overflow": false,
+      "imageLoaded": true,
+      "copyBottom": 517.6875,
+      "contentBottom": 517.6875,
+      "artTop": 517.6875
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "imageLoaded": true,
+      "copyBottom": 696.75,
+      "contentBottom": 696.75,
+      "artTop": 692.75
+    }
+  ],
+  "lightTheme": true,
+  "assets": [
+    {
+      "name": "home.js",
+      "bytes": 9588,
+      "mime": "text/javascript; charset=utf-8"
+    },
+    {
+      "name": "home-hero.css",
+      "bytes": 3747,
+      "mime": "text/css; charset=utf-8"
+    },
+    {
+      "name": "shenhai-no1-hero.webp",
+      "bytes": 425266,
+      "mime": "image/webp"
+    }
+  ],
+  "errors": [],
+  "productionWritesDuringBrowserCheck": 0
+}

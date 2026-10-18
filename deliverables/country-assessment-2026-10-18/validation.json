@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "verificationScope": "本地隔离数据；真实应用服务与浏览器界面；未部署生产",
+  "changes": [
+    "全球汇总单国及多国联合研判",
+    "按实际完整引用证据筛选领域、来源及北京时间发布日期",
+    "案例与研判分别展示",
+    "历史成果按发布链保留、逐项标注版本，引用固定到原发布版本",
+    "修复历史链接刷新、范围切换及返回最新版本"
+  ],
+  "automated": {
+    "tests": 399,
+    "pass": 398,
+    "fail": 0,
+    "skipped": 1,
+    "command": "npm run test:intelligence",
+    "countryFilterVersionMatrix": 70,
+    "finalViewAndNavigationRetest": {
+      "passed": 9,
+      "failed": 0
+    },
+    "skippedTest": "原有 research-projections.test.mjs 需要 TEST_PROJECTION_DATABASE_URL；本次新增国别数据库校验已执行"
+  },
+  "database": {
+    "engine": "PGlite / PostgreSQL",
+    "packageVersion": "0.5.10",
+    "test": "country-products-postgres.test.mjs",
+    "scopeQueries": 7,
+    "projectionAndHistoricalReadParity": true,
+    "productionDatabaseAccessed": false
+  },
+  "http": {
+    "realApplicationServer": true,
+    "originalVersion": {
+      "assessments": 3,
+      "cases": 1
+    },
+    "afterNewPublication": {
+      "currentProducts": 0,
+      "historicalProducts": 5
+    },
+    "historicalCitationsVerified": 6
+  },
+  "browser": {
+    "desktop": {
+      "width": 1440,
+      "height": 1000,
+      "horizontalOverflow": false
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "horizontalOverflow": false
+    },
+    "consoleErrors": [],
+    "verified": [
+      "全球汇总",
+      "历史成果展开",
+      "打开旧正文",
+      "进入固定发布版本",
+      "来源筛选及排除原因",
+      "清除筛选恢复成果",
+      "单国/多国及内部关系模式",
+      "国别档案与汇总切换",
+      "返回最新版本",
+      "新版本无新成果时历史入口仍可见",
+      "历史行版本标签"
+    ]
+  },
+  "screenshots": {
+    "desktop": "history-after-publish.jpg",
+    "mobile": "mobile.jpg"
+  }
+}

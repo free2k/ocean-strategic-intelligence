@@ -1,0 +1,103 @@
+{
+  "passed": true,
+  "mode": "staged_read_only_postgres",
+  "releaseId": "release_3b77bd98d8f74352da50fa8fffab462fe1da6a9fc1449686628e5dae57f50528",
+  "snapshotId": "snapshot_0a5e7377a036c03bf7c52df0d205811945a2046fb1200a402645f65350255b94",
+  "events": 966,
+  "currentAssessments": 0,
+  "currentCases": 0,
+  "historicalProducts": 1,
+  "products": [
+    {
+      "productId": "product_daa83f9308fd2d2445120a6055b8a6616bd546bc839112b010ef8e835c61c91b",
+      "type": "country_case",
+      "countries": [
+        "NO",
+        "SE"
+      ],
+      "title": "Northern Lights 瑞典—挪威跨境运输与封存",
+      "publication": {
+        "releaseId": "release_7641190826b44ad9ab7276b9151ba0d80992b6e3b864dc63845378f0df533775",
+        "snapshotId": "snapshot_330fb28b5d82f58a56728342da8f16a4268e5fedb07c2b62f100eebd157b2e0a",
+        "publishedAt": "2026-10-14T17:41:48.671Z",
+        "historical": true
+      },
+      "evidence": [
+        {
+          "documentId": "doc_5fa769fdbb7678854950",
+          "bodyVersionId": "body_bdd15e517902557f55a76335cf776e1ce5e15e93c817733985d19db563dba3b6",
+          "sourceId": "norlights",
+          "publishedAt": "2026-10-01"
+        },
+        {
+          "documentId": "doc_5fa769fdbb7678854950",
+          "bodyVersionId": "body_bdd15e517902557f55a76335cf776e1ce5e15e93c817733985d19db563dba3b6",
+          "sourceId": "norlights",
+          "publishedAt": "2026-10-01"
+        },
+        {
+          "documentId": "doc_5fa769fdbb7678854950",
+          "bodyVersionId": "body_bdd15e517902557f55a76335cf776e1ce5e15e93c817733985d19db563dba3b6",
+          "sourceId": "norlights",
+          "publishedAt": "2026-10-01"
+        },
+        {
+          "documentId": "doc_5fa769fdbb7678854950",
+          "bodyVersionId": "body_bdd15e517902557f55a76335cf776e1ce5e15e93c817733985d19db563dba3b6",
+          "sourceId": "norlights",
+          "publishedAt": "2026-10-01"
+        },
+        {
+          "documentId": "doc_5fa769fdbb7678854950",
+          "bodyVersionId": "body_bdd15e517902557f55a76335cf776e1ce5e15e93c817733985d19db563dba3b6",
+          "sourceId": "norlights",
+          "publishedAt": "2026-10-01"
+        },
+        {
+          "documentId": "doc_71199d7f84a4c1ee0a31",
+          "bodyVersionId": "body_b37d60bbe7f4042b4fdf932c289dca8c2f3a4810a43dd21cbaa66f32e2c5ba3d",
+          "sourceId": "norlights",
+          "publishedAt": "2026-07-29"
+        },
+        {
+          "documentId": "doc_83d47e69c6f85b6d25bf",
+          "bodyVersionId": "body_648cc7be18bc3b56ab4540f0c1201bc48c447f11ad6d1fd7cefe518e3f5fc79c",
+          "sourceId": "norlights",
+          "publishedAt": "2026-09-28"
+        }
+      ]
+    }
+  ],
+  "filterQueries": [
+    {},
+    {
+      "sourceId": "country-assessment-validation-empty-source"
+    },
+    {
+      "from": "2099-01-01",
+      "to": "2099-01-01"
+    },
+    {
+      "countryCodes": "NO"
+    },
+    {
+      "countryCodes": "SE"
+    },
+    {
+      "sourceId": "norlights"
+    },
+    {
+      "countryCodes": "NO,SE",
+      "relationMode": "within"
+    },
+    {
+      "from": "2026-07-29",
+      "to": "2026-10-01"
+    }
+  ],
+  "filterQueriesVerified": 8,
+  "pinnedOriginalBodiesVerified": 3,
+  "originalVersionsVerified": 0,
+  "paidModelRequests": 0,
+  "businessWrites": 0
+}

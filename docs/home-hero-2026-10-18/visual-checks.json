@@ -1,0 +1,46 @@
+{
+  "application": "actual intelligence/server.mjs on isolated file fixture",
+  "staticRoutes": [
+    "home-hero.css: text/css",
+    "shenhai-no1-hero.webp: image/webp"
+  ],
+  "checks": [
+    {
+      "width": 1600,
+      "overflow": false,
+      "imageLoaded": true
+    },
+    {
+      "width": 1280,
+      "overflow": false,
+      "imageLoaded": true
+    },
+    {
+      "width": 1024,
+      "overflow": false,
+      "imageLoaded": true
+    },
+    {
+      "width": 900,
+      "overflow": false,
+      "imageLoaded": true
+    },
+    {
+      "width": 768,
+      "overflow": false,
+      "imageLoaded": true
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "imageLoaded": true
+    },
+    {
+      "width": 360,
+      "overflow": false,
+      "imageLoaded": true
+    }
+  ],
+  "lightTheme": true,
+  "errors": []
+}

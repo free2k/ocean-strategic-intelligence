@@ -1,0 +1,83 @@
+/* Review-only integration. The production homepage is unchanged. */
+.home-photo-hero {
+  display: block;
+  min-height: 414px;
+  padding: 36px 38px 40px !important;
+  overflow: hidden;
+  background: linear-gradient(125deg, #112b3a, #101f32 60%, #122137);
+}
+.home-photo-hero > div:first-child {
+  position: relative;
+  z-index: 2;
+  width: 61%;
+}
+.home-photo-hero h1 { margin: 20px 0 22px; }
+.home-photo-hero .home-lead { margin-bottom: 24px; }
+.home-photo-hero .home-flow { margin-top: 25px; }
+.home-photo-hero .meta { color: #8ea8bc; }
+.home-photo-hero .home-primary-link { margin-top: 9px; }
+.home-photo-art {
+  position: absolute;
+  inset: 0 0 0 34%;
+  z-index: 0;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 29%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 29%);
+}
+.home-photo-art img { width: 100%; height: 100%; object-fit: cover; object-position: 56% 54%; display: block; }
+.home-photo-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, #101f32 0%, #101f3233 17%, transparent 36%, transparent 80%, #112b3a33 100%);
+}
+.home-photo-caption {
+  position: absolute;
+  z-index: 1;
+  right: 30px;
+  bottom: 23px;
+  text-align: right;
+  color: #d6e6ee;
+  text-shadow: 0 1px 5px #07121e;
+}
+.home-photo-caption > span { font-size: 12px; letter-spacing: .12em; }
+.home-photo-caption > small { display: block; color: #91aebe; font-size: 9px; letter-spacing: .08em; margin-top: 4px; }
+.home-photo-hero { color: #dcecf8; }
+.home-photo-hero > div:first-child > small { color: #72c6d2; }
+.home-photo-hero .home-photo-caption > small { color: #91aebe; }
+.home-photo-hero .home-lead { color: #a3bbce; }
+.home-photo-hero .home-flow > span { color: #c4d5e1; background: #10253699; }
+.home-photo-hero .home-flow b { color: #6fd3d1; }
+.home-photo-hero .home-primary-link { color: white; }
+body.light .home-photo-hero { border-color: #8ba4b5; }
+body.light .home-photo-hero .home-flow > span { border-color: #456578; }
+@media (min-width: 1800px) {
+  .home-photo-hero { min-height: 450px; padding-top: 44px !important; }
+}
+@media (max-width: 1250px) and (min-width: 901px) {
+  .home-photo-hero > div:first-child { width: 66%; }
+  .home-photo-hero h1 { font-size: 30px; }
+  .home-photo-hero .home-flow { gap: 7px; }
+  .home-photo-hero .home-flow > span { padding-inline: 8px; font-size: 11px; }
+  .home-photo-caption { right: 20px; }
+}
+@media (max-width: 900px) {
+  .home-photo-hero { min-height: 430px; }
+  .home-photo-hero > div:first-child { width: 90%; }
+  .home-photo-art { left: 22%; opacity: .45; }
+  .home-photo-art::after { background: linear-gradient(90deg, #112b3a88, transparent), linear-gradient(0deg, #101f32, transparent 45%); }
+}
+@media (max-width: 600px) {
+  .home-photo-hero { padding: 26px 23px 266px !important; }
+  .home-photo-hero > div:first-child { width: 100%; }
+  .home-photo-hero h1 { font-size: 25px; line-height: 1.55; margin: 17px 0 18px; }
+  .home-photo-hero .home-lead { font-size: 13px; margin-bottom: 18px; }
+  .home-photo-hero .home-flow { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 18px; }
+  .home-photo-hero .home-flow > span { font-size: 11px; padding: 7px 9px; }
+  .home-photo-hero .meta { font-size: 10px; }
+  .home-photo-hero .home-primary-link { font-size: 12px; }
+  .home-photo-art { inset: auto 0 0; height: 270px; opacity: 1; -webkit-mask-image: linear-gradient(0deg, #000 74%, transparent); mask-image: linear-gradient(0deg, #000 74%, transparent); }
+  .home-photo-art img { object-position: 56% 55%; }
+  .home-photo-art::after { background: linear-gradient(0deg, #101f32, transparent 37%); }
+  .home-photo-caption { right: 19px; bottom: 16px; }
+}

@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "links": [
+    {
+      "documentId": "doc_5fa769fdbb7678854950",
+      "url": "https://norlights.com/news/northern-lights-signs-agreement-with-oresundskraft-for-co2-transport-and-storage-from-sweden/",
+      "resolvedUrl": "https://norlights.com/news/northern-lights-signs-agreement-with-oresundskraft-for-co2-transport-and-storage-from-sweden/",
+      "status": 200,
+      "title": "Northern Lights signs agreement with Öresundskraft for CO₂ transport and storage from Sweden - Northern Lights"
+    },
+    {
+      "documentId": "doc_71199d7f84a4c1ee0a31",
+      "url": "https://norlights.com/news/northern-purpose-arrives-in-norway/",
+      "resolvedUrl": "https://norlights.com/news/northern-purpose-arrives-in-norway/",
+      "status": 200,
+      "title": "Northern Purpose arrives in Norway  - Northern Lights"
+    },
+    {
+      "documentId": "doc_83d47e69c6f85b6d25bf",
+      "url": "https://norlights.com/news/explore-northern-lights-co%e2%82%82-transport-and-storage-facility/",
+      "resolvedUrl": "https://norlights.com/news/explore-northern-lights-co%e2%82%82-transport-and-storage-facility/",
+      "status": 200,
+      "title": "Explore Northern Lights’ CO₂ transport and storage facility - Northern Lights"
+    }
+  ]
+}

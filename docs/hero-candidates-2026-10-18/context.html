@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>首页候选 · 场景预览</title></head>
+<body>
+  <script type="module">
+    import { homeView } from './home-original.js';
+    const variants = { A: '深蓝 · 旗舰', B: '晨光 · 远海', C: '蓝调 · 协同', original: '原版对照' };
+    const query = new URLSearchParams(location.search);
+    const id = Object.hasOwn(variants, query.get('variant')) ? query.get('variant') : 'A';
+    const response = await fetch('/intelligence/public/index.html');
+    if (!response.ok) throw new Error('无法读取首页布局');
+    const shell = new DOMParser().parseFromString(await response.text(), 'text/html');
+    shell.querySelectorAll('script').forEach(script => script.remove());
+    for (const element of shell.querySelectorAll('[src], [href]')) {
+      for (const attribute of ['src', 'href']) {
+        const value = element.getAttribute(attribute);
+        if (value && !value.startsWith('#') && !value.startsWith('/') && !/^[a-z]+:/i.test(value)) element.setAttribute(attribute, '/intelligence/public/' + value);
+      }
+    }
+    document.head.replaceChildren(...shell.head.childNodes);
+    document.title = variants[id] + ' · 首页候选';
+    document.body.replaceChildren(...shell.body.childNodes);
+    document.body.dataset.view = 'home';
+    document.querySelector('#page-name').textContent = '首页';
+    document.querySelector('#asof').textContent = '海洋能源 · 战略智能智库';
+    document.querySelector('.hero').remove();
+    document.querySelector('.filters').remove();
+    document.querySelector('#notice').remove();
+    document.querySelector('#logout').hidden = true;
+    document.querySelector('#content').innerHTML = homeView({ topics: ['海洋油气', '海上风电', '海洋低碳', '多能融合', '宏观政策', '海洋装备'] });
+    document.querySelector('#home-release').textContent = '从原始资料出发，以证据连接研究。';
+    document.querySelector('#home-week-trend').innerHTML = '<small>六领域资料 · 证据与研究成果</small>';
+    for (const element of document.querySelectorAll('[id^="home-product-"]')) element.textContent = '查看已发布研究成果';
+    for (const element of document.querySelectorAll('[data-home-topic]')) element.textContent = '查看本领域资料';
+    const hero = document.querySelector('.home-preview-hero');
+    if (id !== 'original') {
+      hero.classList.add('home-photo-hero');
+      hero.querySelector('.home-energy-scene').remove();
+      const art = document.createElement('div');
+      art.className = 'home-photo-art';
+      art.innerHTML = '<img src="candidate-' + id.toLowerCase() + '.png" alt="基于深海一号实拍创作的海洋能源场景，主体为能源站，远处为海上风电。" fetchpriority="high">';
+      hero.append(art);
+      const caption = document.createElement('div');
+      caption.className = 'home-photo-caption';
+      caption.innerHTML = '<span>中国海油 · 深海一号</span><small>海洋油气 · 海上风电 · 多能协同</small>';
+      hero.append(caption);
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = 'photo-preview.css';
+      document.head.append(css);
+      const image = art.querySelector('img');
+      await image.decode();
+    }
+    if (query.get('theme') === 'light') document.body.classList.add('light');
+    document.querySelector('#theme').addEventListener('click', () => document.body.classList.toggle('light'));
+    // Keep navigation inside this review without starting application or API calls.
+    document.addEventListener('click', event => {
+      const link = event.target.closest('a');
+      if (link && !link.href.startsWith(location.origin + '/docs/hero-candidates-2026-10-18/')) event.preventDefault();
+    });
+    await document.fonts.ready;
+    document.body.dataset.previewReady = id;
+  </script>
+</body>
+</html>

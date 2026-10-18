@@ -1,0 +1,16 @@
+{
+  "source": "/Users/guangyi/Downloads/ChatGPT 图像 2026年10月18日 20_00_29.png",
+  "sourceSha256": "155b2ddaa49e4ebab3aa3defa85225b47fbf97349fdec9ad9f5df19cde1daeee",
+  "asset": "intelligence/public/shenhai-no1-hero.webp",
+  "assetSha256": "5fdf2c7d1e7c42e0acab9021d2ac2283936c8d385c1c327ecb8a940a614a6803",
+  "dimensions": [
+    1672,
+    941
+  ],
+  "originalBytes": 2449852,
+  "assetBytes": 425266,
+  "processing": "WebP encoding quality=94; dimensions and image composition unchanged",
+  "sourceCommit": "abca71813f7ab3b40a28d1d38535d0609f96ba98",
+  "productionUrl": "http://49.233.77.111/ocean-intelligence/#home",
+  "release": "/opt/ocean-intelligence/releases/home-hero-20261018T120952Z-abca718"
+}

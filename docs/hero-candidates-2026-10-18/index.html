@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>深海一号 · 首页视觉候选</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #0b1523; color: #dfedf7; font: 14px/1.6 -apple-system, BlinkMacSystemFont, 'Microsoft YaHei', sans-serif; }
+    body { display: flex; flex-direction: column; }
+    .review-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 14px 24px; padding: 14px 24px; border-bottom: 1px solid #2b4258; background: #102032; }
+    .review-heading { margin-right: auto; }
+    .review-heading b { font-size: 16px; font-weight: 600; }
+    .review-heading span { display: block; color: #91a9bc; font-size: 11px; }
+    .choices { display: flex; gap: 6px; flex-wrap: wrap; }
+    button, .asset-link { font: inherit; font-size: 12px; border: 1px solid #30495e; border-radius: 7px; padding: 8px 12px; color: #b8cddd; background: transparent; cursor: pointer; text-decoration: none; }
+    button[aria-pressed=true] { color: #c7ffef; background: #1a434d; border-color: #67bbbc; }
+    button:focus-visible, a:focus-visible { outline: 2px solid #8ee5e1; outline-offset: 3px; }
+    .description { padding: 8px 24px; color: #91a9bc; font-size: 12px; border-bottom: 1px solid #21354a; }
+    iframe { width: 100%; flex: 1; min-height: 400px; border: 0; background: #0b1523; }
+    @media(max-width:700px) { .review-bar { gap: 10px; padding: 12px; } .review-heading { flex-basis: 100%; } .description { padding: 8px 12px; } button, .asset-link { padding: 7px 9px; } }
+  </style>
+</head>
+<body>
+  <div class="review-bar">
+    <div class="review-heading"><b>深海一号 · 首页视觉候选</b><span>基于用户实拍的 AI 创意合成 · 方案确认预览</span></div>
+    <div class="choices" aria-label="选择候选方案">
+      <button data-variant="A" aria-pressed="true">A 深蓝 · 旗舰</button>
+      <button data-variant="B" aria-pressed="false">B 晨光 · 远海</button>
+      <button data-variant="C" aria-pressed="false">C 蓝调 · 协同</button>
+      <button data-variant="original" aria-pressed="false">原版对照</button>
+    </div>
+    <a class="asset-link" id="asset-link" href="candidate-a.png" target="_blank" rel="noopener">查看候选原图 ↗</a>
+  </div>
+  <div class="description" id="description">深蓝海面、暖金工作灯与远海风机；延续现有深色首页的沉稳气质。</div>
+  <iframe id="context" title="首页整体效果预览" src="context.html?variant=A"></iframe>
+  <script>
+    const variants = {
+      A: { description: '深蓝海面、暖金工作灯与远海风机；延续现有深色首页的沉稳气质。', image: 'candidate-a.png' },
+      B: { description: '晨曦蓝灰与柔和地平线；用前景海面、主体平台、远处风场构成通透景深。', image: 'candidate-b.png' },
+      C: { description: '蓝调全景与多能协同；平台、海上风电和远处配套设施分层展开。', image: 'candidate-c.png' },
+      original: { description: '当前首页的线描平台、风机与证据图标，作为原始含义和布局对照。', image: null }
+    };
+    function selectVariant(id) {
+      const variant = variants[id] || variants.A;
+      document.querySelectorAll('[data-variant]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.variant === id)));
+      document.querySelector('#description').textContent = variant.description;
+      document.querySelector('#context').src = 'context.html?variant=' + encodeURIComponent(id);
+      const link = document.querySelector('#asset-link');
+      link.hidden = !variant.image;
+      if (variant.image) link.href = variant.image;
+      history.replaceState(null, '', '?variant=' + encodeURIComponent(id));
+    }
+    document.querySelectorAll('[data-variant]').forEach(button => button.addEventListener('click', () => selectVariant(button.dataset.variant)));
+    const initial = new URLSearchParams(location.search).get('variant');
+    if (initial && variants[initial]) selectVariant(initial);
+  </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "status": "deployed",
+  "release": "/opt/ocean-intelligence/releases/country-assessments-20261018T121120Z",
+  "previousRelease": "/opt/ocean-intelligence/releases/home-hero-20261018T120952Z-abca718",
+  "tests": {
+    "tests": 376,
+    "pass": 371,
+    "fail": 2,
+    "skipped": 3
+  },
+  "baselineFailures": [
+    "CSV supports quoted multiline, escaped quotes and missing capacities",
+    "capture reader preserves Unicode source separators and escaped newlines across records"
+  ],
+  "historicalProducts": 1,
+  "currentAssessments": 0,
+  "currentCases": 0,
+  "filterQueries": 8,
+  "originalBodies": 3,
+  "databaseMigration": false,
+  "existingDataPreserved": true,
+  "otherServicePidUnchanged": true,
+  "staticAssetsVerified": 5,
+  "productionReleaseId": "release_3b77bd98d8f74352da50fa8fffab462fe1da6a9fc1449686628e5dae57f50528",
+  "originalVersionsVerified": 1,
+  "backup": "/opt/ocean-intelligence/backups/country-assessments-20261018T121120Z"
+}
