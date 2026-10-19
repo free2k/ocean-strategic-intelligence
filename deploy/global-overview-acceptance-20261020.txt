@@ -1,0 +1,17 @@
+Global overview acceptance, 2026-10-20
+
+Scope: keep the main global overview modules refreshed from scheduled collection, committed workspace merges and research publication. Automated case drafting/review/publication queues remain deferred.
+
+Validated:
+- 35 focused tests passed: Unicode boundaries and imports, translation checkpoints, evidence/period reports, collection early merges, chunked records, country ordering.
+- Live dashboard loads country overview and change signals without JavaScript errors.
+- Theme and cross-country lead ordering uses occurrence date when known, otherwise publication date; future and unknown dates cannot jump ahead as occurred events.
+- Browser-only simulated new version triggers a dashboard reload. With a focused input, it shows the refresh action without interrupting input.
+- Real scheduled collection advanced workspace from 1844 to 1848 documents and the publisher advanced the public release.
+- Signal window: 2026-10-13 through 2026-10-19, Beijing complete days.
+
+Cadence: mp2rss collection around 30 minutes; full collection about 6 hours; delivery checks every 5 minutes; publication timer 60 seconds after the previous attempt exits; visible dashboard version detection every 60 seconds. These are separate schedules, not an end-to-end latency guarantee.
+
+Deployment: Unicode extension d95a71c deployed differentially after the current batch released eia-daily.lock normally at 01:03 Beijing time. Static country sorting 86140cc is live. All 24 affected production files match the committed code. Post-restart health returned ok with 1848 documents; live browser ordering, signals, refresh and input-preservation checks passed without JavaScript errors. Backup: /opt/ocean-intelligence/global-update-backup-20261020T010230. The collection batch completed all worker steps but retained partial status for data/model gaps; those are not asserted to be fully resolved by this release.
+
+Excluded from acceptance: automatic generation of new country cases and strategic judgments. Existing published products remain available with original versions.
