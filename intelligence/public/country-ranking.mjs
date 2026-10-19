@@ -10,7 +10,7 @@ const day=value=>{if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}(?:$|T| )/.tes
 export function eventRecency(event={},today=new Date(Date.now()+8*3600000).toISOString().slice(0,10)){
  const occurred=day(event.occurredAt||event.eventDate),published=day(event.publishedAt),planned=event.dateRole==='planned_or_unconfirmed'||event.stage==='planned'||!!event.scheduledAt;
  if(occurred&&occurred<=today&&!planned)return {date:occurred,basis:'occurred',label:'发生日期 '+occurred};
- if(published&&published<=today)return {date:published,basis:'published',label:'报道日期 '+published+'（发生日期未确认）'};
+ if(published&&published<=today)return {date:published,basis:'published',label:'报道日期 '+published};
  return {date:null,basis:'unknown',label:'发生及报道日期未明确'};
 }
 const compare=(a,b)=>(b.recency?.date||'').localeCompare(a.recency?.date||'')||String(a.id||a.eventId||'').localeCompare(String(b.id||b.eventId||''));
