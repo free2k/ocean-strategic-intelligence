@@ -11,7 +11,12 @@ export const countries = [
 export const topics=standardTopics.map(t=>t.id);
 export const relationTypes=['投资','持股','运营','供货','建造','供电','运输','封存','签约','批准','采用','位于','合作'];
 export function canonical(url){const u=new URL(url);u.hash='';for(const k of [...u.searchParams.keys()])if(/^(utm_|fbclid|gclid)/i.test(k))u.searchParams.delete(k);return u.href;}
-export function chunks(text,size=1200,overlap=150){const result=[];for(let start=0;start<text.length;){let end=Math.min(text.length,start+size);if(end<text.length){const boundary=text.lastIndexOf('。',end);if(boundary>start+size/2)end=boundary+1;}result.push({start,end,text:text.slice(start,end)});if(end===text.length)break;start=end-overlap;}return result;}
+export function chunks(text,size=1200,overlap=150){
+ if(!Number.isInteger(size)||size<1||!Number.isInteger(overlap)||overlap<0||overlap>=size)throw Error('invalid_chunk_bounds');
+ const split=i=>i>0&&i<text.length&&/[\uD800-\uDBFF]/.test(text[i-1])&&/[\uDC00-\uDFFF]/.test(text[i]);
+ const result=[];for(let start=0;start<text.length;){let end=Math.min(text.length,start+size);if(end<text.length){const boundary=text.lastIndexOf('?',end);if(boundary>start+size/2)end=boundary+1;}if(split(end))end++;
+ result.push({start,end,text:text.slice(start,end)});if(end===text.length)break;let next=end-overlap;if(split(next))next--;start=next>start?next:end;}return result;
+}
 export function quoteIn(content,quote){const q=clean(quote);return q.length>=10&&clean(content).includes(q);}
 // Accept only a full calendar date explicitly present in the event's own source excerpt.
 export function explicitEventDate(doc,event){

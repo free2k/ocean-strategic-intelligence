@@ -4,7 +4,7 @@ After=network-online.target
 [Service]
 Type=oneshot
 WorkingDirectory=/opt/ocean-intelligence/current
-ExecStart=/usr/bin/flock -n -E 75 /opt/ocean-intelligence/eia-daily.lock /usr/bin/node --env-file=/opt/knowledge-base/.env /opt/ocean-intelligence/current/intelligence/research/publish-workspace-cli.mjs
+ExecStart=/usr/bin/flock -n -E 75 /opt/ocean-intelligence/research-publish.lock /usr/bin/node --env-file=/opt/knowledge-base/.env /opt/ocean-intelligence/current/intelligence/research/publish-workspace-cli.mjs
 SuccessExitStatus=75
 TimeoutStartSec=15min
 UMask=0077

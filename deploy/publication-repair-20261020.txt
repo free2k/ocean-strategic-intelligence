@@ -1,0 +1,13 @@
+Publication and merge repair (2026-10-20)
+
+Before installing the code, apply intelligence/research/migrations/004-chunked-records.sql to the same PostgreSQL database as ocean_research. This additive migration preserves existing immutable records. New large root arrays are stored in ordered record_parts and rehydrated by the repository; apply the migration before starting the updated publisher or API.
+
+Install deploy/ocean-research-publish.service and reload systemd. The publisher uses research-publish.lock, independently of eia-daily.lock, and reads only committed ocean_intel.runs data. Keep the existing 60-second OnUnitInactiveSec timer. Concurrent release changes remain protected by compare-and-swap.
+
+The collection scheduler commits imported/reconciled articles before model processing. Automatic extraction and enrichment run in batches of six documents by default, and the combined model worker has a 20-minute cap. Completed checkpoints are merged; remaining extraction work keeps delivery pending. INTEL_EXTRACT_BATCH_LIMIT and INTEL_ENRICH_BATCH_LIMIT override batch size.
+
+Legacy malformed UTF16 chunks are rebuilt from the unchanged original document content during Store.import. Historical stage snapshots remain retained for recovery.
+
+The global dashboard checks /api/freshness every 60 seconds and when becoming visible. It reloads published changes, or offers a refresh button while a dialog or input is active.
+
+Production validation: additive migration, real PostgreSQL chunked-record roundtrip/projections/immutable conflict checks, Unicode boundary/import tests, staged scheduler tests, and live browser version-refresh checks. Workspace advanced to 1844 documents at 2026-10-20 00:44 Beijing time; publication completed at 00:46. This does not automatically generate or publish new case assessments.

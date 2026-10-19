@@ -223,3 +223,18 @@ async function openManualIntake(){
 document.addEventListener("open-manual-intake",()=>openManualIntake().catch(err=>{$("#notice").textContent=err.message;}));
 
 document.addEventListener('strategy-case-answer',e=>{const r=e.detail;if(r?.caseId&&r.id&&typeof r.answer==='string'&&Array.isArray(r.references)){showResearchAnswer(r);$('#answer').insertAdjacentHTML('afterbegin','<p class="notice">'+esc(r.mode)+'</p>');}});
+
+// Detect committed updates without downloading the whole dashboard every minute.
+let freshnessBusy=false;
+async function checkDashboardFreshness(){
+ if(freshnessBusy||document.hidden||activeTab()!=='dashboard'||!data||!$('#country-dossier')?.dataset.releaseId)return;
+ freshnessBusy=true;
+ try{const response=await fetch('api/freshness',{cache:'no-store'});if(!response.ok)return;const latest=await response.json();
+  if(latest.workspaceAt===data.generatedAt&&latest.releaseId===$('#country-dossier')?.dataset.releaseId)return;
+  const notice=$('#notice');notice.textContent='有新数据已发布。';const button=document.createElement('button');button.textContent='更新当前页面';notice.append(button);
+  const refresh=async()=>{clearCountryCache();readCache.clear();await load({navigation:true});};button.onclick=refresh;
+  if(!document.querySelector('dialog[open]')&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))await refresh();
+ }catch{ /* Keep the current published view when a freshness check fails. */ }finally{freshnessBusy=false;}
+}
+setInterval(checkDashboardFreshness,60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void checkDashboardFreshness();});

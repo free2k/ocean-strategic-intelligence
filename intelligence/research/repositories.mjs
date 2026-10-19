@@ -1,3 +1,4 @@
+import {splitRecord,hydrateRecord} from './record-parts.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
@@ -35,7 +36,7 @@ export class PostgresResearchRepository{
   if(encoded===undefined){
    if(!this.pendingReads.has(id))this.pendingReads.set(id,(async()=>{
     const value=(await this.pool.query('SELECT payload::text AS payload FROM ocean_research.records WHERE id=$1',[id])).rows[0]?.payload;
-    if(!value)return null;const text=typeof value==='string'?value:JSON.stringify(value),bytes=Buffer.byteLength(text);
+    if(!value)return null;let text=typeof value==='string'?value:JSON.stringify(value);if(text.includes('"_chunkedFields"')){const hydrated=await hydrateRecord(JSON.parse(text),async field=>(await this.pool.query('SELECT payload::text AS payload FROM ocean_research.record_parts WHERE record_id=$1 AND field=$2 ORDER BY part',[id,field])).rows);text=JSON.stringify(hydrated);}const bytes=Buffer.byteLength(text);
     if(bytes<=64*1024*1024){while(this.records.size&&(this.recordBytes+bytes>64*1024*1024||this.records.size>=32)){const oldest=this.records.keys().next().value;this.recordBytes-=Buffer.byteLength(this.records.get(oldest));this.records.delete(oldest);}this.records.set(id,text);this.recordBytes+=bytes;}
     return text;
    })().finally(()=>this.pendingReads.delete(id)));
@@ -45,6 +46,7 @@ export class PostgresResearchRepository{
   return encoded?JSON.parse(encoded):null;
  }
  async readProjection(id,view,sql,params=[]){
+  sql=sql.replace(/jsonb_array_elements\(payload->'([a-zA-Z]+)'\)/g,(_,field)=>`ocean_research.array_items($1,'${field}',payload->'${field}')`);
   check(id);const key=view+':'+id+':'+JSON.stringify(params);this.projections||=new Map();this.projectionPending||=new Map();
   if(this.projections.has(key))return JSON.parse(this.projections.get(key));
   if(!this.projectionPending.has(key))this.projectionPending.set(key,(async()=>{const value=(await this.pool.query(sql,[id,...params])).rows[0]?.payload;if(!value)return null;const text=typeof value==='string'?value:JSON.stringify(value);if(Buffer.byteLength(text)<16*1024*1024){while(this.projections.size>=2)this.projections.delete(this.projections.keys().next().value);this.projections.set(key,text);}return text;})().finally(()=>this.projectionPending.delete(key)));
@@ -94,7 +96,7 @@ export class PostgresResearchRepository{
   const c=await this.pool.connect();try{await c.query('BEGIN');await c.query("SELECT pg_advisory_xact_lock(hashtextextended('ocean_research.publish',0))");
    const current=(await c.query("SELECT payload FROM ocean_research.head WHERE id='latest' FOR UPDATE")).rows[0]?.payload;
    if((current?.releaseId||null)!==expectedReleaseId)fail('VERSION_CONFLICT','Latest release changed',409);
-   for(const [id,record] of Object.entries(records)){check(id);const old=(await c.query('SELECT payload::text AS payload FROM ocean_research.records WHERE id=$1',[id])).rows[0]?.payload;if(old){if(digest(old)!==digest(record))fail('IMMUTABLE_CONFLICT','Existing immutable record differs',409);}else await c.query('INSERT INTO ocean_research.records(id,kind,payload) VALUES($1,$2,$3)',[id,record.kind,record]);}
+   for(const [id,record] of Object.entries(records)){check(id);const old=(await c.query('SELECT payload::text AS payload FROM ocean_research.records WHERE id=$1',[id])).rows[0]?.payload;if(old){const hydrated=await hydrateRecord(JSON.parse(old),async field=>(await c.query('SELECT payload::text AS payload FROM ocean_research.record_parts WHERE record_id=$1 AND field=$2 ORDER BY part',[id,field])).rows);if(digest(hydrated)!==digest(record))fail('IMMUTABLE_CONFLICT','Existing immutable record differs',409);}else {const {root,parts}=splitRecord(record);await c.query('INSERT INTO ocean_research.records(id,kind,payload) VALUES($1,$2,$3)',[id,record.kind,root]);for(const part of parts)await c.query('INSERT INTO ocean_research.record_parts(record_id,field,part,payload) VALUES($1,$2,$3,$4)',[id,part.field,part.part,JSON.stringify(part.payload)]);}}
    await c.query("INSERT INTO ocean_research.head(id,payload) VALUES('latest',$1) ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload",[head]);await c.query('COMMIT');
   }catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}
  }

@@ -1,0 +1,2 @@
+﻿import test from 'node:test';import assert from 'node:assert/strict';import {chunks} from '../core.mjs';
+test('UTF16 chunk ends and overlapping starts keep supplementary Unicode characters intact',()=>{for(const size of [2,3,1200])for(const overlap of [0,1]){const text=('a😀🛢️b'.repeat(400)),rows=chunks(text,size,overlap);for(const r of rows){assert.equal(r.text,r.text.toWellFormed());assert.equal(r.text,text.slice(r.start,r.end));}assert.equal(rows[0].start,0);assert.equal(rows.at(-1).end,text.length);for(let n=1;n<rows.length;n++)assert(rows[n].start<=rows[n-1].end);}});
