@@ -1,3 +1,4 @@
+import {textSlice} from './unicode-text.mjs';
 import {markDelivery} from './intelligence-delivery.mjs';
 import {domainPrompt,canonicalTopic,taxonomyVersion} from './industry-topics.mjs';
 import {createHash} from 'node:crypto';
@@ -26,7 +27,7 @@ export async function queueSemantic(db,a,compiled,decision,jobId=null){
 }
 export async function semanticDecision(record,base,compiled,{client,model=process.env.CHAT_MODEL||'qwen-plus'}={}){
  if(base.manual||base.status!=='unmatched')return base;
- const content=plain(record.content),excerpt=content.slice(0,32000);
+ const content=plain(record.content),excerpt=textSlice(content,0,32000);
  if(!excerpt)return base;
  const passages=[];for(let offset=0;offset<excerpt.length;offset+=450)passages.push({id:'p'+(passages.length+1),text:excerpt.slice(offset,offset+500)});
  const ai=client||new OpenAI({apiKey:process.env.OPENAI_API_KEY,baseURL:process.env.OPENAI_BASE_URL,timeout:45000,maxRetries:0});
@@ -38,7 +39,7 @@ export async function semanticDecision(record,base,compiled,{client,model=proces
  const quote=passages.find(p=>p.id===value.evidenceId)?.text||'';
  if(value.evidenceId&&!quote)throw Error('EVIDENCE_INVALID');
  if(value.relevant&&(!industries.includes(value.topic)||quote.length<10))throw Error('EVIDENCE_REQUIRED');
- return {...base,status:value.relevant?'accepted':'unmatched',primary:value.relevant?value.topic:null,topics:value.relevant?[value.topic]:[],primaryBasis:'Qwen 根据正文证据进行海洋能源相关性和行业语义复核',method:'llm',reason:value.reason.slice(0,1200),semantic:{status:'completed',model,revision,taxonomyVersion,quote,reason:value.reason.slice(0,1200),reviewedAt:new Date().toISOString(),inputTruncated:content.length>excerpt.length},ruleReason:base.reason};
+ return {...base,status:value.relevant?'accepted':'unmatched',primary:value.relevant?value.topic:null,topics:value.relevant?[value.topic]:[],primaryBasis:'Qwen 根据正文证据进行海洋能源相关性和行业语义复核',method:'llm',reason:textSlice(value.reason,0,1200),semantic:{status:'completed',model,revision,taxonomyVersion,quote,reason:textSlice(value.reason,0,1200),reviewedAt:new Date().toISOString(),inputTruncated:content.length>excerpt.length},ruleReason:base.reason};
 }
 export async function processSemanticQueue(pool,{limit=6,client,model=process.env.CHAT_MODEL||'qwen-plus'}={}){
  await initSemantic(pool);const guard=await pool.connect();let locked=false;const result={completed:0,accepted:0,failed:0,stale:0};

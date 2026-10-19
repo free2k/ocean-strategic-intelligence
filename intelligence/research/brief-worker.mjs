@@ -1,3 +1,4 @@
+import {textSlice} from '../unicode-text.mjs';
 import {digest,fail} from './ledger.mjs';
 import {standardTopics} from '../industry-topics.mjs';
 import {ModelAdmission,conservativeInputTokens,modelConfigVersion} from './admission.mjs';
@@ -39,7 +40,7 @@ export class BriefWorker{
    await this.admission.settle(permit,{usage:response.usage||null});settled=true;
    await this.state.transact(s=>{s.tasks[id].status='validating';});
    const content=typeof response.content==='string'?JSON.parse(response.content):response.content;
-   if(content?.insufficient===true)return finish('insufficient','MODEL_REPORTED_INSUFFICIENT_EVIDENCE',null,{evidenceGap:String(content.reason||'输入资料不足').slice(0,2000)});
+   if(content?.insufficient===true)return finish('insufficient','MODEL_REPORTED_INSUFFICIENT_EVIDENCE',null,{evidenceGap:textSlice(String(content.reason||'输入资料不足'),0,2000)});
    const validation=validateBrief(content,entries);
    if(!validation.ok)return finish('failed','EVIDENCE_VALIDATION_FAILED',null,{validationErrors:validation.errors});
    const reviewInput=reviewMessages(content),reviewPermit=await this.admission.reserve({...this.config,inputTokens:conservativeInputTokens(reviewInput),maxOutputTokens,requestKey:id+':review:'+task.attempts,kind:'text',incremental:true,configVersion:task.configVersion});

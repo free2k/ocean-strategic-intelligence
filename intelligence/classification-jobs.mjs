@@ -1,3 +1,4 @@
+import {textSlice} from './unicode-text.mjs';
 import {topicAliases,canonicalTopic} from './industry-topics.mjs';
 import {initSemantic,queueSemantic} from './semantic-classification.mjs';
 import {createHash} from 'node:crypto';
@@ -61,7 +62,7 @@ export async function applyClassificationJob(pool){await initClassification(pool
  for(const a of rows){const evaluated=decideArticle(a,compiled),inputHash=evaluated.inputHash,d=await queueSemantic(db,{id:a.id,title:a.title,content:a.mp_content??a.content},compiled,evaluated.decision,job.id),status=d.status==='accepted'?'accepted':d.status==='excluded'?'rejected':'pending';
   await db.query('INSERT INTO classification.audit(job_id,article_id,before_state,after_state) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING',[job.id,a.id,{status:a.filter_status,topic:a.matched_topic,method:a.classify_method,mp:a.mp_classification},d]);
   await db.query('INSERT INTO classification.articles(article_id,classification,input_hash,job_id) VALUES($1,$2,$3,$4) ON CONFLICT(article_id) DO UPDATE SET classification=EXCLUDED.classification,input_hash=EXCLUDED.input_hash,job_id=EXCLUDED.job_id,updated_at=now()',[a.id,d,inputHash,job.id]);
-  if(!d.manual)await db.query(`UPDATE public.articles SET filter_status=$2::text,matched_topic=$3,reject_reason=$4,classify_method='keyword',matched_keywords_json=$5,updated_at=now(),vectorized=CASE WHEN $2='accepted' THEN vectorized ELSE false END WHERE id=$1 AND NOT manual_classify AND classify_method IS DISTINCT FROM 'manual'`,[a.id,status,d.primary,d.status==='excluded'?[d.reason,...d.negative.map(k=>k.keyword)].join('：').slice(0,255):null,JSON.stringify([...d.positive.flatMap(p=>p.keywords),...d.negative].map(k=>({keyword:k.keyword,source:k.field==='标题'?'title':k.field==='正文'?'content':'group'})))]);
+  if(!d.manual)await db.query(`UPDATE public.articles SET filter_status=$2::text,matched_topic=$3,reject_reason=$4,classify_method='keyword',matched_keywords_json=$5,updated_at=now(),vectorized=CASE WHEN $2='accepted' THEN vectorized ELSE false END WHERE id=$1 AND NOT manual_classify AND classify_method IS DISTINCT FROM 'manual'`,[a.id,status,d.primary,d.status==='excluded'?textSlice([d.reason,...d.negative.map(k=>k.keyword)].join('：'),0,255):null,JSON.stringify([...d.positive.flatMap(p=>p.keywords),...d.negative].map(k=>({keyword:k.keyword,source:k.field==='标题'?'title':k.field==='正文'?'content':'group'})))]);
   if(status!=='accepted')await db.query('DELETE FROM public.article_chunks WHERE article_id=$1',[a.id]);
   if(a.item_id)await db.query('UPDATE mp2rss.items SET classification=$2,updated_at=now() WHERE id=$1',[a.item_id,d]);
  }}

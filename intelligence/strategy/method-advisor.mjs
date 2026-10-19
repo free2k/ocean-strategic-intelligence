@@ -1,3 +1,4 @@
+import {textSlice} from '../unicode-text.mjs';
 import {createHmac, randomBytes, randomUUID, timingSafeEqual} from 'node:crypto';
 import {digest} from './repository.mjs';
 import {invalid, isObject, matrixMethods, seriesMethods, validateRequest} from './contracts.mjs';
@@ -7,7 +8,7 @@ import {taskNames, taskMap, methodFits} from '../public/strategy/task-map.js';
 export const ADVISOR_VERSION = 'method-advisor-1.0';
 const secret = process.env.SITE_PASSWORD || randomBytes(32).toString('hex');
 const scopeOf = r => Object.fromEntries(['topic','country','sourceId','from','to'].map(k => [k, r.scope?.[k] || '']));
-const text = (v, n = 600) => typeof v === 'string' ? v.trim().slice(0, n) : '';
+const text = (v, n = 600) => typeof v === 'string' ? textSlice(v.trim(),0,n) : '';
 const strings = (v, max = 12) => Array.isArray(v) ? v.slice(0, max).map(x => text(x, 300)).filter(Boolean) : [];
 const finite = v => typeof v === 'number' && Number.isFinite(v);
 const binding = r => ({title: r.title, method: r.method, taskType: r.taskType, scope: scopeOf(r), dataset: r.dataset || null, input: r.input || {}, configuration: r.configuration || {}, provenance: r.provenance || {}, constraints: r.constraints || []});

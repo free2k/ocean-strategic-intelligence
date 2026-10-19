@@ -1,3 +1,4 @@
+import {textSlice} from './unicode-text.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {id,chunks,mergeRecords} from './core.mjs';
@@ -16,7 +17,7 @@ export async function importXEvidence(data,pool,dir){
   const versionId=id('ver',p.url+p.hash),d={id:id('doc',p.url),versionId,contentHash:p.hash,linkedEvidenceHash:p.hash,sourceId,url:p.url,title:p.title,titleZh:p.titleZh||p.title,content:p.content,contentZh:p.contentZh,language:p.language,publishedAt:p.publishedAt,publishedPrecision:p.publishedPrecision||null,collectedAt:p.collectedAt,originalPublisher:p.author,platform:'原始网站',provider:'X 外链采集',contentKind:p.contentKind,provenance:p.origins,evidenceAssets,sourceTables:p.tables,references:p.references||[],industry:row.classification,topic:row.classification.primary,chunks:chunks(p.content),extractionStatus:'candidate',extractionVersion:'rules-v1'};
   if(p.origins?.some(o=>o.provider==='OilPrice RSS'))d.provider='OilPrice RSS';
   if(p.contentZh){d.translationVersion=versionId;d.translationModel=p.translationModel;d.translatedAt=p.translatedAt;d.translationType='千问中文译文；原文保留，译文待核对';}
-  d.extraction=ruleExtract(d);d.summaryZh=p.contentZh?.slice(0,400)||d.extraction.summaryZh;
+  d.extraction=ruleExtract(d);d.summaryZh=textSlice(p.contentZh||'',0,400)||d.extraction.summaryZh;
   data.documents=[...data.documents.filter(x=>x.id!==d.id),d];for(const k of ['events','relations','observations','evidence']){const protectedRows=data[k].filter(x=>x.documentId===d.id&&(x.reviewedAt||x.manual));data[k]=[...data[k].filter(x=>x.documentId!==d.id),...protectedRows,...d.extraction[k].filter(x=>!protectedRows.some(old=>old.id===x.id))];}data.entities=mergeRecords([...data.entities,...d.extraction.entities]);
   const esc=x=>String(x||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');await fs.writeFile(path.join(dir,versionId+'.html'),`<!doctype html><meta charset="utf-8"><h1>${esc(p.title)}</h1><a href="${esc(p.url)}">原文</a><pre>${esc(p.content)}</pre>`);
  }

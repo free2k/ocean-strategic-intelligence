@@ -1,3 +1,4 @@
+import {splitsPair} from './unicode-text.mjs';
 import {matchesCountries} from './country-filter.mjs';
 import {eventDates} from './temporal-dates.mjs';
 import {standardTopics} from './industry-topics.mjs';
@@ -13,7 +14,7 @@ export const relationTypes=['投资','持股','运营','供货','建造','供电
 export function canonical(url){const u=new URL(url);u.hash='';for(const k of [...u.searchParams.keys()])if(/^(utm_|fbclid|gclid)/i.test(k))u.searchParams.delete(k);return u.href;}
 export function chunks(text,size=1200,overlap=150){
  if(!Number.isInteger(size)||size<1||!Number.isInteger(overlap)||overlap<0||overlap>=size)throw Error('invalid_chunk_bounds');
- const split=i=>i>0&&i<text.length&&/[\uD800-\uDBFF]/.test(text[i-1])&&/[\uDC00-\uDFFF]/.test(text[i]);
+ const split=i=>splitsPair(text,i);
  const result=[];for(let start=0;start<text.length;){let end=Math.min(text.length,start+size);if(end<text.length){const boundary=text.lastIndexOf('?',end);if(boundary>start+size/2)end=boundary+1;}if(split(end))end++;
  result.push({start,end,text:text.slice(start,end)});if(end===text.length)break;let next=end-overlap;if(split(next))next--;start=next>start?next:end;}return result;
 }

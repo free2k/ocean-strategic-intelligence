@@ -1,3 +1,4 @@
+import {textSlice,textParts} from './unicode-text.mjs';
 import fs from 'node:fs/promises';import path from 'node:path';import {createHash} from 'node:crypto';import OpenAI from 'openai';
 import {extractionError} from './auto-extract.mjs';
 const hash=s=>createHash('sha256').update(s).digest('hex');
@@ -17,7 +18,7 @@ export function translationBody(doc){
 }
 export function translationChunks(text,size=3500){
  const chunks=[];let part='';for(const paragraph of text.split(/\n\n+/)){
-  for(let n=0;n<paragraph.length;n+=size){const piece=paragraph.slice(n,n+size);if(part&&part.length+piece.length+2>size){chunks.push(part);part='';}part+=(part?'\n\n':'')+piece;}
+  for(const {text:piece} of textParts(paragraph,size)){if(part&&part.length+piece.length+2>size){chunks.push(part);part='';}part+=(part?'\n\n':'')+piece;}
  }if(part)chunks.push(part);return chunks;
 }
 export function selectPending(documents,limit=0){
@@ -35,7 +36,7 @@ export async function enrich(dir,{limit=0,client,translationConcurrency=4,embedd
  const record=(d,stage,error)=>{const metadata=failure(error),at=new Date().toISOString();d[stage+'Error']={...metadata,at};data.errors.push({sourceId:d.sourceId,documentId:d.id,stage,...metadata,status:metadata.httpStatus,at,error:stage==='translation'?'文章译文未完成，已保留分段检查点':'向量生成未完成，后续重试'});};
  async function translate(d){let cp;try{
   const body=translationBody(d),pieces=translationChunks(body.text);if(!pieces.length)throw Error('translation_body_empty');
-  const fingerprint=hash(JSON.stringify([d.versionId,d.title,body.version,body.text,model]));cp=d.translationCheckpoint;
+  const fingerprint=hash(JSON.stringify([d.versionId,d.title,body.version,body.text,model,'unicode-chunks-v2']));cp=d.translationCheckpoint;
   if(cp?.fingerprint!==fingerprint)cp=d.translationCheckpoint={fingerprint,versionId:d.versionId,model,cleaning:body,parts:pieces.map(text=>({sourceHash:hash(text),status:'pending'})),status:'running'};
   cp.status='running';await save();
   for(let i=0;i<pieces.length;i++){
@@ -51,7 +52,7 @@ export async function enrich(dir,{limit=0,client,translationConcurrency=4,embedd
   d.translationVersion=d.versionId;d.translationType='千问中文译文；原始全文保留，按已记录边界清洗，译文待核对';d.translationModel=model;d.translatedAt=new Date().toISOString();cp.status='completed';delete d.translationError;
  }catch(e){if(cp)cp.status='partial';record(d,'translation',e);}await save();}
  async function embed(d){try{
-  const body=translationBody(d),r=await client.embeddings.create({model:process.env.EMBEDDING_MODEL||'text-embedding-v4',input:[d.title,body.text.slice(0,2500)].join('\n').slice(0,3000),dimensions:1024});
+  const body=translationBody(d),r=await client.embeddings.create({model:process.env.EMBEDDING_MODEL||'text-embedding-v4',input:textSlice([d.title,textSlice(body.text,0,2500)].join('\n'),0,3000),dimensions:1024});
   const vector=r.data?.[0]?.embedding;if(!Array.isArray(vector)||vector.length!==1024||!vector.every(Number.isFinite))throw Error('embedding_invalid');
   d.embedding=vector;d.embeddingModel=process.env.EMBEDDING_MODEL||'text-embedding-v4';d.embeddingVersion=d.versionId;d.embeddedAt=new Date().toISOString();delete d.embeddingError;
  }catch(e){record(d,'embedding',e);}await save();}

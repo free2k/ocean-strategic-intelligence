@@ -1,3 +1,4 @@
+import {textSlice} from './unicode-text.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
@@ -54,7 +55,7 @@ export async function createLiveProcessing({dir,store,serial,client,auditPool}){
     const latest=await loadDocument({...current,id:d.id});if(latest.inputBodyHash!==d.inputBodyHash){skippedChanged++;continue;}
     if(d.auditArticleId){
      await db.query('INSERT INTO classification.audit(job_id,article_id,before_state,after_state) VALUES($1,$2,$3,$4)',[job.id,d.auditArticleId,current.classification,decision]);
-     await db.query("UPDATE public.articles SET filter_status=$2::text,matched_topic=$3,classify_method=$4,reject_reason=$5,matched_keywords_json=$6,vectorized=CASE WHEN $2::text='accepted' THEN vectorized ELSE false END,updated_at=now() WHERE id=$1",[d.auditArticleId,decision.status==='accepted'?'accepted':decision.status==='excluded'?'rejected':'pending',decision.primary,decision.method==='llm'?'llm':'keyword',decision.status==='excluded'?decision.reason.slice(0,255):null,JSON.stringify([...(decision.positive||[]).flatMap(p=>p.keywords||[]),...(decision.negative||[])])]);
+     await db.query("UPDATE public.articles SET filter_status=$2::text,matched_topic=$3,classify_method=$4,reject_reason=$5,matched_keywords_json=$6,vectorized=CASE WHEN $2::text='accepted' THEN vectorized ELSE false END,updated_at=now() WHERE id=$1",[d.auditArticleId,decision.status==='accepted'?'accepted':decision.status==='excluded'?'rejected':'pending',decision.primary,decision.method==='llm'?'llm':'keyword',decision.status==='excluded'?textSlice(decision.reason,0,255):null,JSON.stringify([...(decision.positive||[]).flatMap(p=>p.keywords||[]),...(decision.negative||[])])]);
      if(decision.status!=='accepted')await db.query('DELETE FROM public.article_chunks WHERE article_id=$1',[d.auditArticleId]);
      await db.query('INSERT INTO classification.articles(article_id,classification,input_hash,job_id) VALUES($1,$2,$3,$4) ON CONFLICT(article_id) DO UPDATE SET classification=EXCLUDED.classification,input_hash=EXCLUDED.input_hash,job_id=EXCLUDED.job_id,updated_at=now()',[d.auditArticleId,decision,digest([d.title,d.content]),job.id]);
      await db.query("UPDATE classification.semantic_queue SET status='stale',updated_at=now() WHERE article_id=$1",[d.auditArticleId]);

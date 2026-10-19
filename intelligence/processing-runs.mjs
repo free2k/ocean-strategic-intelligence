@@ -1,3 +1,4 @@
+import {textSlice} from './unicode-text.mjs';
 import fs from 'node:fs/promises';
 import {mkdirSync,appendFileSync} from 'node:fs';
 import path from 'node:path';
@@ -103,7 +104,7 @@ export class ProcessingRuns{
     const meta={documentId:d.id,title:d.title,source:d.sourceName,publishedAt:d.publishedAt};
     await stage('classifying');const ruleStarted=Date.now();let decision=classifyRecord(d,rules);
     const terms=[...new Set([...(decision.positive||[]).flatMap(p=>(p.keywords||[]).map(k=>k.keyword)),...(decision.negative||[]).map(k=>k.keyword)])].filter(Boolean);
-    const body=String(d.content||''),lower=body.toLowerCase();const hitExcerpts=terms.slice(0,20).map(term=>{const at=lower.indexOf(term.toLowerCase());return at<0?null:body.slice(Math.max(0,at-70),at+term.length+100);}).filter(Boolean);
+    const body=String(d.content||''),lower=body.toLowerCase();const hitExcerpts=terms.slice(0,20).map(term=>{const at=lower.indexOf(term.toLowerCase());return at<0?null:textSlice(body,Math.max(0,at-70),at+term.length+100);}).filter(Boolean);
     await emit('classification','关键词规则匹配完成',{...meta,ruleVersion:rules.version,status:decision.status,industry:decision.primary,topics:decision.topics,reason:decision.reason,positive:decision.positive,negative:decision.negative,context:decision.context,hitExcerpts:[...new Set(hitExcerpts)],durationMs:Date.now()-ruleStarted});
     let extraction=null,retry=null;
     const client={chat:{completions:{create:async request=>{

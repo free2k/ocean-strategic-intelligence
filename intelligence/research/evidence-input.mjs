@@ -1,9 +1,10 @@
+import {textSlice,textParts} from '../unicode-text.mjs';
 // Model selects immutable snippets by short IDs; the application resolves quotations.
 // This avoids asking the model to transcribe long version IDs or alter original punctuation.
 export function evidenceInput(entries){
  const evidence=new Map(),documents=entries.map(e=>{
-  const body=(e.body.contentZh||e.body.content||'').slice(0,6000),snippets=[];
-  for(let start=0;start<body.length;start+=600){const quote=body.slice(start,start+600);if(quote.trim().length<8)continue;const id='E'+evidence.size;evidence.set(id,{documentId:e.documentId,bodyVersionId:e.bodyVersionId,quote});snippets.push({id,text:quote});}
+  const body=textSlice(e.body.contentZh||e.body.content||'',0,6000),snippets=[];
+  for(const {text:quote} of textParts(body,600)){if(quote.trim().length<8)continue;const id='E'+evidence.size;evidence.set(id,{documentId:e.documentId,bodyVersionId:e.bodyVersionId,quote});snippets.push({id,text:quote});}
   return {title:e.body.titleZh||e.body.title,snippets};
  });return {documents,evidence};
 }

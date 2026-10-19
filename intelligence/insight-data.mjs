@@ -1,3 +1,4 @@
+import {textSlice} from './unicode-text.mjs';
 import {createHash,randomUUID} from 'node:crypto';
 import {topics,countries} from './core.mjs';
 import {canonicalTopic} from './industry-topics.mjs';
@@ -74,7 +75,7 @@ function summarize(record,ctx,edit){
  const sourceId=r.sourceId||record.context.sourceId||d?.sourceId||(record.kind==='sources'?r.id:''),topic=canonicalTopic(classification?.primary||r.topic||record.context.topic||d?.topic||'');
  const title=r.titleZh||r.title||r.objectZh||r.object||r.nameZh||r.name||r.project||r.label||r.subject||(r.from?`${ctx.entities.get(r.from)?.nameZh||ctx.entities.get(r.from)?.name||r.from} → ${ctx.entities.get(r.to)?.nameZh||ctx.entities.get(r.to)?.name||r.to}`:'')||record.context.dataset||r.quoteZh||r.quote||r.period||'未命名';
  const recordStatus=r.status||(record.kind==='registries'?r.type:'')||'';
- return {kind:record.kind,key:record.key,id:r.id||r.lease||r.period||'',title,subtitle:r.name&&r.subject?r.subject:r.metric||r.type||r.summaryZh?.slice(0,120)||record.context.dataset||'',topic,sourceId,source:ctx.sources.get(sourceId)?.name||sourceId||'未标注',status:classification?.status||recordStatus||'unclassified',recordStatus,recordStatusLabel:r.statusZh||recordStatus,state:edit?.deleted?'deleted':edit?'edited':'original',date:String(r.period||r.publicationDate||r.publishedAt||r.eventDate||r.effectiveYear||''),country:countryValues(r.countryCode,r.country,r.countries,record.context.country,d?.countries,ctx.countryByDoc.get(documentId)),scopes:recordScopes(record,ctx,classification,documentIds),value:r.value??r.rawValue??r.capacityMW??null,unit:r.unit||record.context.unit||'',url:r.sourceUrl||r.url||record.context.sourceUrl||d?.url||'',documentId:r.documentId||'',updatedAt:edit?.updatedAt||null,revision:hash([record.kind,record.key,r,edit?.updatedAt]),deleted:!!edit?.deleted};
+ return {kind:record.kind,key:record.key,id:r.id||r.lease||r.period||'',title,subtitle:r.name&&r.subject?r.subject:r.metric||r.type||textSlice(r.summaryZh||'',0,120)||record.context.dataset||'',topic,sourceId,source:ctx.sources.get(sourceId)?.name||sourceId||'未标注',status:classification?.status||recordStatus||'unclassified',recordStatus,recordStatusLabel:r.statusZh||recordStatus,state:edit?.deleted?'deleted':edit?'edited':'original',date:String(r.period||r.publicationDate||r.publishedAt||r.eventDate||r.effectiveYear||''),country:countryValues(r.countryCode,r.country,r.countries,record.context.country,d?.countries,ctx.countryByDoc.get(documentId)),scopes:recordScopes(record,ctx,classification,documentIds),value:r.value??r.rawValue??r.capacityMW??null,unit:r.unit||record.context.unit||'',url:r.sourceUrl||r.url||record.context.sourceUrl||d?.url||'',documentId:r.documentId||'',updatedAt:edit?.updatedAt||null,revision:hash([record.kind,record.key,r,edit?.updatedAt]),deleted:!!edit?.deleted};
 }
 const readCache=new WeakMap();
 function allSummaries(data){
@@ -95,7 +96,7 @@ export function periodBounds(value){
 }
 export function queryData(data,filters={}){
  const {rows,ctx}=allSummaries(data),kind=filters.kind||'documents';if(kind!=='all'&&!dataKinds.some(k=>k.id===kind))throw new DataError('未知数据类型');
- const deleted=filters.deleted==='true',q=String(filters.q||'').trim().toLowerCase().slice(0,300),from=filters.from||'',to=filters.to||'',country=countries.find(c=>c.name===filters.country)?.code||filters.country;
+ const deleted=filters.deleted==='true',q=textSlice(String(filters.q||'').trim().toLowerCase(),0,300),from=filters.from||'',to=filters.to||'',country=countries.find(c=>c.name===filters.country)?.code||filters.country;
  if(from&&to&&from>to)throw new DataError('开始日期不能晚于结束日期');
  const hasShared=filters.topic||filters.sourceId||country||from||to;
  const shared=hasShared?rows.filter(r=>r.scopes.some(s=>(!filters.topic||s.topic===canonicalTopic(filters.topic))&&(!filters.sourceId||s.sourceId===filters.sourceId||ctx.sourceAliases.get(s.sourceId)===filters.sourceId)&&(!country||s.country.some(c=>String(c).toLowerCase().includes(String(country).toLowerCase())))&&(!from||periodBounds(s.date)?.[1]>=from)&&(!to||periodBounds(s.date)?.[0]<=to))):rows;
@@ -121,7 +122,7 @@ function validatePatch(kind,patch){
   if(!fields[kind].includes(name))throw new DataError('该字段不可修改：'+name);
   if(['industry','classification'].includes(name)){
    if(!value||!['accepted','excluded','unmatched'].includes(value.status)||(value.status==='accepted'&&!topics.includes(value.primary)))throw new DataError('请选择有效的纳入状态与行业');
-   normalized[name]={status:value.status,primary:topics.includes(value.primary)?value.primary:null,topics:value.status==='accepted'?[value.primary]:[],manual:true,reason:String(value.reason||'数据明细人工修订').slice(0,1000),positive:[],negative:[]};continue;
+   normalized[name]={status:value.status,primary:topics.includes(value.primary)?value.primary:null,topics:value.status==='accepted'?[value.primary]:[],manual:true,reason:textSlice(String(value.reason||'数据明细人工修订'),0,1000),positive:[],negative:[]};continue;
   }
   if(['value','capacityMW','start'].includes(name)){if(value!==null&&(typeof value!=='number'||!Number.isFinite(value)))throw new DataError(name+' 必须是有效数字');if(name==='value'&&value===null)throw new DataError('数值不能为空');}
   else if(name==='partial'){if(typeof value!=='boolean')throw new DataError('请选择有效的布尔值');}
