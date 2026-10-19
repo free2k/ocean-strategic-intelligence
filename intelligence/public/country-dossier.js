@@ -1,7 +1,6 @@
-import {recentCountryRows} from './country-recency.mjs';
 import {multiSelect} from './multi-select.js';
 import {originalSourceLink,articleBody,enhanceReader,groupReferences} from './preview.js';
-import {rankCountries} from './country-ranking.mjs';
+import {rankCountries,recentCountryRows} from './country-ranking.mjs';
 import {renderCountryAssessments,countryPageLink} from './country-assessment.js';
 const countryResponses=new Map(),countryPending=new Map();
 export function clearCountryCache(){countryResponses.clear();}
