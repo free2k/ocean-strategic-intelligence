@@ -1,4 +1,5 @@
 import {createHash,randomUUID} from 'node:crypto';
+import {jsonTextChunks} from './json-stream.mjs';
 
 // Keep PostgreSQL's JSONB containers small, including large nested arrays in
 // attachments. Text parts preserve exact JSON and never split a surrogate pair.
@@ -53,8 +54,19 @@ export async function readWorkspace(pool){
 }
 // Caller owns the transaction and the insight-data advisory lock.
 export async function writeWorkspace(client,data){
- const {root,parts}=splitWorkspace(data),generation=root._workspaceParts?.generation;
- for(const part of parts)await client.query('INSERT INTO ocean_intel.workspace_parts(generation,field,part,payload) VALUES($1,$2,$3,$4)',[generation,part.field,part.part,part.payload]);
+ const root={...data},fields={},generation=randomUUID();delete root._workspaceParts;
+ for(const [field,value] of Object.entries(root)){
+  if(value===undefined)continue;
+  const hash=createHash('sha256');let pending=[],bytes=0,part=0,large=false;
+  const save=async payload=>client.query('INSERT INTO ocean_intel.workspace_parts(generation,field,part,payload) VALUES($1,$2,$3,$4)',[generation,field,part++,payload]);
+  for(const text of jsonTextChunks(value,1024*1024)){
+   hash.update(text);bytes+=Buffer.byteLength(text);
+   if(large)await save(text);
+   else{pending.push(text);if(bytes>=4*1024*1024){large=true;for(const chunk of pending)await save(chunk);pending=[];}}
+  }
+  if(large){fields[field]={parts:part,sha256:hash.digest('hex')};delete root[field];}
+ }
+ if(Object.keys(fields).length)root._workspaceParts={version:1,generation,fields};
  await client.query("INSERT INTO ocean_intel.runs(id,payload) VALUES('current',$1) ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload,updated_at=now()",[root]);
- await client.query('DELETE FROM ocean_intel.workspace_parts WHERE generation IS DISTINCT FROM $1',[generation||null]);
+ await client.query('DELETE FROM ocean_intel.workspace_parts WHERE generation IS DISTINCT FROM $1',[root._workspaceParts?generation:null]);
 }

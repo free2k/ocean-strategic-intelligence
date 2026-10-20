@@ -30,3 +30,13 @@ test('low disk prevents staging and repeated delivery requests, including after 
  const restarted=await createScheduler(options);t.after(()=>restarted.close());
  assert.equal(await restarted.run({processOnly:true}),false);assert.equal(checks,1);
 });
+test('a process crash cannot immediately create another full snapshot after restart',async t=>{
+ const dir=await fs.mkdtemp(path.join(os.tmpdir(),'job-crash-'));t.after(()=>fs.rm(dir,{recursive:true,force:true}));
+ await fs.writeFile(path.join(dir,'collection-status.json'),JSON.stringify({running:true,nextRun:'2026-01-01',failureCount:1}));
+ const scheduler=await createScheduler({dir,root:dir,store:{data:seed},serial:fn=>fn(),executeWorker:()=>assert.fail()});t.after(()=>scheduler.close());
+ assert.equal(scheduler.status().errorCode,'INTERRUPTED_RUN');
+ assert.equal(scheduler.status().failureCount,2);
+ assert(Date.parse(scheduler.status().retryAt)>Date.now()+29*60000);
+ assert.equal(await scheduler.run(),false);
+ assert.equal(JSON.parse(await fs.readFile(path.join(dir,'collection-status.json'),'utf8')).failureCount,2);
+});

@@ -1,3 +1,4 @@
+import {writeJsonFile} from './json-stream.mjs';
 import {assertJobCapacity,retryDelay,finishJobStage} from './job-storage.mjs';
 import {deliveryRevision,acknowledgeDelivery,markDelivery} from './intelligence-delivery.mjs';
 import {acknowledgeClassification} from './classification-jobs.mjs';
@@ -17,12 +18,15 @@ export function workerTimeoutMs(name,value=process.env.INTEL_PIPELINE_TIMEOUT_HO
 export function workerStage(name){if(name==='reconcile-classification.mjs')return 'classifying';if(name==='pipeline-worker.mjs')return 'structuring';if(name==='import-mp2rss.mjs')return 'body_preparation';return 'collecting';}
 export async function createScheduler({store,dir,root,serial,researchLedger=null,researchJournal=null,executeWorker=null,checkCapacity=assertJobCapacity}){
  const enabled=process.env.INTEL_SCHEDULE==='true',intervalMs=6*3600000,file=path.join(dir,'collection-status.json');
+ let interrupted=false;
  let state={enabled,running:false,intervalHours:6,eiaExternal:process.env.INTEL_EIA_EXTERNAL==='true',lastRun:null,nextRun:null,steps:[]};
- try{const saved=JSON.parse(await fs.readFile(file,'utf8'));state={...state,...saved,enabled,running:false,...(saved.running?{result:'deferred',error:'上次任务中断，等待核对发布状态'}:{})};}catch(e){if(e.code!=='ENOENT')throw e;}
+ try{const saved=JSON.parse(await fs.readFile(file,'utf8'));interrupted=!!saved.running;state={...state,...saved,enabled,running:false,...(saved.running?{result:'deferred',error:'上次任务中断，等待核对发布状态'}:{})};}catch(e){if(e.code!=='ENOENT')throw e;}
+ if(interrupted){state.failureCount=(state.failureCount||0)+1;state.errorCode='INTERRUPTED_RUN';state.retryAt=new Date(Date.now()+retryDelay(state.failureCount,state.errorCode)).toISOString();}
  const journal=researchLedger?(researchJournal||new TaskJournal(path.join(dir,'research-tasks'))):null;
  const publication=journal?new ResearchPublication({ledger:researchLedger,journal,store}):null;
  let timer;
  const persist=async()=>{const tmp=file+'.'+randomUUID()+'.tmp';try{await fs.writeFile(tmp,JSON.stringify(state));await fs.rename(tmp,file);}finally{await fs.rm(tmp,{force:true}).catch(()=>{});}};
+ if(interrupted)await persist();
  const runScript=executeWorker||((name,stage)=>new Promise((resolve,reject)=>{
   const p=spawn(process.execPath,[path.join(root,name)],{cwd:path.dirname(root),env:{...process.env,INTEL_DATA_DIR:stage,IEA_DATA_HOME:process.env.IEA_DATA_HOME||path.join(dir,'iea'),INTEL_MAX_PER_SOURCE:'4',INTEL_ENRICH_LIMIT:process.env.INTEL_ENRICH_BATCH_LIMIT||'6',INTEL_AUTO_EXTRACT_LIMIT:process.env.INTEL_EXTRACT_BATCH_LIMIT||'6'},stdio:['ignore','ignore','ignore']});
   const timeout=setTimeout(()=>p.kill(),name==='pipeline-worker.mjs'?Math.min(workerTimeoutMs(name),20*60000):workerTimeoutMs(name));
@@ -44,7 +48,7 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
    await checkCapacity(dir);
    delivery=await deliveryRevision(store.pool);
    state={...state,running:true,runMode:processOnly?'processing':'collection',result:null,taskId:task?.id||null,startedAt:new Date().toISOString(),steps:[],error:null};await persist();
-   stage=path.join(dir,'jobs',task?.id||randomUUID());await fs.mkdir(stage,{recursive:true});await fs.writeFile(path.join(stage,'snapshot.json'),JSON.stringify(store.data));
+   stage=path.join(dir,'jobs',task?.id||randomUUID());await fs.mkdir(stage,{recursive:true});await writeJsonFile(path.join(stage,'snapshot.json'),store.data);
    const scripts=processOnly?['import-mp2rss.mjs','reconcile-classification.mjs','pipeline-worker.mjs']:['import-mp2rss.mjs','reconcile-classification.mjs','collect.mjs','official-sources.mjs','expanded-sources.mjs','open-datasets.mjs','iea-datasets.mjs','import-mp2rss.mjs','reconcile-classification.mjs',...(process.env.INTEL_EIA_EXTERNAL==='true'?[]:[process.env.EIA_API_KEY?'import-eia.mjs':'import-series.mjs']),'pipeline-worker.mjs'];
    for(const script of scripts){
     state.currentStep=script;if(task)task=await journal.update(task.id,task.revision,{status:workerStage(script),currentStep:script});await persist();
