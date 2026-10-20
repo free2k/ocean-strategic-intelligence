@@ -10,17 +10,18 @@ import path from 'node:path';
 import {spawn} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 
-export function nextCollectionTime(nextRun,now,completedFull=false){const planned=Date.parse(nextRun||'');return new Date(completedFull||!Number.isFinite(planned)?now+6*3600000:Math.max(now+30000,planned)).toISOString();}
+export function nextCollectionTime(nextRun,now,completedFull=false){const planned=Date.parse(nextRun||'');return new Date(completedFull||!Number.isFinite(planned)?now+12*3600000:Math.max(now+30000,planned)).toISOString();}
 export function workerTimeoutMs(name,value=process.env.INTEL_PIPELINE_TIMEOUT_HOURS){
  if(!['enrich.mjs','pipeline-worker.mjs'].includes(name))return 12*60000;
  const hours=Number(value||12);return (Number.isFinite(hours)&&hours>=1&&hours<=24?hours:12)*3600000;
 }
 export function workerStage(name){if(name==='reconcile-classification.mjs')return 'classifying';if(name==='pipeline-worker.mjs')return 'structuring';if(name==='import-mp2rss.mjs')return 'body_preparation';return 'collecting';}
 export async function createScheduler({store,dir,root,serial,researchLedger=null,researchJournal=null,executeWorker=null,checkCapacity=assertJobCapacity}){
- const enabled=process.env.INTEL_SCHEDULE==='true',intervalMs=6*3600000,file=path.join(dir,'collection-status.json');
+ const enabled=process.env.INTEL_SCHEDULE==='true',intervalMs=12*3600000,file=path.join(dir,'collection-status.json');
  let interrupted=false;
- let state={enabled,running:false,intervalHours:6,eiaExternal:process.env.INTEL_EIA_EXTERNAL==='true',lastRun:null,nextRun:null,steps:[]};
+ let state={enabled,running:false,intervalHours:12,eiaExternal:process.env.INTEL_EIA_EXTERNAL==='true',lastRun:null,nextRun:null,steps:[]};
  try{const saved=JSON.parse(await fs.readFile(file,'utf8'));interrupted=!!saved.running;state={...state,...saved,enabled,running:false,...(saved.running?{result:'deferred',error:'上次任务中断，等待核对发布状态'}:{})};}catch(e){if(e.code!=='ENOENT')throw e;}
+ if(state.intervalHours!==12){state.nextRun=nextCollectionTime(null,Date.parse(state.lastCollectionRun||'')||Date.now(),true);state.intervalHours=12;}
  if(interrupted){state.failureCount=(state.failureCount||0)+1;state.errorCode='INTERRUPTED_RUN';state.retryAt=new Date(Date.now()+retryDelay(state.failureCount,state.errorCode)).toISOString();}
  const journal=researchLedger?(researchJournal||new TaskJournal(path.join(dir,'research-tasks'))):null;
  const publication=journal?new ResearchPublication({ledger:researchLedger,journal,store}):null;

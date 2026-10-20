@@ -1,5 +1,5 @@
 [Unit]
-Description=Check Mp2RSS requested jobs every minute (automatic sync every 30 minutes)
+Description=Check Mp2RSS requested jobs every minute (automatic sync every 6 hours)
 
 [Timer]
 OnBootSec=1min

@@ -55,7 +55,7 @@ export async function status(){await init();let configured=true;try{connection()
  const jobs=(await pool.query('SELECT * FROM mp2rss.jobs ORDER BY id DESC LIMIT 12')).rows;const state=(await pool.query("SELECT payload FROM mp2rss.state WHERE id='sync'")).rows[0]?.payload||{};
  const pendingJobs=(await pool.query("SELECT id,action,target,request,status,created_at,started_at FROM mp2rss.jobs WHERE status IN ('queued','running') ORDER BY CASE WHEN status='running' THEN 0 WHEN action='batch_verified_subscribe' THEN 1 ELSE 2 END,id")).rows;
  const audit=await cachedAudit(pool),classification=audit.mpCounts,bridge=auditBridge(audit.documents);
- return {classification,observedAt:audit.observedAt,metricVersion:audit.metricVersion,scope:'mp2rss',configured,intervalMinutes:30,state,list,jobs,bridge,history,queue:{jobs:pendingJobs,pollSeconds:60,waiting:pendingJobs.filter(j=>j.status==='queued').length}};}
+ return {classification,observedAt:audit.observedAt,metricVersion:audit.metricVersion,scope:'mp2rss',configured,intervalMinutes:360,state,list,jobs,bridge,history,queue:{jobs:pendingJobs,pollSeconds:60,waiting:pendingJobs.filter(j=>j.status==='queued').length}};}
 export async function update(id,body){await init();if(body.enabled===false||body.articles===false)throw Error('已订阅账号默认采集文章');if(body.posts!==undefined&&typeof body.posts!=='boolean')throw Error('开关参数必须为布尔值');return(await pool.query('UPDATE mp2rss.subscriptions SET enabled=true,posts=coalesce($2,posts),articles=true WHERE id=$1 RETURNING id',[id,body.posts??null])).rows[0];}
 export async function execute(){await init();const guard=await pool.connect();try{if(!(await guard.query('SELECT pg_try_advisory_lock(73201910) AS locked')).rows[0].locked)return {busy:true};
  await initClassification(pool);
@@ -84,5 +84,5 @@ export async function execute(){await init();const guard=await pool.connect();tr
  }
  await pool.query('UPDATE mp2rss.jobs SET status=$2,finished_at=now(),result=$3 WHERE id=$1',[job.id,result.failed?'partial':'completed',result]);
  }catch{await pool.query("UPDATE mp2rss.jobs SET status='failed',finished_at=now(),error='供应商连接或同步失败；检查密钥、权益与网络' WHERE id=$1",[job.id]);result.failed++;}
- if(job.action==='sync'&&!job.target)await pool.query("INSERT INTO mp2rss.state(id,payload) VALUES('sync',$1) ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload",[{lastRunAt:new Date().toISOString(),nextRunAt:new Date(Date.now()+30*60000).toISOString()}]);return result;
+ if(job.action==='sync'&&!job.target)await pool.query("INSERT INTO mp2rss.state(id,payload) VALUES('sync',$1) ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload",[{lastRunAt:new Date().toISOString(),nextRunAt:new Date(Date.now()+360*60000).toISOString()}]);return result;
  }finally{await guard.query('SELECT pg_advisory_unlock(73201910)');guard.release();}}

@@ -1,8 +1,8 @@
 [Unit]
 Description=Coalesced intelligence processing delivery
 [Timer]
-OnBootSec=30s
-OnUnitInactiveSec=5min
+OnActiveSec=12h
+OnUnitInactiveSec=12h
 AccuracySec=5s
 [Install]
 WantedBy=timers.target

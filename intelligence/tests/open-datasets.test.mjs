@@ -36,6 +36,6 @@ test('frequent processing jobs do not postpone the scheduled source collection',
  const now=Date.parse('2026-10-11T06:00:00Z'),planned='2026-10-11T07:00:00.000Z';
  assert.equal(nextCollectionTime(planned,now),planned);
  assert.equal(nextCollectionTime(planned,now+30*60000),planned);
- assert.equal(nextCollectionTime(planned,now,true),'2026-10-11T12:00:00.000Z');
+ assert.equal(nextCollectionTime(planned,now,true),'2026-10-11T18:00:00.000Z');
  assert.equal(nextCollectionTime(planned,now+2*3600000),'2026-10-11T08:00:30.000Z');
 });
