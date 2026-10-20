@@ -1,4 +1,5 @@
 import gzip
+import io
 import importlib.util
 import json
 import os
@@ -16,6 +17,37 @@ spec.loader.exec_module(module)
 
 
 class ArchiveTests(unittest.TestCase):
+    def test_expired_budget_defers_before_read(self):
+        budget = module.Budget(seconds=-1)
+        with self.assertRaises(module.Deferred):
+            module.Reader(io.BytesIO(b"not read"), budget.check).read(1)
+
+    def test_stream_boundaries_and_large_unicode(self):
+        for padding in (65520, 65530, 65535, 65536, 1048570, 1048580):
+            raw = b'{"documents":[{"id":"a","body":"' + b"x" * padding + (
+                '海洋🙂'.encode() * 300000) + b'"},{"id":"b"}]}'
+            self.assertEqual(list(module.stream_blocks(io.BytesIO(raw))), list(module.blocks(raw)))
+
+    def test_defer_preserves_source_and_resume(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "snapshot.json"
+            source.write_bytes(b'{"documents":[{"id":"a"}]}')
+            calls = 0
+            def guard(size=0):
+                nonlocal calls
+                calls += 1
+                if calls == 8:
+                    raise module.Deferred("pressure")
+            archive = module.Archive(root / "archive", guard)
+            with self.assertRaises(module.Deferred):
+                archive.archive(source, root / "manifest", remove=True)
+            self.assertTrue(source.exists())
+            archive.guard = lambda size=0: None
+            archive.archive(source, root / "manifest", remove=True)
+            archive.restore(root / "manifest", root / "restored")
+            self.assertEqual((root / "restored").read_bytes(), b'{"documents":[{"id":"a"}]}')
+
     def test_splitpoints_remain_compatible(self):
         raw = json.dumps({"documents": [{"id": str(i), "content": 'x' * 10000 + ',{"id":'}
                                         for i in range(20)]},

@@ -3,10 +3,16 @@ Description=Verify and deduplicate inactive ocean snapshots
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/flock -n -E 75 /opt/ocean-intelligence/snapshot-archive.lock /usr/bin/python3 /opt/ocean-intelligence/current/intelligence/snapshot_archive.py --root /opt/ocean-intelligence/data/job-archive --jobs /opt/ocean-intelligence/data/jobs --limit 100 --max-seconds 300
+ExecStart=/usr/bin/flock -n -E 75 /opt/ocean-intelligence/snapshot-archive.lock /opt/ocean-intelligence/archive-venv/bin/python /opt/ocean-intelligence/current/intelligence/snapshot_archive.py --root /opt/ocean-intelligence/data/job-archive --jobs /opt/ocean-intelligence/data/jobs --limit 2 --max-seconds 600
 SuccessExitStatus=75
 Nice=15
 IOSchedulingClass=idle
-MemoryMax=2G
-TimeoutStartSec=15min
+MemoryHigh=256M
+MemoryMax=512M
+MemorySwapMax=0
+CPUQuota=25%
+IOWeight=10
+IOReadBandwidthMax=/dev/vda 8M
+IOWriteBandwidthMax=/dev/vda 2M
+TimeoutStartSec=12min
 UMask=0077

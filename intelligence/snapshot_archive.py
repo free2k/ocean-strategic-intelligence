@@ -13,11 +13,80 @@ from pathlib import Path
 import re
 import tempfile
 import time
+import ijson
 
 # A consuming literal prefix lets the regex engine skip long article bodies.
 # Only match.start() is used, so boundaries are identical to a lookahead.
 BOUNDARY = re.compile(rb',\{"(?:id|sourceId|documentId|name)":')
 MAX_BLOCK = 1024 * 1024
+
+
+class Deferred(Exception):
+    """Leave original intact and retry in a later timer run."""
+
+
+class Budget:
+    def __init__(self, seconds=600, rate=8 * 1024**2, min_available=2 * 1024**3):
+        self.deadline = time.monotonic() + seconds
+        self.rate = rate
+        self.min_available = min_available
+        self.next_io = time.monotonic()
+        self.next_probe = 0
+
+    def check(self, size=0):
+        if time.monotonic() >= self.deadline:
+            raise Deferred("time budget exhausted")
+        memory = Path("/proc/meminfo")
+        if memory.exists() and time.monotonic() >= self.next_probe:
+            self.next_probe = time.monotonic() + 1
+            available = next(int(line.split()[1]) * 1024 for line in
+                             memory.read_text().splitlines() if line.startswith("MemAvailable:"))
+            if available < self.min_available:
+                raise Deferred("less than 2 GiB available memory")
+            if os.getloadavg()[0] > max(2, os.cpu_count() or 1):
+                raise Deferred("host load above CPU capacity")
+            for resource, threshold in (("memory", 5), ("io", 10)):
+                pressure = Path("/proc/pressure") / resource
+                if pressure.exists():
+                    line = pressure.read_text().splitlines()[0]
+                    avg10 = float(dict(field.split("=") for field in line.split()[1:])["avg10"])
+                    if avg10 >= threshold:
+                        raise Deferred(resource + " pressure elevated")
+        if size and self.rate:
+            now = time.monotonic()
+            self.next_io = max(now, self.next_io) + size / self.rate
+            time.sleep(max(0, self.next_io - now))
+
+
+class Reader:
+    def __init__(self, stream, guard):
+        self.stream, self.guard = stream, guard
+
+    def read(self, size=-1):
+        if size < 0:
+            raise ValueError("Unbounded reads are forbidden")
+        self.guard(size)
+        return self.stream.read(size)
+
+
+def stream_blocks(stream):
+    """Same split points as blocks(), including delimiters across read boundaries."""
+    pending = b""
+    while True:
+        chunk = stream.read(65536)
+        pending += chunk
+        while pending:
+            match = BOUNDARY.search(pending, 1)
+            if match:
+                end = min(match.start(), MAX_BLOCK)
+            elif len(pending) >= MAX_BLOCK + 64 or not chunk:
+                end = min(len(pending), MAX_BLOCK)
+            else:
+                break
+            yield pending[:end]
+            pending = pending[end:]
+        if not chunk:
+            break
 
 
 def sha(data):
@@ -62,11 +131,12 @@ def blocks(data):
 
 
 class Archive:
-    def __init__(self, root):
+    def __init__(self, root, guard=None):
         self.root = Path(root)
         self.cache = OrderedDict()
         self.cache_bytes = 0
         self.verified = {}
+        self.guard = guard or (lambda size=0: None)
 
     def blockpath(self, digest):
         if not re.fullmatch("[0-9a-f]{64}", digest):
@@ -83,13 +153,17 @@ class Archive:
             return cached[1]
         if cached:
             self.cache_bytes -= len(self.cache.pop(digest)[1])
-        data = gzip.decompress(target.read_bytes())
+        self.guard(stat.st_size)
+        with gzip.open(target, "rb") as stream:
+            data = stream.read(MAX_BLOCK + 1)
+        if len(data) > MAX_BLOCK:
+            raise ValueError("Oversized archive block")
         if sha(data) != digest:
             raise ValueError("Archive block checksum mismatch")
         # Small, repeated records dominate file opens. Keep their verified bytes
         # bounded; recheck file identity/timestamps before reuse.
         if len(data) <= 65536:
-            while self.cache and self.cache_bytes + len(data) > 64 * 1024**2:
+            while self.cache and self.cache_bytes + len(data) > 8 * 1024**2:
                 _, old = self.cache.popitem(last=False)
                 self.cache_bytes -= len(old[1])
             self.cache[digest] = (stamp, data)
@@ -105,6 +179,8 @@ class Archive:
             return previous[1]
         size = len(self.load(digest))  # verifies decompressed SHA-256
         self.verified[digest] = (stamp, size)
+        if len(self.verified) > 10000:
+            self.verified.clear()
         return size
 
     def archive(self, source, manifest, baseline=frozenset(), remove=False):
@@ -112,35 +188,48 @@ class Archive:
         if source.is_symlink() or not source.is_file():
             raise ValueError("Source must be a regular file")
         before = source.stat()
-        raw = source.read_bytes()
-        physical_hash = sha(raw)
-        if source.suffix == ".gz":
-            raw = gzip.decompress(raw)
-            sidecar = Path(str(source) + ".sha256")
-            if sidecar.exists() and sidecar.read_text().strip() != sha(raw):
-                raise ValueError("Original archive checksum mismatch")
-        # Parsing validates this really is a JSON snapshot before changing files.
-        # Do not retain the parsed object: restoration preserves original bytes.
-        parsed = json.loads(raw)
-        if not isinstance(parsed, dict) or not isinstance(parsed.get("documents"), list):
+        physical = hashlib.sha256()
+        with source.open("rb") as stream:
+            reader = Reader(stream, self.guard)
+            while chunk := reader.read(65536):
+                physical.update(chunk)
+        opener = gzip.open if source.suffix == ".gz" else open
+        documents, found = 0, False
+        # Event parsing never materializes the full snapshot or article collection.
+        with opener(source, "rb") as stream:
+            for prefix, event, value in ijson.parse(Reader(stream, self.guard)):
+                if prefix == "documents" and event == "start_array":
+                    if found:
+                        raise ValueError("Duplicate documents array")
+                    found = True
+                if prefix == "documents.item" and event not in ("end_map", "end_array", "map_key"):
+                    documents += 1
+        if not found:
             raise ValueError("Invalid snapshot schema")
-        documents = len(parsed["documents"])
-        del parsed
         refs, new_bytes, covered = [], 0, 0
-        for block in blocks(raw):
-            digest = sha(block)
-            target = self.blockpath(digest)
-            if not target.exists():
-                packed = gzip.compress(block, compresslevel=1, mtime=0)
-                atomic(target, packed)
-                new_bytes += len(packed)
-            refs.append(digest)
-            if digest in baseline:
-                covered += len(block)
+        raw_hash, raw_size = hashlib.sha256(), 0
+        with opener(source, "rb") as stream:
+            for block in stream_blocks(Reader(stream, self.guard)):
+                self.guard()
+                raw_hash.update(block)
+                raw_size += len(block)
+                digest = sha(block)
+                target = self.blockpath(digest)
+                if not target.exists():
+                    packed = gzip.compress(block, compresslevel=1, mtime=0)
+                    self.guard(len(packed))
+                    atomic(target, packed)
+                    new_bytes += len(packed)
+                refs.append(digest)
+                if digest in baseline:
+                    covered += len(block)
+        sidecar = Path(str(source) + ".sha256")
+        if source.suffix == ".gz" and sidecar.exists() and sidecar.read_text().strip() != raw_hash.hexdigest():
+            raise ValueError("Original archive checksum mismatch")
         record = {
             "version": 1, "source": str(source), "sourceBytes": before.st_size,
-            "sourcePhysicalSha256": physical_hash, "rawBytes": len(raw),
-            "rawSha256": sha(raw), "documents": documents,
+            "sourcePhysicalSha256": physical.hexdigest(), "rawBytes": raw_size,
+            "rawSha256": raw_hash.hexdigest(), "documents": documents,
             "blocks": refs, "baselineCoveredBytes": covered,
             "newBlockBytes": new_bytes, "archivedAt": time.time(),
         }
@@ -151,7 +240,7 @@ class Archive:
         # force a new decompression+hash check. restore() always hashes the full
         # reconstructed stream, independently of this migration-time proof.
         size = sum(self.verified_size(ref) for ref in refs)
-        if size != len(raw):
+        if size != raw_size:
             raise ValueError("Full reconstruction mismatch")
         atomic(manifest, json.dumps(record, separators=(",", ":")).encode())
         # Verify the persisted manifest too before discarding the source.
@@ -163,6 +252,7 @@ class Archive:
         ):
             raise ValueError("Snapshot changed during verification")
         if remove:
+            self.guard()
             source.unlink()
             syncdir(source.parent)
         return {k: v for k, v in record.items() if k != "blocks"}
@@ -205,7 +295,7 @@ def main():
     parser.add_argument("--restore")
     parser.add_argument("--output")
     args = parser.parse_args()
-    archive = Archive(args.root)
+    archive = Archive(args.root, Budget(seconds=args.max_seconds).check)
     if args.restore:
         archive.restore(args.restore, args.output)
         return
@@ -266,7 +356,12 @@ def main():
         if stat.f_bavail * stat.f_frsize < 5 * 1024**3 + source.stat().st_size * 2:
             break
         manifest = source.parent / (source.name + ".archive.json")
-        result = archive.archive(source, manifest, baseline, remove=True)
+        try:
+            result = archive.archive(source, manifest, baseline, remove=True)
+        except Deferred as exc:
+            print(json.dumps({"status": "deferred", "reason": str(exc),
+                              "source": str(source)}), flush=True)
+            break
         # The source-side manifest is the durable recovery pointer. Audit output
         # is informational and never used to decide whether a block can be deleted.
         print(json.dumps(result), flush=True)
