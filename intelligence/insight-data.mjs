@@ -1,3 +1,4 @@
+import {readWorkspaceClient,writeWorkspace} from './workspace-storage.mjs';
 import {textSlice} from './unicode-text.mjs';
 import {createHash,randomUUID} from 'node:crypto';
 import {topics,countries} from './core.mjs';
@@ -160,46 +161,18 @@ export const dataSchemaSql=[
 ];
 export async function loadDataEdits(client){return Object.fromEntries((await client.query('SELECT id,payload FROM ocean_intel.data_overrides')).rows.map(r=>[r.id,r.payload]));}
 export const lockData=client=>client.query("SELECT pg_advisory_xact_lock(hashtext('ocean_intel.insight-data'))");
-async function databaseLocation(client,record){
- const path=[...record.path];
- if(path[0]==='series'&&path.length>1){
-  const series=(await client.query("SELECT ordinality-1 AS position FROM ocean_intel.runs CROSS JOIN LATERAL jsonb_array_elements(payload->'series') WITH ORDINALITY AS items(value,ordinality) WHERE id='current' AND value->>'id'=$1",[path[1]])).rows[0];
-  if(!series)throw new DataError('该统计序列已更新，请刷新后重试',409);path[1]=String(series.position);
- }
- if(path[0]==='sourceCandidates'){const row=(await client.query("SELECT payload #> $1::text[] AS row FROM ocean_intel.runs WHERE id='current'",[path])).rows[0]?.row;return {path,row,object:true};}
- const field=record.kind==='statistics'?'period':record.kind==='registries'&&!record.row.id?'lease':record.kind==='reports'?'url':'id';
- const match=(await client.query("SELECT value AS row,ordinality-1 AS position FROM ocean_intel.runs CROSS JOIN LATERAL jsonb_array_elements(payload #> $1::text[]) WITH ORDINALITY AS items(value,ordinality) WHERE id='current' AND value->>$2=$3 AND ($4::text IS NULL OR value->>'sourceId'=$4)",[path,field,String(record.row[field]),record.kind==='reports'?record.row.sourceId:null])).rows[0];
- return {path,row:match?.row,position:match?String(match.position):null,object:false};
-}
 export async function mutateStoreData(store,input,actor){
- let changed;
+ let changed,committedForRefresh;
  if(store.pool){const client=await store.pool.connect();try{
   await client.query('BEGIN');await lockData(client);
   const locked=await client.query("SELECT id,payload->>'insightRevision' AS revision FROM ocean_intel.runs WHERE id='current' FOR UPDATE");if(!locked.rows.length)throw new DataError('当前快照不可用',503);
-  const current=readDataRecord(store.data,input.kind,input.key),id=input.kind+':'+input.key;
-  const saved=(await client.query('SELECT payload FROM ocean_intel.data_overrides WHERE id=$1',[id])).rows[0]?.payload;
-  const descriptor=findRecord(store.data,input.kind,input.key)||{kind:input.kind,path:saved?.path||store.data.insightEdits?.[id]?.path,row:current.record};
-  const location=await databaseLocation(client,descriptor),dbRow=location.row||(saved?.deleted?{...saved.original,...saved.patch}:null);
-  if(!dbRow||hash([input.kind,input.key,dbRow,saved?.updatedAt])!==input.revision){
-   // A different worker may have changed the row. Refresh that row in memory so
-   // reopening the editor after a conflict actually reads the newer revision.
-   const base={...store.data,insightRevision:locked.rows[0].revision||randomUUID()},edits={...store.data.insightEdits};if(saved)edits[id]=saved;else delete edits[id];
-   const target=containers(base,descriptor.path);if(target){if(input.kind==='candidates'){if(location.row)target[descriptor.path[1]]=location.row;else delete target[descriptor.path[1]];}else{const i=target.indexOf(descriptor.row);if(i>=0){if(location.row)target[i]=location.row;else target.splice(i,1);}else if(location.row)target.push(location.row);}}
-   store.data=applyDataEdits(base,edits);throw new DataError('这条记录已发生变化，请重新打开后修改',409);
-  }
-  changed=changeData(store.data,input,actor);const {edit,log}=changed;
+  const committed=applyDataEdits(await readWorkspaceClient(client),await loadDataEdits(client));committedForRefresh=committed;
+  changed=changeData(committed,input,actor);const {edit,log}=changed;
   await client.query('INSERT INTO ocean_intel.data_overrides(id,payload) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload,updated_at=now()',[edit.kind+':'+edit.key,edit]);
   await client.query('INSERT INTO ocean_intel.data_change_log(id,payload) VALUES($1,$2)',[log.id,log]);
   if(arrays.includes(edit.kind)){const row=edit.deleted?{...log.before,insightDeleted:true,insightDeletedAt:edit.updatedAt}:log.after;await client.query(`INSERT INTO ocean_intel.${edit.kind}(id,payload) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload,updated_at=now()`,[row.id,row]);}
-  // Update the selected JSON path in PostgreSQL; never round-trip the 96 MB snapshot.
-  // The row lock preserves concurrently collected records and bounds the Node heap.
-  let expression='payload',args=[];
-  if(location.object){args=[location.path];expression=edit.deleted?'payload #- $1::text[]':'jsonb_set(payload,$1::text[],$2::jsonb,true)';if(!edit.deleted)args.push(JSON.stringify(log.after));}
-  else if(location.position!==null){args=[[...location.path,location.position]];expression=edit.deleted?'payload #- $1::text[]':'jsonb_set(payload,$1::text[],$2::jsonb,false)';if(!edit.deleted)args.push(JSON.stringify(log.after));}
-  else if(!edit.deleted){args=[location.path,JSON.stringify(log.after)];expression="jsonb_set(payload,$1::text[],COALESCE(payload #> $1::text[],'[]'::jsonb)||jsonb_build_array($2::jsonb),false)";}
-  const i=args.length;args.push(id,JSON.stringify(edit),changed.data.insightRevision);
-  await client.query(`UPDATE ocean_intel.runs SET payload=(${expression}) || jsonb_build_object('insightEdits',COALESCE(payload->'insightEdits','{}'::jsonb)||jsonb_build_object($${i+1}::text,$${i+2}::jsonb),'insightRevision',$${i+3}::text),updated_at=now() WHERE id='current'`,args);await client.query('COMMIT');
- }catch(error){await client.query('ROLLBACK');throw error;}finally{client.release();}}
+  await writeWorkspace(client,changed.data);await client.query('COMMIT');
+ }catch(error){await client.query('ROLLBACK');if(error.status===409&&committedForRefresh)store.data=committedForRefresh;throw error;}finally{client.release();}}
  else changed=changeData(store.data,input,actor);
  // A file write failure after a committed DB change must never masquerade as a rollback.
  if(store.pool){store.data=changed.data;await store.persist().catch(error=>{console.error('insight snapshot mirror:',error.code||error.name);});}

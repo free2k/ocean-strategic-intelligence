@@ -1,4 +1,4 @@
-import {createHash} from 'node:crypto';
+import {canonicalDigest} from './canonical-hash.mjs';
 import {snapshotRules} from '../published-rules.mjs';
 
 // Content-addressed records preserve the state actually observed, never inferred history.
@@ -7,7 +7,7 @@ export function canonical(value){
  if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().filter(k=>value[k]!==undefined).map(k=>[k,canonical(value[k])]));
  return value;
 }
-export const digest=value=>createHash('sha256').update(JSON.stringify(canonical(value))).digest('hex');
+export const digest=canonicalDigest;
 export class LedgerError extends Error{constructor(code,message,status=400){super(message);this.code=code;this.status=status;}}
 export function fail(code,message,status){throw new LedgerError(code,message,status);}
 const classification=d=>d.industry||null;

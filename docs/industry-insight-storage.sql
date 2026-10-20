@@ -8,6 +8,15 @@
 
 BEGIN READ ONLY;
 
+-- Legacy-layout diagnostic only. Large fields now live in workspace_parts.
+-- Use intelligence/workspace-storage.mjs readWorkspace(pool) for the full snapshot.
+DO $$ BEGIN
+ IF EXISTS (SELECT 1 FROM ocean_intel.runs WHERE id='current' AND payload ? '_workspaceParts') THEN
+  RAISE EXCEPTION 'Chunked workspace: use readWorkspace(pool); direct JSONB field counts are incomplete';
+ END IF;
+END $$;
+
+
 SELECT current_database() AS database_name, current_user AS database_user;
 
 -- 1. 独立存储：文章来源、原文/译文、文章指标、证据、实体、事件、关系。
