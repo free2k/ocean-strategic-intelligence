@@ -223,6 +223,18 @@ def main():
         status = json.loads(status_file.read_bytes())
         if status.get("taskId"):
             protected.add(status["taskId"])
+    # Legacy tasks have no journal ID. Their workers identify the stage through
+    # INTEL_DATA_DIR; protect those too, even if an operator resumes an old job.
+    for environment in Path("/proc").glob("[0-9]*/environ"):
+        try:
+            entries = environment.read_bytes().split(b"\0")
+        except (FileNotFoundError, PermissionError, ProcessLookupError):
+            continue
+        for entry in entries:
+            if entry.startswith(b"INTEL_DATA_DIR="):
+                stage = Path(os.fsdecode(entry.split(b"=", 1)[1])).resolve()
+                if stage.parent == jobs:
+                    protected.add(stage.name)
     files = []
     for stage in jobs.iterdir():
         if not stage.is_dir() or stage.is_symlink() or stage.name in protected:

@@ -85,7 +85,7 @@ class ArchiveTests(unittest.TestCase):
             baseline.write_bytes(b'{"documents":[]}')
             archive.archive(baseline, root / "archive" / "baseline.json")
             jobs = root / "jobs"
-            for index in range(22):
+            for index in range(23):
                 stage = jobs / str(index)
                 stage.mkdir(parents=True)
                 source = stage / "snapshot.json"
@@ -93,16 +93,24 @@ class ArchiveTests(unittest.TestCase):
                 stamp = time.time() - 3 * 86400 + index
                 os.utime(source, (stamp, stamp))
             (root / "collection-status.json").write_text(json.dumps({"taskId": "0"}))
-            subprocess.run([
-                sys.executable, str(Path(__file__).parents[1] / "snapshot_archive.py"),
-                "--root", str(root / "archive"), "--jobs", str(jobs),
-            ], check=True, stdout=subprocess.DEVNULL)
+            worker = subprocess.Popen(
+                [sys.executable, "-c", "import time; time.sleep(30)"],
+                env={**os.environ, "INTEL_DATA_DIR": str(jobs / "1")})
+            try:
+                subprocess.run([
+                    sys.executable, str(Path(__file__).parents[1] / "snapshot_archive.py"),
+                    "--root", str(root / "archive"), "--jobs", str(jobs),
+                ], check=True, stdout=subprocess.DEVNULL)
+            finally:
+                worker.terminate()
+                worker.wait()
             self.assertTrue((jobs / "0" / "snapshot.json").exists())
+            self.assertTrue((jobs / "1" / "snapshot.json").exists())
             # Protection is conservative: active jobs are excluded before the
             # latest-20 set is selected. Only the oldest eligible job is archived.
-            self.assertFalse((jobs / "1" / "snapshot.json").exists())
-            self.assertTrue((jobs / "2" / "snapshot.json").exists())
-            archive.restore(jobs / "1" / "snapshot.json.archive.json", root / "restored")
+            self.assertFalse((jobs / "2" / "snapshot.json").exists())
+            self.assertTrue((jobs / "3" / "snapshot.json").exists())
+            archive.restore(jobs / "2" / "snapshot.json.archive.json", root / "restored")
             self.assertEqual((root / "restored").read_bytes(),
                              b'{"documents":[],"historical":"keep me"}')
 
