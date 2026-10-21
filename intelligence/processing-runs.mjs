@@ -64,7 +64,7 @@ export class ProcessingRuns{
   }return this.public(task);
  }
  public(t,after=0){if(!t)return null;const {results,...rest}=clone(t);rest.logs=rest.logs.filter(l=>l.seq>after).slice(0,200);rest.lastSeq=t.logSeq||t.logs.length;rest.facts={events:results.reduce((n,r)=>n+(r.extraction?.events.length||0),0),entities:results.reduce((n,r)=>n+(r.extraction?.entities.length||0),0),observations:results.reduce((n,r)=>n+(r.extraction?.observations.length||0),0)};return rest;}
- async current(after=0,id){const state=await this.state.read();const task=(()=>{const s=state;const tasks=Object.values(s.processingRuns||{}).sort((a,b)=>b.startedAt.localeCompare(a.startedAt));return this.public(id?tasks.find(t=>t.id===id):tasks[0],after);})();if(task&&task.logs[0]?.seq>after+1){const raw=await fs.readFile(path.join(this.dir,task.id,'logs.jsonl'),'utf8');task.logs=raw.trim().split('\n').map(JSON.parse).filter(l=>l.seq>after).slice(0,200);}return task;}
+ async current(after=0,id){await this.serial.catch(()=>{});const state=await this.state.read();const task=(()=>{const s=state;const tasks=Object.values(s.processingRuns||{}).sort((a,b)=>b.startedAt.localeCompare(a.startedAt));return this.public(id?tasks.find(t=>t.id===id):tasks[0],after);})();if(task&&task.logs[0]?.seq>after+1){const raw=await fs.readFile(path.join(this.dir,task.id,'logs.jsonl'),'utf8');task.logs=raw.trim().split('\n').map(JSON.parse).filter(l=>l.seq>after).slice(0,200);}return task;}
  async stop(id,{confirmed}){
   if(confirmed!==true)fail('请先确认中断',400);
   const task=await this.tx(s=>{const t=s.processingRuns?.[id];if(!t)fail('任务不存在',404);if(!active.has(t.status))return this.public(t);
