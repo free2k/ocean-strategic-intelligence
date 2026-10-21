@@ -26,32 +26,47 @@ class Deferred(Exception):
 
 
 class Budget:
-    def __init__(self, seconds=600, rate=8 * 1024**2, min_available=2 * 1024**3):
+    def __init__(self, seconds=600, rate=8 * 1024**2, min_available=2 * 1024**3, pause_seconds=60):
         self.deadline = time.monotonic() + seconds
         self.rate = rate
         self.min_available = min_available
         self.next_io = time.monotonic()
         self.next_probe = 0
+        self.pause_seconds = pause_seconds
 
-    def check(self, size=0):
-        if time.monotonic() >= self.deadline:
-            raise Deferred("time budget exhausted")
+    def pressure(self):
         memory = Path("/proc/meminfo")
-        if memory.exists() and time.monotonic() >= self.next_probe:
-            self.next_probe = time.monotonic() + 1
+        if memory.exists():
             available = next(int(line.split()[1]) * 1024 for line in
                              memory.read_text().splitlines() if line.startswith("MemAvailable:"))
             if available < self.min_available:
-                raise Deferred("less than 2 GiB available memory")
+                return "less than 2 GiB available memory"
             if os.getloadavg()[0] > max(2, os.cpu_count() or 1):
-                raise Deferred("host load above CPU capacity")
+                return "host load above CPU capacity"
             for resource, threshold in (("memory", 5), ("io", 10)):
                 pressure = Path("/proc/pressure") / resource
                 if pressure.exists():
                     line = pressure.read_text().splitlines()[0]
                     avg10 = float(dict(field.split("=") for field in line.split()[1:])["avg10"])
                     if avg10 >= threshold:
-                        raise Deferred(resource + " pressure elevated")
+                        return resource + " pressure elevated"
+        return None
+
+    def check(self, size=0):
+        if time.monotonic() >= self.deadline:
+            raise Deferred("time budget exhausted")
+        if time.monotonic() >= self.next_probe:
+            reason = self.pressure()
+            if reason:
+                until = min(self.deadline, time.monotonic() + self.pause_seconds)
+                print(json.dumps({"status": "paused", "reason": reason}), flush=True)
+                while reason and time.monotonic() < until:
+                    time.sleep(min(5, max(0, until - time.monotonic())))
+                    reason = self.pressure()
+                if reason or time.monotonic() >= self.deadline:
+                    raise Deferred(reason or "time budget exhausted")
+                print(json.dumps({"status": "resumed"}), flush=True)
+            self.next_probe = time.monotonic() + 1
         if size and self.rate:
             now = time.monotonic()
             self.next_io = max(now, self.next_io) + size / self.rate

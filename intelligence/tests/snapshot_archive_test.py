@@ -10,6 +10,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location("archive", Path(__file__).parents[1] / "snapshot_archive.py")
 module = importlib.util.module_from_spec(spec)
@@ -17,6 +18,16 @@ spec.loader.exec_module(module)
 
 
 class ArchiveTests(unittest.TestCase):
+    def test_short_pressure_pause_resumes_without_reading_or_restarting(self):
+        budget = module.Budget(seconds=10, rate=0)
+        with patch.object(budget, "pressure", side_effect=["memory pressure", None]), patch.object(module.time, "sleep") as sleep:
+            budget.check()
+            sleep.assert_called_once()
+        budget = module.Budget(seconds=10, pause_seconds=0)
+        with patch.object(budget, "pressure", return_value="persistent pressure"):
+            with self.assertRaises(module.Deferred):
+                budget.check()
+
     def test_only_durable_failed_task_attachments_are_eligible(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
