@@ -11,3 +11,14 @@ ExecStart=/bin/bash /opt/ocean-intelligence/eia-news-daily.sh
 TimeoutStartSec=7200
 StandardOutput=journal
 StandardError=journal
+
+Environment=NODE_OPTIONS=--max-old-space-size=1536
+Environment=INTEL_PROCESSING_WORKER=true
+MemoryHigh=2500M
+MemoryMax=3G
+MemorySwapMax=0
+CPUQuota=100%
+Nice=10
+IOSchedulingClass=idle
+IOReadBandwidthMax=/dev/vda 12M
+IOWriteBandwidthMax=/dev/vda 4M

@@ -12,11 +12,4 @@ export EIA_NEWS_AI=true INTEL_ENABLE_AI=true
 node --env-file=/opt/knowledge-base/.env intelligence/collect-eia-news.mjs
 # All expensive model work is staged while the website remains available.
 node --env-file=/opt/knowledge-base/.env intelligence/process-eia-news.mjs
-stopped=0
-resume(){ if [ "$stopped" = 1 ]; then pm2 restart ocean-intelligence >/dev/null; fi; }
-trap resume EXIT
-pm2 stop ocean-intelligence >/dev/null
-stopped=1
 node --env-file=/opt/knowledge-base/.env intelligence/publish-eia-news.mjs
-pm2 restart ocean-intelligence >/dev/null
-stopped=0
