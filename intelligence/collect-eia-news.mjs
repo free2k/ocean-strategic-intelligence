@@ -1,4 +1,5 @@
 import {textSlice} from './unicode-text.mjs';
+import {snapshotEntries} from './snapshot-reader.mjs';
 import {domainPrompt} from './industry-topics.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -13,8 +14,9 @@ import {newsSources,marineRelevant,eiaArticleUrl} from './eia-news.mjs';
 const dir=process.env.EIA_NEWS_STAGE_DIR||'.data/eia-news';
 const liveDir=process.env.INTEL_DATA_DIR||'.data/intelligence';
 await fs.mkdir(dir,{recursive:true});
-const live=JSON.parse(await fs.readFile(path.join(liveDir,'snapshot.json'),'utf8'));
-const known=new Set(live.documents.map(d=>d.url));
+const known=new Set();
+for await(const entry of snapshotEntries(path.join(liveDir,'snapshot.json')))
+ if(entry.field==='documents'&&entry.value?.url)known.add(entry.value.url);
 const output={sources:[],documents:[],events:[],relations:[],observations:[],evidence:[],entities:[],errors:[]};
 const client=process.env.EIA_NEWS_AI==='true'?new OpenAI({apiKey:process.env.OPENAI_API_KEY,baseURL:process.env.OPENAI_BASE_URL,timeout:60000,maxRetries:0}):null;
 const proxy=process.env.DOWNLOAD_PROXY?new ProxyAgent(process.env.DOWNLOAD_PROXY):null;

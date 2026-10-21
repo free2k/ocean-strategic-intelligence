@@ -3,7 +3,7 @@ import {autoExtract} from './auto-extract.mjs';import {enrich} from './enrich.mj
 import {enrichEvidence} from './enrich-evidence.mjs';
 const dir=process.env.EIA_NEWS_STAGE_DIR;if(!dir)throw Error('Explicit stage required');
 const incoming=path.join(dir,'incoming.json'),snapshot=path.join(dir,'snapshot.json');
-await fs.writeFile(snapshot,await fs.readFile(incoming));
+await fs.copyFile(incoming,snapshot);
 await autoExtract(dir);await enrich(dir,{limit:Number.MAX_SAFE_INTEGER});
 await enrichEvidence(dir);
-await fs.writeFile(incoming,await fs.readFile(snapshot));
+await fs.copyFile(snapshot,incoming);
