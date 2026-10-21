@@ -17,6 +17,27 @@ spec.loader.exec_module(module)
 
 
 class ArchiveTests(unittest.TestCase):
+    def test_only_durable_failed_task_attachments_are_eligible(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            baseline = root / "baseline.json"
+            baseline.write_bytes(b'{"documents":[]}')
+            module.Archive(root / "archive").archive(baseline, root / "archive" / "baseline.json")
+            for name, status in (("done", "failed"), ("active", "running"), ("partial", "failed")):
+                stage = root / "jobs" / name
+                stage.mkdir(parents=True)
+                (stage / "task-input.json").write_text(json.dumps({"status": status}))
+                (stage / "article.html").write_bytes(b"evidence")
+                if name == "partial":
+                    (stage / "unfinished.part").write_bytes(b"keep")
+            subprocess.run([sys.executable, str(Path(__file__).parents[1] / "snapshot_archive.py"),
+                            "--root", str(root / "archive"), "--jobs", str(root / "jobs")],
+                           check=True, stdout=subprocess.DEVNULL)
+            self.assertFalse((root / "jobs" / "done" / "article.html").exists())
+            self.assertTrue((root / "jobs" / "done" / "task-input.json").exists())
+            self.assertTrue((root / "jobs" / "active" / "article.html").exists())
+            self.assertTrue((root / "jobs" / "partial" / "article.html").exists())
+
     def test_artifacts_share_blocks_restore_and_keep_unknown_files(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

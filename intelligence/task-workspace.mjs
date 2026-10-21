@@ -137,18 +137,25 @@ export async function finishTaskWorkspace(pool,dir,{committed=false}={}){
   await c.query('COMMIT');
  }catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}
  if(committed)await fs.rm(marker(dir),{force:true});
+ else await fs.writeFile(marker(dir),JSON.stringify({...m,status:'failed',storage:'postgres-article-differences'}));
 }
 // Only call after acquiring the processing service's exclusive session lock.
 // A killed process cannot retain a fresh full baseline on every retry.
-export async function recoverTaskWorkspaces(pool){
+export async function recoverTaskWorkspaces(pool,dir=null){
  await pool.query(taskSchemaSql);
  const c=await pool.connect();try{
   await c.query('BEGIN');
   await c.query(`DELETE FROM ocean_intel.task_inputs i USING ocean_intel.task_workspaces t
    WHERE i.job_id=t.id AND t.status='running' AND i.hash=i.base_hash AND NOT i.deleted`);
-  const result=await c.query("UPDATE ocean_intel.task_workspaces SET status='failed' WHERE status='running'");
+  const result=await c.query("UPDATE ocean_intel.task_workspaces SET status='failed' WHERE status='running' RETURNING id");
   await c.query(`DELETE FROM ocean_intel.task_objects o WHERE NOT EXISTS(SELECT 1 FROM ocean_intel.task_inputs i WHERE i.hash=o.hash OR i.base_hash=o.hash)
    AND NOT EXISTS(SELECT 1 FROM ocean_intel.workspace_rows w WHERE NOT w.deleted AND w.hash=o.hash)`);
-  await c.query('COMMIT');return result.rowCount;
+  await c.query('COMMIT');
+  if(dir)for(const {id} of result.rows){
+   if(path.basename(id)!==id)continue;
+   const stage=path.join(dir,'jobs',id),m=await manifest(stage);
+   if(m)await fs.writeFile(marker(stage),JSON.stringify({...m,status:'failed',storage:'postgres-article-differences'}));
+  }
+  return result.rowCount;
  }catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}
 }

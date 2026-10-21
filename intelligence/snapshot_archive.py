@@ -403,11 +403,18 @@ def main():
                 continue
             if task.get("checkpointHash") and task.get("status") == "failed":
                 continue
-        # Only consume attachments after the snapshot itself has a verified,
-        # durable restoration manifest. New task-input jobs are never touched.
+        task_input = stage / "task-input.json"
+        try:
+            failed_input = task_input.exists() and json.loads(task_input.read_bytes()).get("status") == "failed"
+        except (ValueError, OSError) as exc:
+            print(json.dumps({"status": "retained", "stage": str(stage), "reason": str(exc)}), flush=True)
+            continue
+        # Legacy attachments require a verified snapshot manifest; new failed
+        # tasks have already committed their unique differences to PostgreSQL.
+        archived_input = (not task_input.exists() and ((stage / "snapshot.json.archive.json").exists()
+                          or (stage / "snapshot.json.gz.archive.json").exists()))
         if (not (stage / "snapshot.json").exists() and not (stage / "snapshot.json.gz").exists()
-                and ((stage / "snapshot.json.archive.json").exists() or (stage / "snapshot.json.gz.archive.json").exists())
-                and not (stage / "task-input.json").exists()
+                and (failed_input or archived_input)
                 and not any(p.name.endswith(".part") for p in stage.iterdir())):
             artifact_stages.append(stage)
         for name in ("snapshot.json", "snapshot.json.gz"):
@@ -425,6 +432,9 @@ def main():
         except Deferred as exc:
             print(json.dumps({"status": "deferred", "reason": str(exc), "stage": str(stage)}), flush=True)
             return
+        except (ValueError, OSError) as exc:
+            print(json.dumps({"status": "retained", "reason": str(exc), "stage": str(stage)}), flush=True)
+            continue
         if result["artifacts"]:
             remaining -= result["artifacts"]
             print(json.dumps(result), flush=True)
@@ -450,6 +460,9 @@ def main():
             print(json.dumps({"status": "deferred", "reason": str(exc),
                               "source": str(source)}), flush=True)
             break
+        except (ValueError, OSError) as exc:
+            print(json.dumps({"status": "retained", "reason": str(exc), "source": str(source)}), flush=True)
+            continue
         # The source-side manifest is the durable recovery pointer. Audit output
         # is informational and never used to decide whether a block can be deleted.
         print(json.dumps(result), flush=True)

@@ -35,9 +35,11 @@ test('pinned article versions survive live updates, share bodies, save only delt
  await pool.query("UPDATE ocean_intel.task_workspaces SET generation=generation+1 WHERE id='one'");
  await assert.rejects(saveTaskWorkspace(path.join(one,'snapshot.json'),first),/Concurrent/);
  await finishTaskWorkspace(pool,one,{committed:false});
+ assert.equal(JSON.parse(await fs.readFile(path.join(one,'task-input.json'),'utf8')).status,'failed');
  const failed=(await pool.query("SELECT field,key,deleted FROM ocean_intel.task_inputs WHERE job_id='one' ORDER BY key")).rows;
  assert.deepEqual(failed,[{field:'documents',key:'id:a',deleted:false},{field:'documents',key:'id:b',deleted:true},{field:'documents',key:'id:c',deleted:false}]);
  await finishTaskWorkspace(pool,two,{committed:true});assert.deepEqual(await fs.readdir(two),[]);
+ assert.equal((await pool.query("SELECT count(*) FROM ocean_intel.task_inputs i JOIN ocean_intel.task_objects o ON o.hash=i.base_hash WHERE i.job_id='one' AND i.key='id:a'")).rows[0].count,'1');
  assert.equal((await pool.query("SELECT count(*) FROM ocean_intel.task_inputs WHERE job_id='two'")).rows[0].count,'0');
  await assert.rejects(readTaskWorkspace(path.join(one,'snapshot.json')),/not resumable/);
  const crash=path.join(root,'crash');await fs.mkdir(crash);await createTaskWorkspace(pool,await readWorkspace(pool),crash);
