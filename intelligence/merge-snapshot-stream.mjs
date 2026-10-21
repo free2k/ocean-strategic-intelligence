@@ -1,5 +1,5 @@
 import {setImmediate} from 'node:timers/promises';
-import {snapshotEntries} from './snapshot-reader.mjs';
+import {snapshotEntries,reuseRecord} from './snapshot-reader.mjs';
 import {isComplete} from './auto-extract.mjs';
 
 const structured=['events','relations','observations'];
@@ -18,7 +18,7 @@ export async function mergeSnapshotFile(live,file){
   const map=maps.get(field),old=map.get(value.id);
   if(field==='documents'){articles++;if(isComplete(value))processed.add(value.id);}
   seen.get(field)?.add(value.id);
-  let row=old&&JSON.stringify(old)===JSON.stringify(value)?old:value;
+  let row=reuseRecord(value,old);
   if(structured.includes(field)&&protectedRow(old))row=old;
   if(field==='entities'&&old)row={...old,evidenceIds:[...new Set([...(old.evidenceIds||[]),...(row.evidenceIds||[])])]};
   map.set(row.id,row);

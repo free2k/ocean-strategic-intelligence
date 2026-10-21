@@ -3,6 +3,16 @@ import {Readable,Transform} from 'node:stream';
 import Parser from 'stream-json/Parser.js';
 import Assembler from 'stream-json/Assembler.js';
 
+export function reuseRecord(value,old){
+ if(!old||!value||typeof value!=='object'||Array.isArray(value))return value;
+ let same=Object.keys(value).length===Object.keys(old).length;
+ for(const key of Object.keys(value)){
+  if(value[key]===old[key]||(value[key]&&old[key]&&typeof value[key]==='object'&&JSON.stringify(value[key])===JSON.stringify(old[key])))value[key]=old[key];
+  else same=false;
+ }
+ return same?old:value;
+}
+
 // A single article (including its extraction) is the largest assembled unit.
 // Never concatenate the source file or a whole documents array into a string.
 export async function* snapshotEntries(source){
@@ -39,7 +49,7 @@ export async function readSnapshot(file,{previous=null}={}){
   const {field,array,start,value}=entry;
   if(start){data[field]=[];if(previous?.[field])indexes.set(field,new Map(previous[field].filter(r=>r?.id).map(r=>[r.id,r])));continue;}
   const old=value?.id?indexes.get(field)?.get(value.id):null;
-  const row=old&&JSON.stringify(old)===JSON.stringify(value)?old:value;
+  const row=reuseRecord(value,old);
   if(array)data[field].push(row);else data[field]=row;
  }
  return data;

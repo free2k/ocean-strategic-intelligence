@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
-import {snapshotEntries,readSnapshot} from '../snapshot-reader.mjs';
+import {snapshotEntries,readSnapshot,reuseRecord} from '../snapshot-reader.mjs';
 import {mergeProcessedSnapshot,pipelineVersion} from '../auto-extract.mjs';
 import {mergeSnapshotFile} from '../merge-snapshot-stream.mjs';
 
@@ -21,6 +21,11 @@ test('streamed articles survive arbitrary UTF-8 boundaries, arrays and escaped b
 test('malformed or truncated files fail without publishing a partial result',async()=>{
  await assert.rejects(async()=>{for await(const entry of snapshotEntries(['{"documents":[{"id":"a"},']))void entry;});
  await assert.rejects(async()=>{for await(const entry of snapshotEntries(['[]']))void entry;});
+});
+test('classification-only changes reuse bulky body chunks and vectors',()=>{
+ const before={id:'a',industry:{status:'unmatched'},chunks:[{text:'long body'}],embedding:[.2,.5],content:'body'};
+ const after=reuseRecord({...structuredClone(before),industry:{status:'accepted'}},before);
+ assert.equal(after.chunks,before.chunks);assert.equal(after.embedding,before.embedding);assert.equal(after.industry.status,'accepted');assert.equal(before.industry.status,'unmatched');
 });
 test('merge does not mutate the committed article and preserves human calibration',()=>{
  const doc={id:'a',versionId:'v',autoExtraction:{versionId:'v',pipelineVersion,status:'completed'},extraction:{events:[]}};
