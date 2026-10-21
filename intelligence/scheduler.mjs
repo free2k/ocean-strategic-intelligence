@@ -46,9 +46,9 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
     const acquired=await new Promise(resolve=>{guard.stdout.once('data',()=>resolve(true));guard.once('exit',()=>resolve(false));guard.once('error',()=>resolve(false));});
     if(!acquired){state.result='deferred';state.error='其他数据维护任务正在运行，本轮延后';return false;}
    }
+   await checkCapacity(dir);await store.refresh?.();
    if(publication&&state.taskId){const previous=await publication.recover(state.taskId);if(previous.status==='deferred'&&previous.checkpointHash){state.result='deferred';state.error='上一批资料发布待恢复：'+previous.reason;return false;}}
    if(publication){const latest=await researchLedger.latest();if(!latest){state.result='deferred';state.error='研究版本库尚无明确迁移基线，请先捕获基线';return false;}task=await journal.create({trigger:processOnly?'process_only':'scheduled_collection',expectedReleaseId:latest.releaseId});}
-   await checkCapacity(dir);await store.refresh?.();
    delivery=await deliveryRevision(store.pool);
    state={...state,running:true,runMode:processOnly?'processing':'collection',result:null,taskId:task?.id||null,startedAt:new Date().toISOString(),steps:[],error:null,errorCode:null,errorDetail:null};await persist();
    stage=path.join(dir,'jobs',task?.id||randomUUID());await fs.mkdir(stage,{recursive:true});await writeJsonFile(path.join(stage,'snapshot.json'),store.data);
@@ -85,7 +85,7 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
    console.error('collection failed',JSON.stringify({code:state.errorCode,message:state.errorDetail,retryAt:state.retryAt,stage:state.currentStep}));
    state.error='本轮更新未完成，已入库资料保留';state.result='failed';
    if(task&&!['published','partial','failed'].includes(task.status)){try{task=await journal.update(task.id,task.revision,{status:task.checkpointHash?'deferred':'failed',reason:e.code||'PROCESSING_FAILED',currentStep:state.currentStep||null});if(task.status==='deferred'){state.result='deferred';state.error='资料发布尚未完成，将核对检查点后恢复';}}catch{state.error='任务记录更新失败，需核对持久状态';}}
-  }finally{if(stage){try{await finishJobStage(dir,stage,{committed,copied});}catch(e){state.cleanupError=e.code||e.message;console.error('job cleanup:',state.cleanupError);}}guard?.stdin.end();state.running=false;state.currentStep=null;arm(completedFull);await persist().catch(e=>console.error('collection status persistence:',e.code||e.message));}
+  }finally{if(stage){try{await finishJobStage(dir,stage,{committed,copied});}catch(e){state.cleanupError=e.code||e.message;console.error('job cleanup:',state.cleanupError);}}guard?.stdin.end();store.suspend?.();state.running=false;state.currentStep=null;arm(completedFull);await persist().catch(e=>console.error('collection status persistence:',e.code||e.message));}
   return true;
  }
  if(enabled){const target=Math.max(state.nextRun?new Date(state.nextRun).getTime():Date.now()+intervalMs,Date.parse(state.retryAt||'')||0);state.nextRun=new Date(Math.max(Date.now()+30000,target)).toISOString();timer=setTimeout(()=>run(),Math.max(30000,target-Date.now()));timer.unref();}else state.nextRun=null;

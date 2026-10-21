@@ -18,7 +18,7 @@ process.env.INTEL_PROCESSING_WORKER='true';
 const root=path.dirname(fileURLToPath(import.meta.url)),dir=process.env.INTEL_DATA_DIR;
 if(!dir||!process.env.INTEL_DATABASE_URL||!process.env.SITE_PASSWORD)throw Error('Processing service configuration missing');
 const secret=createHash('sha256').update('processing-worker:'+process.env.SITE_PASSWORD).digest('hex');
-const store=new Store(dir,process.env.INTEL_DATABASE_URL);await store.init();
+const store=new Store(dir,process.env.INTEL_DATABASE_URL);await store.init({deferData:true});
 // The remote-mode website no longer owns this task directory. A session lock
 // gives it exactly one worker owner and is released by PostgreSQL on a crash.
 const ownership=await store.pool.connect();

@@ -33,7 +33,7 @@ export async function acquireProcessingGuard(pool,lockFile='/opt/ocean-intellige
 
 export async function createLiveProcessing({dir,store,serial,client,auditPool}){
  const pool=new pg.Pool({connectionString:process.env.INTEL_AUDIT_DATABASE_URL||process.env.INTEL_DATABASE_URL||process.env.DATABASE_URL,max:4,connectionTimeoutMillis:10000});
- const readInput=async()=>{await store.refresh();
+ const readInput=async()=>{
   const audit=await readAudit(pool),config=await currentRules(pool);
   const documents=audit.documents.map(d=>({
    id:d.workingId||id('doc',d.url||d.id),auditId:d.id,auditArticleId:d.auditArticleId,auditMpId:d.auditMpId,auditEvidenceUrl:d.auditEvidenceUrl,workingId:d.workingId,
@@ -86,7 +86,7 @@ export async function createLiveProcessing({dir,store,serial,client,auditPool}){
   if(task.retries.length)await markDelivery(pool);
   invalidateAudit(pool);invalidateAudit(auditPool);
   return {mode:'live',releaseId:release.releaseId,publishedAt:new Date().toISOString(),skippedChanged,classificationJobId:job.id};
- });
+ }).finally(()=>store.suspend?.());
  const manager=new ProcessingRuns({dir:path.join(dir,'processing-runs'),readInput,client,model:process.env.CHAT_MODEL||'qwen-plus',mode:'live',acquire:()=>acquireProcessingGuard(pool),loadDocument,publish});
  await manager.recover();return manager;
 }
