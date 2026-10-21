@@ -102,7 +102,7 @@ const server=http.createServer(async(req,res)=>{res.setHeader('X-Content-Type-Op
  if(route==='/api/process'&&req.method==='POST'){if(scheduler.status().running||processingRuns?.workers.size)return json(res,409,{error:'处理任务正在运行'});void scheduler.run({processOnly:true});return json(res,202,{accepted:true});}
  if(route==='/api/collection'&&req.method==='POST'){if(scheduler.status().running||processingRuns?.workers.size)return json(res,409,{error:'采集任务正在运行'});void scheduler.run();return json(res,202,{accepted:true});}
 
- if(route.startsWith('/quant/')&&!auth(req))return json(res,401,{error:'请先登录主站'});
+ if(route.startsWith('/quant/')&&!(req.method==='GET'&&['/quant/chart-views.js','/quant/charts.js','/quant/official-charts.js'].includes(route))&&!auth(req))return json(res,401,{error:'请先登录主站'});
  if(await serveQuant(req,res,url,store.data,root))return;
  if(route==='/api/uploads'&&req.method==='POST'){if(limited(req,'upload',20,3600000))return json(res,429,{error:'本小时上传次数已用完，请稍后重试'});try{return json(res,202,await startUpload(dir,await body(req,18*1024*1024),client));}catch(e){return json(res,400,{error:e.message==='request too large'?'文件过大，请控制在12MB以内':e.message});}}
  if(route.startsWith('/api/uploads/')&&req.method==='GET'){const match=route.match(/^\/api\/uploads\/([0-9a-f-]{36})\/(status|file)$/);if(!match)return json(res,404,{error:'文件不存在'});let record;try{record=await readUpload(dir,match[1]);}catch{return json(res,404,{error:'文件不存在'});}if(match[2]==='status')return json(res,200,record);res.writeHead(200,{'Content-Type':record.mime,'Content-Disposition':"attachment; filename*=UTF-8''"+encodeURIComponent(record.name),'Cache-Control':'private, no-store'});return res.end(await fs.readFile(uploadPath(dir,record)));}
