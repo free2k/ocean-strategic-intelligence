@@ -1,5 +1,4 @@
-import {writeJsonFile} from './json-stream.mjs';
-import {readSnapshot} from './snapshot-reader.mjs';
+import {readTaskWorkspace as readSnapshot,saveTaskWorkspace} from './task-workspace.mjs';
 import {snapshotRules} from './published-rules.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -93,6 +92,6 @@ export async function collectIEA(dir,{force=false}={}){
   }
   await context.storageState({path:session});await fs.chmod(session,0o600);
  }catch{state.lastError='登录会话或浏览器不可用；保留历史数据，请更新 IEA 登录会话';for(const p of products){state.products[p.id]={...state.products[p.id],status:'session_or_browser_unavailable'};const old=data.sources?.find(s=>s.id==='iea-'+p.id);data.sources=[...(data.sources||[]).filter(s=>s.id!=='iea-'+p.id),{...old,id:'iea-'+p.id,name:p.name,url:p.url,status:'failed',error:state.lastError,checkedAt:new Date().toISOString()}];}}
- finally{await browser?.close();data.ieaDatasets=state;data.generatedAt=new Date().toISOString();await writeJsonFile(file+'.iea.tmp',data);await fs.rename(file+'.iea.tmp',file);}
+ finally{await browser?.close();data.ieaDatasets=state;data.generatedAt=new Date().toISOString();await saveTaskWorkspace(file,data);}
 }
 if(process.argv[1]?.endsWith('iea-datasets.mjs'))await collectIEA(process.env.INTEL_DATA_DIR||'.data/intelligence',{force:process.argv.includes('--force')});

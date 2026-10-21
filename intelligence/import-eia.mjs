@@ -1,3 +1,4 @@
+import {readTaskWorkspace,saveTaskWorkspace} from './task-workspace.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fetch, ProxyAgent} from 'undici';
@@ -29,16 +30,14 @@ try {
   if (!payload) throw new Error('EIA unavailable; configure DOWNLOAD_PROXY if needed');
   const series = normalizeEia(payload, process.env.EIA_START || '2024-01');
   const snapshotPath = path.join(dir, 'snapshot.json');
-  const data = JSON.parse(await fs.readFile(snapshotPath, 'utf8'));
+  const data = await readTaskWorkspace(snapshotPath);
   const next = mergeEia(data, series);
   const archive = path.join(dir, 'eia-history');
   await fs.mkdir(archive, {recursive:true});
   const stamp = series.checkedAt.replaceAll(':','-');
   // EIA echoes api_key in request metadata; save only response data.
   await fs.writeFile(path.join(archive, stamp + '.json'), JSON.stringify({endpoint, checkedAt:series.checkedAt, response:payload.response, previous:data.series?.find(s=>s.id===series.id) || null}));
-  const tmp = path.join(dir, 'eia-snapshot.tmp');
-  await fs.writeFile(tmp, JSON.stringify(next));
-  await fs.rename(tmp, snapshotPath);
+  await saveTaskWorkspace(snapshotPath,next);
   console.log(JSON.stringify({source:'EIA API v2',rows:series.rows.length,first:series.rows[0].period,latest:series.rows.at(-1),checkedAt:series.checkedAt}));
 } finally {
   await dispatcher?.close();

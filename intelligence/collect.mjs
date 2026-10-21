@@ -1,5 +1,4 @@
-import {writeJsonFile} from './json-stream.mjs';
-import {readSnapshot} from './snapshot-reader.mjs';
+import {readTaskWorkspace as readSnapshot,saveTaskWorkspace} from './task-workspace.mjs';
 import {textSlice} from './unicode-text.mjs';
 import {domainPrompt} from './industry-topics.mjs';
 import fs from 'node:fs/promises';import path from 'node:path';import {fileURLToPath} from 'node:url';
@@ -29,5 +28,5 @@ for(const s of sources){let candidates;try{candidates=await discover(s);}catch(e
  const existing=documents.findIndex(x=>x.id===doc.id);if(existing>=0)documents[existing]=doc;else documents.push(doc);await fs.writeFile(path.join(dir,doc.versionId+'.html'),text);accepted++;console.log(s.id,accepted,textSlice(title,0,70),doc.extraction.events.length+' events');await save();
  }catch(e){diagnostics.failed++;audit.push({url,reason:'fetch_or_processing_failed'});errors.push({sourceId:s.id,url,error:textSlice(e.message||'',0,140)});console.log(s.id,'skip',url,e.status||e.code||'parse/fetch error');}await new Promise(r=>setTimeout(r,250));}
  await fs.writeFile(path.join(dir,'discovery-'+s.id+'.json'),JSON.stringify({sourceId:s.id,checkedAt:new Date().toISOString(),diagnostics,audit}));reports.push({...s,diagnostics,status:documents.some(d=>d.sourceId===s.id)?'ready':'empty',accepted,fetched,checkedAt:new Date().toISOString()});await save();}
-async function save(){const flatten=key=>documents.flatMap(d=>d.extraction?.[key]||[]);const snapshot={...previous,series:previous.series||[],version:1,generatedAt:new Date().toISOString(),window:{since,until},sources:[...sources.map(s=>reports.find(r=>r.id===s.id)||{...s,status:'collecting'}),...(previous.sources||[]).filter(s=>!sources.some(x=>x.id===s.id))],documents,events:flatten('events'),entities:mergeRecords(flatten('entities')),relations:flatten('relations'),observations:flatten('observations'),evidence:flatten('evidence'),errors};const tmp=path.join(dir,'snapshot.tmp');await writeJsonFile(tmp,snapshot);await fs.rename(tmp,path.join(dir,'snapshot.json'));}
+async function save(){const flatten=key=>documents.flatMap(d=>d.extraction?.[key]||[]);const snapshot={...previous,series:previous.series||[],version:1,generatedAt:new Date().toISOString(),window:{since,until},sources:[...sources.map(s=>reports.find(r=>r.id===s.id)||{...s,status:'collecting'}),...(previous.sources||[]).filter(s=>!sources.some(x=>x.id===s.id))],documents,events:flatten('events'),entities:mergeRecords(flatten('entities')),relations:flatten('relations'),observations:flatten('observations'),evidence:flatten('evidence'),errors};await saveTaskWorkspace(path.join(dir,'snapshot.json'),snapshot);}
 await save();console.log('Collection complete',documents.length,'documents',dir);

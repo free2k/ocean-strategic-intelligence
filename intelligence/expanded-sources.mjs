@@ -1,5 +1,4 @@
-import {writeJsonFile} from './json-stream.mjs';
-import {readSnapshot} from './snapshot-reader.mjs';
+import {readTaskWorkspace as readSnapshot,saveTaskWorkspace} from './task-workspace.mjs';
 import fs from 'node:fs/promises';import path from 'node:path';
 import {parseHTML} from 'linkedom';import {Readability} from '@mozilla/readability';import {XMLParser} from 'fast-xml-parser';
 import {getResource} from './net.mjs';import {id,clean,canonical,chunks,mergeRecords} from './core.mjs';import {ruleExtract} from './rules.mjs';
@@ -32,7 +31,7 @@ export function nonResearchTitle(title){return /board of directors|cash dividend
 export function marine(text){return /offshore|subsea|North Sea|\bLNG\b|liquefied natural gas|Gullfaks|Troll|ocean (?:thermal|energy)|marine energy|wave energy|tidal|\bHormuz\b|\bSuez\b|\bCCS\b|carbon capture|decommission/i.test(text);}
 export async function collectExpanded(dir,{sourceIds=null}={}){
  const file=path.join(dir,'snapshot.json');const data=await readSnapshot(file);data.errors||=[];data.sourceCandidates||={};const now=new Date().toISOString(),cutoff=new Date(Date.now()-90*86400000).toISOString().slice(0,10);
- const save=async()=>{const tmp=file+'.expanded.tmp';await writeJsonFile(tmp,data);await fs.rename(tmp,file);};
+ const save=async()=>{await saveTaskWorkspace(file,data);};
  for(const p of profiles.filter(p=>!sourceIds||sourceIds.includes(p.id))){const report={...p,pattern:undefined,checkedAt:now,status:'ready',newDocuments:0,discovered:0,duplicate:0,notRelevant:0,outsideWindow:0,failed:0};data.errors=data.errors.filter(e=>e.sourceId!==p.id);try{
   const html=await getResource(p.url);let candidates=[];
   if(p.id==='boem'){

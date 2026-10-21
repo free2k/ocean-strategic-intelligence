@@ -17,6 +17,25 @@ spec.loader.exec_module(module)
 
 
 class ArchiveTests(unittest.TestCase):
+    def test_artifacts_share_blocks_restore_and_keep_unknown_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            archive = module.Archive(root / "archive")
+            for name in ("a", "b"):
+                stage = root / name
+                stage.mkdir()
+                (stage / "article.html").write_bytes(b"<html>original evidence</html>")
+                (stage / "unknown.part").write_bytes(b"keep")
+                result = archive.artifacts(stage, 20)
+                self.assertEqual(result["artifacts"], 1)
+                self.assertTrue((stage / "unknown.part").exists())
+                self.assertFalse((stage / "article.html").exists())
+                if name == "b":
+                    self.assertEqual(result["newBlockBytes"], 0)
+                record = json.loads((stage / "artifacts.archive.json").read_bytes())["files"]["article.html"]
+                archive.restore(record, stage / "restored")
+                self.assertEqual((stage / "restored").read_bytes(), b"<html>original evidence</html>")
+
     def test_expired_budget_defers_before_read(self):
         budget = module.Budget(seconds=-1)
         with self.assertRaises(module.Deferred):
@@ -109,7 +128,7 @@ class ArchiveTests(unittest.TestCase):
                 archive.archive(source, root / "invalid", remove=True)
             self.assertTrue(source.exists())
 
-    def test_cli_protects_active_and_recent_twenty(self):
+    def test_cli_protects_active_and_recent_three(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             archive = module.Archive(root / "archive")
@@ -117,7 +136,7 @@ class ArchiveTests(unittest.TestCase):
             baseline.write_bytes(b'{"documents":[]}')
             archive.archive(baseline, root / "archive" / "baseline.json")
             jobs = root / "jobs"
-            for index in range(23):
+            for index in range(6):
                 stage = jobs / str(index)
                 stage.mkdir(parents=True)
                 source = stage / "snapshot.json"
@@ -139,7 +158,7 @@ class ArchiveTests(unittest.TestCase):
             self.assertTrue((jobs / "0" / "snapshot.json").exists())
             self.assertTrue((jobs / "1" / "snapshot.json").exists())
             # Protection is conservative: active jobs are excluded before the
-            # latest-20 set is selected. Only the oldest eligible job is archived.
+            # latest-3 set is selected. Only the oldest eligible job is archived.
             self.assertFalse((jobs / "2" / "snapshot.json").exists())
             self.assertTrue((jobs / "3" / "snapshot.json").exists())
             archive.restore(jobs / "2" / "snapshot.json.archive.json", root / "restored")

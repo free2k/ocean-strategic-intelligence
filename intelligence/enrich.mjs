@@ -1,6 +1,5 @@
 import {ArticleCheckpoints} from './article-checkpoints.mjs';
-import {writeJsonFile} from './json-stream.mjs';
-import {readSnapshot} from './snapshot-reader.mjs';
+import {readTaskWorkspace as readSnapshot,saveTaskWorkspace} from './task-workspace.mjs';
 import {textSlice,textParts} from './unicode-text.mjs';
 import fs from 'node:fs/promises';import path from 'node:path';import {createHash} from 'node:crypto';import OpenAI from 'openai';
 import {extractionError} from './auto-extract.mjs';
@@ -61,7 +60,7 @@ export async function enrich(dir,{limit=0,client,translationConcurrency=4,embedd
   d.embedding=vector;d.embeddingModel=process.env.EMBEDDING_MODEL||'text-embedding-v4';d.embeddingVersion=d.versionId;d.embeddedAt=new Date().toISOString();delete d.embeddingError;
  }catch(e){record(d,'embedding',e);}await save(d);}
  async function run(rows,count,fn){let index=0;await Promise.all(Array.from({length:Math.max(1,Math.min(8,count))},async()=>{while(index<rows.length)await fn(rows[index++]);}));}
- await Promise.all([run(translations,translationConcurrency,translate),run(vectors,embeddingConcurrency,embed)]);await checkpoints.pending;if(!workspace){const tmp=file+'.enrich.tmp';await writeJsonFile(tmp,data);await fs.rename(tmp,file);}
+ await Promise.all([run(translations,translationConcurrency,translate),run(vectors,embeddingConcurrency,embed)]);await checkpoints.pending;if(!workspace){await saveTaskWorkspace(file,data);}
  const result={attempted:pending.length,translationsRemaining:pending.filter(d=>d.language==='en'&&d.translationVersion!==d.versionId).length,embeddingsRemaining:pending.filter(d=>!d.embedding).length};console.log(JSON.stringify(result));return result;
 }
 if(process.argv[1]?.endsWith('/enrich.mjs'))await enrich(process.env.INTEL_DATA_DIR||'.data/intelligence',{limit:Number(process.env.INTEL_ENRICH_LIMIT??0)});

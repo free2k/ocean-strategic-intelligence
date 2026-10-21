@@ -1,6 +1,5 @@
 import {ArticleCheckpoints} from './article-checkpoints.mjs';
-import {readSnapshot} from './snapshot-reader.mjs';
-import {writeJsonFile} from './json-stream.mjs';
+import {readTaskWorkspace as readSnapshot,saveTaskWorkspace} from './task-workspace.mjs';
 import {domainPrompt} from './industry-topics.mjs';
 import fs from 'node:fs/promises';import path from 'node:path';import OpenAI from 'openai';
 import {chunks,normalizeExtraction,mergeRecords,relationTypes,topics} from './core.mjs';
@@ -59,7 +58,7 @@ export async function extractArticle(client,doc){
 }
 export async function autoExtract(dir,{client,extract=extractArticle,clock=()=>new Date().toISOString(),limit=0,workspace=null}={}){
  const file=path.join(dir,'snapshot.json'),data=workspace||await readSnapshot(file);data.errors||=[];
- const save=async()=>{const tmp=file+'.extract.tmp';await writeJsonFile(tmp,data);await fs.rename(tmp,file);};const checkpoints=new ArticleCheckpoints(dir,'extraction');await checkpoints.restore(data.documents,(doc,saved)=>{Object.assign(doc,saved);if(saved.autoExtraction?.status==='completed'&&saved.extraction){applyExtraction(data,doc,saved.extraction,saved.autoExtraction.completedAt);doc.autoExtraction=saved.autoExtraction;}});const checkpoint=doc=>checkpoints.save(doc,{autoExtraction:doc.autoExtraction,extraction:doc.extraction,extractionStatus:doc.extractionStatus,extractionVersion:doc.extractionVersion});
+ const save=async()=>{await saveTaskWorkspace(file,data);};const checkpoints=new ArticleCheckpoints(dir,'extraction');await checkpoints.restore(data.documents,(doc,saved)=>{Object.assign(doc,saved);if(saved.autoExtraction?.status==='completed'&&saved.extraction){applyExtraction(data,doc,saved.extraction,saved.autoExtraction.completedAt);doc.autoExtraction=saved.autoExtraction;}});const checkpoint=doc=>checkpoints.save(doc,{autoExtraction:doc.autoExtraction,extraction:doc.extraction,extractionStatus:doc.extractionStatus,extractionVersion:doc.extractionVersion});
  const now=clock();for(const d of data.documents.filter(canAdopt))d.autoExtraction={status:'completed',versionId:d.versionId,pipelineVersion,completedAt:now,method:'采集阶段已提取',attempts:0};
  if(!client&&process.env.INTEL_ENABLE_AI==='true'&&process.env.OPENAI_API_KEY)client=new OpenAI({apiKey:process.env.OPENAI_API_KEY,baseURL:process.env.OPENAI_BASE_URL,timeout:extractionTimeoutMs,maxRetries:0});
  const pending=data.documents.filter(d=>!d.manual&&(!d.industry||d.industry.status==='accepted')&&!isComplete(d)&&(!d.autoExtraction?.nextRetryAt||d.autoExtraction.versionId!==d.versionId||d.autoExtraction.nextRetryAt<=now));

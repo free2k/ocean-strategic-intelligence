@@ -1,6 +1,5 @@
 import {ArticleCheckpoints} from './article-checkpoints.mjs';
-import {writeJsonFile} from './json-stream.mjs';
-import {readSnapshot} from './snapshot-reader.mjs';
+import {readTaskWorkspace as readSnapshot,saveTaskWorkspace} from './task-workspace.mjs';
 import fs from 'node:fs/promises';import path from 'node:path';import OpenAI from 'openai';
 export async function enrichEvidence(dir,{limit=0,workspace=null}={}){
  if(process.env.INTEL_ENABLE_AI!=='true'||!process.env.OPENAI_API_KEY)return;
@@ -12,5 +11,5 @@ export async function enrichEvidence(dir,{limit=0,workspace=null}={}){
   }catch{data.errors||=[];data.errors.push({sourceId:d.sourceId,documentId:d.id,stage:'evidence-translation',error:'证据译文未完成，后续重试；英文依据保留',at:new Date().toISOString()});}
   await save(d);
  }
- await checkpoints.pending;if(!workspace){const tmp=file+'.evidence.tmp';await writeJsonFile(tmp,data);await fs.rename(tmp,file);}
+ await checkpoints.pending;if(!workspace){await saveTaskWorkspace(file,data);}
 }

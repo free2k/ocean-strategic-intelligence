@@ -65,8 +65,10 @@ class Reader:
     def read(self, size=-1):
         if size < 0:
             raise ValueError("Unbounded reads are forbidden")
-        self.guard(size)
-        return self.stream.read(size)
+        self.guard()
+        data = self.stream.read(size)
+        self.guard(len(data))
+        return data
 
 
 def stream_blocks(stream):
@@ -258,7 +260,7 @@ class Archive:
         return {k: v for k, v in record.items() if k != "blocks"}
 
     def restore(self, manifest, destination):
-        record = json.loads(Path(manifest).read_bytes())
+        record = manifest if isinstance(manifest, dict) else json.loads(Path(manifest).read_bytes())
         if record["version"] != 1:
             raise ValueError("Unsupported archive version")
         destination = Path(destination)
@@ -282,6 +284,67 @@ class Archive:
             raise
         syncdir(destination.parent)
 
+    def artifacts(self, stage, limit):
+        """One manifest per inactive job, shared blocks for repeated attachments."""
+        stage = Path(stage)
+        target = stage / "artifacts.archive.json"
+        record = json.loads(target.read_bytes()) if target.exists() else {"version": 1, "files": {}}
+        pending, count, freed, added = [], 0, 0, 0
+
+        def flush():
+            nonlocal pending
+            if not pending:
+                return
+            atomic(target, json.dumps(record, separators=(",", ":")).encode())
+            if json.loads(target.read_bytes()) != record:
+                raise ValueError("Artifact manifest persistence mismatch")
+            for source, before in pending:
+                after = source.stat()
+                if (before.st_ino, before.st_size, before.st_mtime_ns) != (after.st_ino, after.st_size, after.st_mtime_ns):
+                    raise ValueError("Artifact changed during verification")
+                source.unlink()
+            syncdir(stage)
+            pending = []
+
+        for source in stage.iterdir():
+            if count >= limit:
+                break
+            if source.is_symlink() or not source.is_file() or source.suffix not in (".html", ".pdf", ".csv", ".json"):
+                continue
+            if source.name.startswith("snapshot") or source.name.endswith(".archive.json") or source.name == "task-input.json":
+                continue
+            self.guard()
+            capacity = os.statvfs(stage)
+            if capacity.f_bavail * capacity.f_frsize < 5 * 1024**3:
+                raise Deferred("less than 5 GiB free disk for artifact archival")
+            before, refs, digest, size = source.stat(), [], hashlib.sha256(), 0
+            with source.open("rb") as stream:
+                reader = Reader(stream, self.guard)
+                while block := reader.read(MAX_BLOCK):
+                    key = sha(block)
+                    dest = self.blockpath(key)
+                    if not dest.exists():
+                        packed = gzip.compress(block, compresslevel=1, mtime=0)
+                        self.guard(len(packed))
+                        atomic(dest, packed)
+                        added += len(packed)
+                    if self.verified_size(key) != len(block):
+                        raise ValueError("Artifact block verification failed")
+                    refs.append(key)
+                    digest.update(block)
+                    size += len(block)
+            item = {"version": 1, "blocks": refs, "rawBytes": size, "rawSha256": digest.hexdigest()}
+            if source.name in record["files"] and record["files"][source.name] != item:
+                raise ValueError("Existing artifact archive differs; preserve both for review")
+            record["files"][source.name] = item
+            pending.append((source, before))
+            count += 1
+            freed += before.st_size
+            if len(pending) >= 20:
+                flush()
+        flush()
+        return {"artifacts": count, "sourceBytes": freed, "newBlockBytes": added, "stage": str(stage)}
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -289,15 +352,19 @@ def main():
     parser.add_argument("--baseline")
     parser.add_argument("--jobs")
     parser.add_argument("--limit", type=int, default=10)
+    parser.add_argument("--keep-latest", type=int, default=3)
     parser.add_argument("--max-seconds", type=int, default=300)
     parser.add_argument("--min-age-hours", type=int, default=24)
     parser.add_argument("--include-verified-gzip", action="store_true")
     parser.add_argument("--restore")
     parser.add_argument("--output")
+    parser.add_argument("--artifact-name")
+    parser.add_argument("--artifact-limit", type=int, default=20000)
     args = parser.parse_args()
     archive = Archive(args.root, Budget(seconds=args.max_seconds).check)
     if args.restore:
-        archive.restore(args.restore, args.output)
+        record = json.loads(Path(args.restore).read_bytes())["files"][args.artifact_name] if args.artifact_name else args.restore
+        archive.restore(record, args.output)
         return
     baseline_file = archive.root / "baseline.json"
     if args.baseline:
@@ -325,7 +392,7 @@ def main():
                 stage = Path(os.fsdecode(entry.split(b"=", 1)[1])).resolve()
                 if stage.parent == jobs:
                     protected.add(stage.name)
-    files = []
+    files, artifact_stages = [], []
     for stage in jobs.iterdir():
         if not stage.is_dir() or stage.is_symlink() or stage.name in protected:
             continue
@@ -336,14 +403,35 @@ def main():
                 continue
             if task.get("checkpointHash") and task.get("status") == "failed":
                 continue
+        # Only consume attachments after the snapshot itself has a verified,
+        # durable restoration manifest. New task-input jobs are never touched.
+        if (not (stage / "snapshot.json").exists() and not (stage / "snapshot.json.gz").exists()
+                and ((stage / "snapshot.json.archive.json").exists() or (stage / "snapshot.json.gz.archive.json").exists())
+                and not (stage / "task-input.json").exists()
+                and not any(p.name.endswith(".part") for p in stage.iterdir())):
+            artifact_stages.append(stage)
         for name in ("snapshot.json", "snapshot.json.gz"):
             source = stage / name
             if source.is_file() and not source.is_symlink():
                 files.append((source.stat().st_mtime, source))
     files.sort(key=lambda x: x[0], reverse=True)
     started, count = time.time(), 0
-    # Always protect latest 20; caller can choose a conservative inactivity age.
-    for modified, source in reversed(files[20:]):
+    remaining = args.artifact_limit
+    for stage in artifact_stages:
+        if remaining <= 0:
+            break
+        try:
+            result = archive.artifacts(stage, remaining)
+        except Deferred as exc:
+            print(json.dumps({"status": "deferred", "reason": str(exc), "stage": str(stage)}), flush=True)
+            return
+        if result["artifacts"]:
+            remaining -= result["artifacts"]
+            print(json.dumps(result), flush=True)
+    # Active/recovering tasks are protected above independently of retention.
+    if args.keep_latest < 0:
+        raise ValueError("keep-latest must be non-negative")
+    for modified, source in reversed(files[args.keep_latest:]):
         if count >= args.limit or time.time() - started >= args.max_seconds:
             break
         verified_gzip = (args.include_verified_gzip and source.suffix == ".gz"

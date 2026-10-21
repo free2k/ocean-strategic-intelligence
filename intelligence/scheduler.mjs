@@ -1,6 +1,6 @@
 import {acknowledgeCheckpoints} from './article-checkpoints.mjs';
 import {mergeSnapshotFile} from './merge-snapshot-stream.mjs';
-import {writeJsonFile} from './json-stream.mjs';
+import {createTaskWorkspace,taskEntries,finishTaskWorkspace} from './task-workspace.mjs';
 import {assertJobCapacity,retryDelay,finishJobStage} from './job-storage.mjs';
 import {deliveryRevision,acknowledgeDelivery,markDelivery} from './intelligence-delivery.mjs';
 import {acknowledgeClassification} from './classification-jobs.mjs';
@@ -51,7 +51,7 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
    if(publication){const latest=await researchLedger.latest();if(!latest){state.result='deferred';state.error='研究版本库尚无明确迁移基线，请先捕获基线';return false;}task=await journal.create({trigger:processOnly?'process_only':'scheduled_collection',expectedReleaseId:latest.releaseId});}
    delivery=await deliveryRevision(store.pool);
    state={...state,running:true,runMode:processOnly?'processing':'collection',result:null,taskId:task?.id||null,startedAt:new Date().toISOString(),steps:[],error:null,errorCode:null,errorDetail:null};await persist();
-   stage=path.join(dir,'jobs',task?.id||randomUUID());await fs.mkdir(stage,{recursive:true});await writeJsonFile(path.join(stage,'snapshot.json'),store.data);
+   stage=path.join(dir,'jobs',task?.id||randomUUID());await fs.mkdir(stage,{recursive:true});await createTaskWorkspace(store.pool,store.data,stage);
    const scripts=processOnly?['import-mp2rss.mjs','reconcile-classification.mjs','pipeline-worker.mjs']:['import-mp2rss.mjs','reconcile-classification.mjs','collect.mjs','official-sources.mjs','expanded-sources.mjs','open-datasets.mjs','iea-datasets.mjs','import-mp2rss.mjs','reconcile-classification.mjs',...(process.env.INTEL_EIA_EXTERNAL==='true'?[]:[process.env.EIA_API_KEY?'import-eia.mjs':'import-series.mjs']),'pipeline-worker.mjs'];
    for(const script of scripts){
     store.suspend?.();
@@ -59,13 +59,13 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
     const step={name:script,startedAt:new Date().toISOString()};let fatal=false;
     try{await runScript(script,stage);step.status='completed';}catch(error){step.status='failed';step.errorCode=error.code||'WORKER_FAILED';fatal=script==='reconcile-classification.mjs';}
     step.finishedAt=new Date().toISOString();state.steps.push(step);if(task)task=await journal.update(task.id,task.revision,{steps:state.steps,errors:state.steps.filter(s=>s.status==='failed').map(s=>({stage:s.name,code:s.errorCode}))});await persist();if(fatal)throw Error('classification_reconciliation_failed');
-    if(script==='reconcile-classification.mjs'&&step.status==='completed'&&!task){for(const f of await fs.readdir(stage))if(/\.(html|pdf|json|csv)$/.test(f)&&f!=='snapshot.json'){await fs.copyFile(path.join(stage,f),path.join(dir,f));if(!copied.includes(f))copied.push(f);}await store.resume?.();await serial(async()=>{const merged=await mergeSnapshotFile(store.data,path.join(stage,'snapshot.json'));merged.generatedAt=new Date().toISOString();await store.import(merged,{mirror:false});});state.lastMergedAt=new Date().toISOString();await persist();}
+    if(script==='reconcile-classification.mjs'&&step.status==='completed'&&!task){for(const f of await fs.readdir(stage))if(/\.(html|pdf|json|csv)$/.test(f)&&!['snapshot.json','task-input.json'].includes(f)){await fs.copyFile(path.join(stage,f),path.join(dir,f));if(!copied.includes(f))copied.push(f);}await store.resume?.();await serial(async()=>{const merged=await mergeSnapshotFile(store.data,taskEntries(stage));merged.generatedAt=new Date().toISOString();await store.import(merged,{mirror:false});});state.lastMergedAt=new Date().toISOString();await persist();}
    }
-   await store.resume?.();const candidate=await mergeSnapshotFile(store.data,path.join(stage,'snapshot.json'));if(!Array.isArray(candidate.documents)||!candidate.documents.length)throw Error('invalid_snapshot');
+   await store.resume?.();const candidate=await mergeSnapshotFile(store.data,taskEntries(stage));if(!Array.isArray(candidate.documents)||!candidate.documents.length)throw Error('invalid_snapshot');
    const partial=state.steps.some(s=>s.status==='failed')||candidate.sources?.some(s=>s.status==='failed')||candidate.errors?.some(e=>e.at&&e.at>=state.startedAt);
    state.currentStep='merging';await persist();
    // Place attachment artifacts before exposing a snapshot that references them.
-   for(const f of await fs.readdir(stage))if(/\.(html|pdf|json|csv)$/.test(f)&&f!=='snapshot.json'){await fs.copyFile(path.join(stage,f),path.join(dir,f));copied.push(f);}
+   for(const f of await fs.readdir(stage))if(/\.(html|pdf|json|csv)$/.test(f)&&!['snapshot.json','task-input.json'].includes(f)){await fs.copyFile(path.join(stage,f),path.join(dir,f));copied.push(f);}
    await serial(async()=>{
     const merged=candidate;
     if(task){task=await publication.prepare(task,merged,{completeness:partial?'partial':'complete',errors:task.errors});merged.researchPublication={taskId:task.id,hash:task.checkpointHash};}
@@ -85,7 +85,7 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
    console.error('collection failed',JSON.stringify({code:state.errorCode,message:state.errorDetail,retryAt:state.retryAt,stage:state.currentStep}));
    state.error='本轮更新未完成，已入库资料保留';state.result='failed';
    if(task&&!['published','partial','failed'].includes(task.status)){try{task=await journal.update(task.id,task.revision,{status:task.checkpointHash?'deferred':'failed',reason:e.code||'PROCESSING_FAILED',currentStep:state.currentStep||null});if(task.status==='deferred'){state.result='deferred';state.error='资料发布尚未完成，将核对检查点后恢复';}}catch{state.error='任务记录更新失败，需核对持久状态';}}
-  }finally{if(stage){try{await finishJobStage(dir,stage,{committed,copied});}catch(e){state.cleanupError=e.code||e.message;console.error('job cleanup:',state.cleanupError);}}guard?.stdin.end();store.suspend?.();state.running=false;state.currentStep=null;arm(completedFull);await persist().catch(e=>console.error('collection status persistence:',e.code||e.message));}
+  }finally{if(stage){try{await finishTaskWorkspace(store.pool,stage,{committed});await finishJobStage(dir,stage,{committed,copied});}catch(e){state.cleanupError=e.code||e.message;console.error('job cleanup:',state.cleanupError);}}guard?.stdin.end();store.suspend?.();state.running=false;state.currentStep=null;arm(completedFull);await persist().catch(e=>console.error('collection status persistence:',e.code||e.message));}
   return true;
  }
  if(enabled){const target=Math.max(state.nextRun?new Date(state.nextRun).getTime():Date.now()+intervalMs,Date.parse(state.retryAt||'')||0);state.nextRun=new Date(Math.max(Date.now()+30000,target)).toISOString();timer=setTimeout(()=>run(),Math.max(30000,target-Date.now()));timer.unref();}else state.nextRun=null;

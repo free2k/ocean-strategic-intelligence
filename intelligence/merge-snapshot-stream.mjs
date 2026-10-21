@@ -10,7 +10,7 @@ export async function mergeSnapshotFile(live,file){
  const next={...live},processed=new Set(),fields=['sources','documents','entities','evidence','series',...structured];
  const maps=new Map(fields.map(key=>[key,new Map((live[key]||[]).map(row=>[row.id,row]))]));
  const seen=new Map(structured.map(key=>[key,new Set()]));let articles=0,count=0;
- for await(const {field,array,start,value} of snapshotEntries(file)){
+ for await(const {field,array,start,value} of typeof file==='string'?snapshotEntries(file):file){
   if(start){if(!maps.has(field))next[field]=[];continue;}
   if(!array){next[field]=value;continue;}
   if(!maps.has(field)){next[field].push(value);continue;}

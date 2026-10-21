@@ -1,5 +1,4 @@
-import {writeJsonFile} from './json-stream.mjs';
-import {readSnapshot} from './snapshot-reader.mjs';
+import {readTaskWorkspace as readSnapshot,saveTaskWorkspace} from './task-workspace.mjs';
 // Official structured datasets are independent of article keyword filtering.
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -60,6 +59,6 @@ export async function collectOpenDatasets(dir){
  }catch(e){report.status='failed';report.error=e.message;data.errors.push({sourceId:p.id,at:now,error:e.message});}
  data.sources=[...data.sources.filter(s=>s.id!==p.id),report];console.log(JSON.stringify({source:p.id,status:report.status,records:report.records,error:report.error}));
  }
- data.generatedAt=new Date().toISOString();await writeJsonFile(file+'.open.tmp',data);await fs.rename(file+'.open.tmp',file);return data;
+ data.generatedAt=new Date().toISOString();await saveTaskWorkspace(file,data);return data;
 }
 if(process.argv[1]?.endsWith('open-datasets.mjs'))await collectOpenDatasets(process.env.INTEL_DATA_DIR||'.data/intelligence');

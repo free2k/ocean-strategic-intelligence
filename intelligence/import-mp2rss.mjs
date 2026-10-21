@@ -1,5 +1,4 @@
-import {writeJsonFile} from './json-stream.mjs';
-import {readSnapshot} from './snapshot-reader.mjs';
+import {readTaskWorkspace as readSnapshot,saveTaskWorkspace} from './task-workspace.mjs';
 import {reconcileDocument} from './reconcile-classification.mjs';
 // MP_CLEAN_V1
 import fs from 'node:fs/promises';import path from 'node:path';import pg from 'pg';
@@ -29,5 +28,5 @@ try{
   const esc=x=>String(x).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');await fs.writeFile(path.join(dir,versionId+'.html'),`<!doctype html><meta charset="utf-8"><h1>${esc(p.title)}</h1><p>${esc(p.author)} · ${esc(p.publishedAt)}</p><a href="${esc(p.url)}">原文</a><pre>${esc(p.content)}</pre>`);added++;
  }
  await importXEvidence(data,pool,dir);
- data.generatedAt=new Date().toISOString();await writeJsonFile(file+'.mp2.tmp',data);await fs.rename(file+'.mp2.tmp',file);console.log(JSON.stringify({provider:'Mp2RSS',added,eligible:rows.length}));}
+ data.generatedAt=new Date().toISOString();await saveTaskWorkspace(file,data);console.log(JSON.stringify({provider:'Mp2RSS',added,eligible:rows.length}));}
 }finally{await pool.end();}
