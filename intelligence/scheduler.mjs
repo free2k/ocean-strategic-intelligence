@@ -31,7 +31,7 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
  const persist=async()=>{const tmp=file+'.'+randomUUID()+'.tmp';try{await fs.writeFile(tmp,JSON.stringify(state));await fs.rename(tmp,file);}finally{await fs.rm(tmp,{force:true}).catch(()=>{});}};
  if(interrupted)await persist();
  const runScript=executeWorker||((name,stage)=>new Promise((resolve,reject)=>{
-  const p=spawn(process.execPath,[path.join(root,name)],{cwd:path.dirname(root),env:{...process.env,INTEL_DATA_DIR:stage,INTEL_CHECKPOINT_DIR:path.join(dir,'article-checkpoints'),IEA_DATA_HOME:process.env.IEA_DATA_HOME||path.join(dir,'iea'),INTEL_MAX_PER_SOURCE:'4',INTEL_ENRICH_LIMIT:process.env.INTEL_ENRICH_BATCH_LIMIT||'6',INTEL_AUTO_EXTRACT_LIMIT:process.env.INTEL_EXTRACT_BATCH_LIMIT||'6'},stdio:['ignore','ignore','ignore']});
+  const p=spawn(process.execPath,[path.join(root,name)],{cwd:path.dirname(root),env:{...process.env,INTEL_DATA_DIR:stage,INTEL_ARTIFACT_DIR:dir,INTEL_CHECKPOINT_DIR:path.join(dir,'article-checkpoints'),IEA_DATA_HOME:process.env.IEA_DATA_HOME||path.join(dir,'iea'),INTEL_MAX_PER_SOURCE:'4',INTEL_ENRICH_LIMIT:process.env.INTEL_ENRICH_BATCH_LIMIT||'6',INTEL_AUTO_EXTRACT_LIMIT:process.env.INTEL_EXTRACT_BATCH_LIMIT||'6'},stdio:['ignore','ignore','ignore']});
   const timeout=setTimeout(()=>p.kill(),name==='pipeline-worker.mjs'?Math.min(workerTimeoutMs(name),20*60000):workerTimeoutMs(name));
   p.on('error',()=>{clearTimeout(timeout);reject(new Error('worker_start_failed'));});p.on('exit',(code,signal)=>{clearTimeout(timeout);code===0?resolve():reject(Object.assign(new Error('worker_failed'),{code:signal?'WORKER_SIGNAL_'+signal:'WORKER_EXIT_'+code}));});
  }));
