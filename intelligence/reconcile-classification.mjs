@@ -1,3 +1,5 @@
+import {writeJsonFile} from './json-stream.mjs';
+import {readSnapshot} from './snapshot-reader.mjs';
 import {resolveClassificationResult} from './classification-result.mjs';
 import {attachPublishedRules} from './published-rules.mjs';
 import {processSemanticQueue} from './semantic-classification.mjs';
@@ -55,8 +57,8 @@ export async function reconcileClassification(pool,data,semanticOptions={}){
  data.generatedAt=new Date().toISOString();return data;
 }
 if(process.argv[1]?.endsWith('reconcile-classification.mjs')){
- const pool=new pg.Pool({connectionString:process.env.DATABASE_URL,max:2});try{const dir=process.env.INTEL_DATA_DIR||'.data/intelligence',file=path.join(dir,'snapshot.json'),data=JSON.parse(await fs.readFile(file,'utf8'));await reconcileClassification(pool,data);
+ const pool=new pg.Pool({connectionString:process.env.DATABASE_URL,max:2});try{const dir=process.env.INTEL_DATA_DIR||'.data/intelligence',file=path.join(dir,'snapshot.json'),data=await readSnapshot(file);await reconcileClassification(pool,data);
  const esc=s=>String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
  for(const doc of data.documents.filter(d=>d.articleId&&d.content)){await fs.writeFile(path.join(dir,doc.versionId+'.html'),`<!doctype html><meta charset="utf-8"><h1>${esc(doc.title)}</h1><a href="${esc(doc.url)}">原文出处</a><pre>${esc(doc.content)}</pre>`);}
- await fs.writeFile(file+'.classification.tmp',JSON.stringify(data));await fs.rename(file+'.classification.tmp',file);}finally{await pool.end();}
+ await writeJsonFile(file+'.classification.tmp',data);await fs.rename(file+'.classification.tmp',file);}finally{await pool.end();}
 }

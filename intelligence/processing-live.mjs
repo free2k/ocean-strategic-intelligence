@@ -1,3 +1,4 @@
+import {writeJsonFile} from './json-stream.mjs';
 import {textSlice} from './unicode-text.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -32,7 +33,7 @@ export async function acquireProcessingGuard(pool,lockFile='/opt/ocean-intellige
 
 export async function createLiveProcessing({dir,store,serial,client,auditPool}){
  const pool=new pg.Pool({connectionString:process.env.INTEL_AUDIT_DATABASE_URL||process.env.INTEL_DATABASE_URL||process.env.DATABASE_URL,max:4,connectionTimeoutMillis:10000});
- const readInput=async()=>{
+ const readInput=async()=>{await store.refresh();
   const audit=await readAudit(pool),config=await currentRules(pool);
   const documents=audit.documents.map(d=>({
    id:d.workingId||id('doc',d.url||d.id),auditId:d.id,auditArticleId:d.auditArticleId,auditMpId:d.auditMpId,auditEvidenceUrl:d.auditEvidenceUrl,workingId:d.workingId,
@@ -41,14 +42,14 @@ export async function createLiveProcessing({dir,store,serial,client,auditPool}){
   return {config,documents,capturedAt:new Date().toISOString()};
  };
  const loadDocument=async d=>{const full=await readAuditBody(pool,d);const content=textBody(full.content);return {...full,content,inputBodyHash:digest(content),articleId:d.auditArticleId};};
- const publish=async({task,input,readResults})=>serial(async()=>{
-  const results=await readResults(),fresh=await readAudit(pool),byId=new Map(fresh.documents.map(d=>[d.id,d]));
-  const snapshot=structuredClone(store.data),compiled=compileRules(input.config);let skippedChanged=0;
+ const publish=async({task,input,readResults,iterateResults})=>serial(async()=>{
+  const results=iterateResults?iterateResults():await readResults(),fresh=await readAudit(pool),byId=new Map(fresh.documents.map(d=>[d.id,d]));
+  await store.refresh();const snapshot={...store.data,...Object.fromEntries(Object.entries(store.data).filter(([,v])=>Array.isArray(v)).map(([k,v])=>[k,[...v]]))},compiled=compileRules(input.config);let skippedChanged=0;
   const db=await pool.connect();let job;
   try{
    await db.query('BEGIN');await db.query("SET LOCAL lock_timeout='10s'");
    job=(await db.query("INSERT INTO classification.jobs(version,config,scope,status,preview,result,started_at,finished_at) VALUES($1,$2,$3,'completed',$4,$5,$6,now()) RETURNING *",[task.ruleVersion,input.config,{targeted:true,pendingOnly:task.processingScope==='pending',processingScope:task.processingScope,trigger:'manual_processing',taskId:task.id},{total:task.total},{accepted:task.accepted,excluded:task.excluded,candidate:task.unmatched,pendingExtraction:task.retries.length},task.startedAt])).rows[0];
-   for(const result of results){
+   for await(const result of results){
     const d=result.document,decision=result.decision,current=byId.get(d.auditId);
     if(!current||current.manual){skippedChanged++;continue;}
     if(d.auditArticleId){const a=(await db.query('SELECT manual_classify,classify_method FROM public.articles WHERE id=$1 FOR UPDATE',[d.auditArticleId])).rows[0];if(!a||a.manual_classify||a.classify_method==='manual'){skippedChanged++;continue;}}
@@ -66,7 +67,7 @@ export async function createLiveProcessing({dir,store,serial,client,auditPool}){
     const old=snapshot.documents.find(x=>x.id===d.id||x.url===d.url);
     if(old?.manual||old?.industry?.manual)continue;
     if(decision.status!=='accepted'&&!old)continue;
-    const doc={...old,...d,industry:decision,topic:decision.primary||old?.topic,classificationManaged:true,chunks:chunks(d.content),collectedAt:old?.collectedAt||new Date().toISOString()};
+    const doc={...old,...d,extraction:old?.extraction?{...old.extraction}:undefined,industry:decision,topic:decision.primary||old?.topic,classificationManaged:true,chunks:chunks(d.content),collectedAt:old?.collectedAt||new Date().toISOString()};
     delete doc.classification;delete doc.inputBodyHash;
     snapshot.documents=snapshot.documents.filter(x=>x.id!==doc.id);snapshot.documents.push(doc);
     if(!snapshot.sources.some(s=>s.id===d.sourceId))snapshot.sources.push({id:d.sourceId,name:d.sourceName,url:d.url,level:'S4',method:'api',status:'ready'});
@@ -78,7 +79,7 @@ export async function createLiveProcessing({dir,store,serial,client,auditPool}){
   }catch(e){await db.query('ROLLBACK');throw e;}finally{db.release();}
   attachPublishedRules(snapshot,job);snapshot.generatedAt=new Date().toISOString();
   // Persist the candidate before committing so a publication failure is recoverable.
-  await fs.writeFile(path.join(dir,'processing-runs',task.id,'merge-candidate.json'),JSON.stringify(snapshot));
+  await writeJsonFile(path.join(dir,'processing-runs',task.id,'merge-candidate.json'),snapshot);
   await store.import(snapshot);
   const release=await publishWorkspace(new PostgresResearchRepository(pool),store.data,{trigger:'manual_processing',completeness:task.retries.length?'partial':'complete'});
   await pool.query("UPDATE classification.jobs SET status=$2,result=result || $3::jsonb WHERE id=$1",[job.id,task.retries.length?'partial':'completed',JSON.stringify({published:true,releaseId:release.releaseId,skippedChanged})]);

@@ -1,3 +1,6 @@
+import {ArticleCheckpoints} from './article-checkpoints.mjs';
+import {readSnapshot} from './snapshot-reader.mjs';
+import {writeJsonFile} from './json-stream.mjs';
 import {domainPrompt} from './industry-topics.mjs';
 import fs from 'node:fs/promises';import path from 'node:path';import OpenAI from 'openai';
 import {chunks,normalizeExtraction,mergeRecords,relationTypes,topics} from './core.mjs';
@@ -41,6 +44,7 @@ export function mergeProcessedSnapshot(live,staged){
  for(const key of ['sources','documents','evidence',...structured]){const records=new Map((live[key]||[]).filter(r=>!structured.includes(key)||!processed.has(r.documentId)||protectedRow(r)).map(r=>[r.id,r]));for(const row of staged[key]||[]){const old=records.get(row.id);records.set(row.id,structured.includes(key)&&protectedRow(old||{})?old:row);}next[key]=[...records.values()];}
  next.entities=mergeRecords([...(live.entities||[]),...(staged.entities||[])]);const series=new Map((live.series||[]).map(s=>[s.id,s]));for(const s of staged.series||[])series.set(s.id,s);next.series=[...series.values()];
  // Keep document extraction mirrors aligned so later collectors cannot resurrect removed rows.
+ next.documents=next.documents.map(doc=>processed.has(doc.id)?{...doc}:doc);
  for(const doc of next.documents.filter(d=>processed.has(d.id)))doc.extraction={...doc.extraction,...Object.fromEntries(structured.map(k=>[k,next[k].filter(r=>r.documentId===doc.id)]))};
  return next;
 }
@@ -53,18 +57,18 @@ export async function extractArticle(client,doc){
  }
  for(const k of ['entities','events','relations','observations'])result[k]=mergeRecords(result[k]);result.evidence=[...new Map(result.evidence.map(e=>[e.id,e])).values()];return result;
 }
-export async function autoExtract(dir,{client,extract=extractArticle,clock=()=>new Date().toISOString(),limit=0}={}){
- const file=path.join(dir,'snapshot.json'),data=JSON.parse(await fs.readFile(file,'utf8'));data.errors||=[];
- const save=async()=>{const tmp=file+'.extract.tmp';await fs.writeFile(tmp,JSON.stringify(data));await fs.rename(tmp,file);};let saving=Promise.resolve();const checkpoint=()=>saving=saving.then(save);
+export async function autoExtract(dir,{client,extract=extractArticle,clock=()=>new Date().toISOString(),limit=0,workspace=null}={}){
+ const file=path.join(dir,'snapshot.json'),data=workspace||await readSnapshot(file);data.errors||=[];
+ const save=async()=>{const tmp=file+'.extract.tmp';await writeJsonFile(tmp,data);await fs.rename(tmp,file);};const checkpoints=new ArticleCheckpoints(dir,'extraction');await checkpoints.restore(data.documents,(doc,saved)=>{Object.assign(doc,saved);if(saved.autoExtraction?.status==='completed'&&saved.extraction){applyExtraction(data,doc,saved.extraction,saved.autoExtraction.completedAt);doc.autoExtraction=saved.autoExtraction;}});const checkpoint=doc=>checkpoints.save(doc,{autoExtraction:doc.autoExtraction,extraction:doc.extraction,extractionStatus:doc.extractionStatus,extractionVersion:doc.extractionVersion});
  const now=clock();for(const d of data.documents.filter(canAdopt))d.autoExtraction={status:'completed',versionId:d.versionId,pipelineVersion,completedAt:now,method:'采集阶段已提取',attempts:0};
  if(!client&&process.env.INTEL_ENABLE_AI==='true'&&process.env.OPENAI_API_KEY)client=new OpenAI({apiKey:process.env.OPENAI_API_KEY,baseURL:process.env.OPENAI_BASE_URL,timeout:extractionTimeoutMs,maxRetries:0});
  const pending=data.documents.filter(d=>!d.manual&&(!d.industry||d.industry.status==='accepted')&&!isComplete(d)&&(!d.autoExtraction?.nextRetryAt||d.autoExtraction.versionId!==d.versionId||d.autoExtraction.nextRetryAt<=now));
  const queue=limit>0?pending.slice(0,limit):pending;let index=0;
- if(client)await Promise.all(Array.from({length:extractionConcurrency},async()=>{while(index<queue.length){const d=queue[index++];const attempts=d.autoExtraction?.versionId===d.versionId?(d.autoExtraction.attempts||0)+1:1;d.autoExtraction={status:'running',versionId:d.versionId,pipelineVersion,attempts,startedAt:clock()};await checkpoint();
+ if(client)await Promise.all(Array.from({length:extractionConcurrency},async()=>{while(index<queue.length){const d=queue[index++];const attempts=d.autoExtraction?.versionId===d.versionId?(d.autoExtraction.attempts||0)+1:1;d.autoExtraction={status:'running',versionId:d.versionId,pipelineVersion,attempts,startedAt:clock()};await checkpoint(d);
   try{if(!d.content?.trim())throw new Error('empty_content');const result=await extract(client,d);applyExtraction(data,d,result,clock());d.autoExtraction.method='自动模型提取';}
   catch(error){const at=clock(),failure=extractionError(error);d.autoExtraction={...d.autoExtraction,...failure,status:'failed',error:'自动提取未完成，原文与既有结果保留',nextRetryAt:new Date(Date.parse(at)+Math.min(24,2**Math.min(attempts-1,5))*3600000).toISOString()};data.errors.push({sourceId:d.sourceId,documentId:d.id,stage:'auto-extraction',...failure,error:d.autoExtraction.error,at});}
-  await checkpoint();
+  await checkpoint(d);
  }}));
- await saving;data.processing={...processingSummary(data),checkedAt:clock(),modelEnabled:!!client};data.generatedAt=clock();await checkpoint();return data.processing;
+ await checkpoints.pending;data.processing={...processingSummary(data),checkedAt:clock(),modelEnabled:!!client};data.generatedAt=clock();if(!workspace)await save();return data.processing;
 }
 if(process.argv[1]?.endsWith('auto-extract.mjs'))console.log(JSON.stringify(await autoExtract(process.env.INTEL_DATA_DIR||'.data/intelligence')));

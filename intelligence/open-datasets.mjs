@@ -1,3 +1,5 @@
+import {writeJsonFile} from './json-stream.mjs';
+import {readSnapshot} from './snapshot-reader.mjs';
 // Official structured datasets are independent of article keyword filtering.
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -39,7 +41,7 @@ export function productionSeries(features,now){
  return fields.flatMap(field=>[['oil','净原油产量','prfPrdOilNetMillSm3','百万标准立方米'],['gas','净天然气产量','prfPrdGasNetBillSm3','十亿标准立方米']].map(([suffix,label,key,unit])=>({id:'sodir-'+field.toLowerCase().replaceAll(' ','-')+'-'+suffix,name:field+'：'+label,sourceId:'sodir-production',country:'NO',topic:'海洋油气',classificationContext:'offshore oil and gas 海上油气产量',unit,frequency:'月度',nature:'实际',sourceUrl:SODIR,checkedAt:now,note:'SODIR Historical 净产量月总量；不是日均产量。天然气与原油单位不同，不相加；缺失月份不补零。',rows:rows.filter(r=>r.prfInformationCarrier===field&&typeof r[key]==='number'&&Number.isFinite(r[key])).map(r=>({period:`${r.prfYear}-${String(r.prfMonth).padStart(2,'0')}`,value:r[key],fieldId:r.prfNpdidInformationCarrier,objectId:r.OBJECTID,sourceUrl:SODIR+'/query?'+new URLSearchParams({f:'pjson',objectIds:String(r.OBJECTID),outFields:'*',returnGeometry:'false'})})).filter(r=>r.period<now.slice(0,7)).sort((a,b)=>a.period.localeCompare(b.period))})));
 }
 export async function collectOpenDatasets(dir){
- const file=path.join(dir,'snapshot.json'),data=JSON.parse(await fs.readFile(file,'utf8')),now=new Date().toISOString();data.series||=[];data.assetRegistries||={};data.errors||=[];
+ const file=path.join(dir,'snapshot.json'),data=await readSnapshot(file),now=new Date().toISOString();data.series||=[];data.assetRegistries||={};data.errors||=[];
  for(const p of openProfiles){const report={...p,level:'S1',language:'en',checkedAt:now,status:'ready',records:0};try{
   let raw,ext='json',newSeries=[],registry;
   if(p.id==='fr-boem'){
@@ -58,6 +60,6 @@ export async function collectOpenDatasets(dir){
  }catch(e){report.status='failed';report.error=e.message;data.errors.push({sourceId:p.id,at:now,error:e.message});}
  data.sources=[...data.sources.filter(s=>s.id!==p.id),report];console.log(JSON.stringify({source:p.id,status:report.status,records:report.records,error:report.error}));
  }
- data.generatedAt=new Date().toISOString();await fs.writeFile(file+'.open.tmp',JSON.stringify(data));await fs.rename(file+'.open.tmp',file);return data;
+ data.generatedAt=new Date().toISOString();await writeJsonFile(file+'.open.tmp',data);await fs.rename(file+'.open.tmp',file);return data;
 }
 if(process.argv[1]?.endsWith('open-datasets.mjs'))await collectOpenDatasets(process.env.INTEL_DATA_DIR||'.data/intelligence');

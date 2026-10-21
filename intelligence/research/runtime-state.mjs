@@ -6,6 +6,9 @@ const empty=()=>({tasks:{},reservations:{},days:{},budget:null});
 // Shared by every worker using this directory. Never steal an uncertain crash-held lock.
 export class FileRuntimeState{
  constructor(dir){this.dir=dir;}
+ // Writers replace runtime.json atomically; progress reads need no write lock
+ // and must not force disk flushes behind a large background artifact write.
+ async read(){try{return JSON.parse(await fs.readFile(path.join(this.dir,'runtime.json'),'utf8'));}catch(error){if(error.code==='ENOENT')return empty();throw error;}}
  async transact(change){
   await fs.mkdir(this.dir,{recursive:true});let lock;
   try{lock=await fs.open(path.join(this.dir,'runtime.lock'),'wx');}catch(e){if(e.code==='EEXIST')fail('SHARED_STATE_BUSY','共享调度状态忙，请稍后重试',409);throw e;}

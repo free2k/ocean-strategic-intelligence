@@ -1,3 +1,5 @@
+import {writeJsonFile} from './json-stream.mjs';
+import {readSnapshot} from './snapshot-reader.mjs';
 import {snapshotRules} from './published-rules.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -71,7 +73,7 @@ export function commitVersion(state,dataset){
  state.history.push({key,at:dataset.checkedAt,hash:dataset.contentHash,previousHash:old?.contentHash||null,added,changed,removed:before.size,filename:dataset.filename,release:dataset.release});state.datasets[key]=dataset;return true;
 }
 export async function collectIEA(dir,{force=false}={}){
- const file=path.join(dir,'snapshot.json'),data=JSON.parse(await fs.readFile(file,'utf8'));const state=data.ieaDatasets||={datasets:{},history:[],products:{}};state.products||={};
+ const file=path.join(dir,'snapshot.json'),data=await readSnapshot(file);const state=data.ieaDatasets||={datasets:{},history:[],products:{}};state.products||={};
  const home=process.env.IEA_DATA_HOME||path.join(dir,'iea'),session=process.env.IEA_SESSION_FILE||path.join(home,'session.json');await fs.mkdir(path.join(home,'archive'),{recursive:true});const config=snapshotRules(data);
  let browser;
  try{
@@ -91,6 +93,6 @@ export async function collectIEA(dir,{force=false}={}){
   }
   await context.storageState({path:session});await fs.chmod(session,0o600);
  }catch{state.lastError='登录会话或浏览器不可用；保留历史数据，请更新 IEA 登录会话';for(const p of products){state.products[p.id]={...state.products[p.id],status:'session_or_browser_unavailable'};const old=data.sources?.find(s=>s.id==='iea-'+p.id);data.sources=[...(data.sources||[]).filter(s=>s.id!=='iea-'+p.id),{...old,id:'iea-'+p.id,name:p.name,url:p.url,status:'failed',error:state.lastError,checkedAt:new Date().toISOString()}];}}
- finally{await browser?.close();data.ieaDatasets=state;data.generatedAt=new Date().toISOString();await fs.writeFile(file+'.iea.tmp',JSON.stringify(data));await fs.rename(file+'.iea.tmp',file);}
+ finally{await browser?.close();data.ieaDatasets=state;data.generatedAt=new Date().toISOString();await writeJsonFile(file+'.iea.tmp',data);await fs.rename(file+'.iea.tmp',file);}
 }
 if(process.argv[1]?.endsWith('iea-datasets.mjs'))await collectIEA(process.env.INTEL_DATA_DIR||'.data/intelligence',{force:process.argv.includes('--force')});

@@ -9,6 +9,10 @@ export async function assertJobCapacity(dir,{minBytes=5*1024**3,minInodes=10000}
  const stat=await fs.statfs(dir);
  if(stat.bavail*stat.bsize<minBytes||(stat.files>0&&stat.ffree<minInodes))
   throw Object.assign(Error('Insufficient disk space or free inodes for another collection job'),{code:'DISK_CAPACITY_LOW'});
+ if(process.platform==='linux'){
+  const memory=await fs.readFile('/proc/meminfo','utf8'),available=Number(memory.match(/^MemAvailable:\s+(\d+)/m)?.[1]||0)*1024;
+  if(available<1536*1024**2)throw Object.assign(Error('Available memory below processing reserve'),{code:'MEMORY_CAPACITY_LOW'});
+ }
 }
 export function retryDelay(failures,code){
  return ['54000','ENOSPC','DISK_CAPACITY_LOW'].includes(code)?6*3600000:Math.min(6*3600000,15*60000*2**Math.min(5,Math.max(0,failures-1)));

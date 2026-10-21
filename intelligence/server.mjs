@@ -1,3 +1,5 @@
+import {readSnapshot} from './snapshot-reader.mjs';
+import {createProcessingClient} from './processing-client.mjs';
 import {textSlice} from './unicode-text.mjs';
 import {workspaceData} from './workspace-data.mjs';
 import {serveStrategy} from './strategy/service.mjs';
@@ -44,7 +46,7 @@ const compress=promisify(gzip);
 import http from 'node:http';import fs from 'node:fs/promises';import path from 'node:path';import {fileURLToPath} from 'node:url';import {createHmac,timingSafeEqual,randomUUID} from 'node:crypto';import OpenAI from 'openai';
 import {Store} from './store.mjs';import {filterData,overview,countries,topics,retrieve,chunks} from './core.mjs';
 const root=path.dirname(fileURLToPath(import.meta.url)),dir=process.env.INTEL_DATA_DIR||path.join(root,'../.data/intelligence'),base=process.env.INTEL_BASE_PATH||'/';
-const store=new Store(dir,process.env.INTEL_DATABASE_URL||undefined);await store.init();if(process.argv.includes('--import')){await store.import(JSON.parse(await fs.readFile(path.join(dir,'snapshot.json'),'utf8')));console.log('Imported into',store.backend);await store.pool?.end();process.exit(0);}
+const store=new Store(dir,process.env.INTEL_DATABASE_URL||undefined);await store.init();if(process.argv.includes('--import')){await store.import(await readSnapshot(path.join(dir,'snapshot.json'),{previous:store.data}));console.log('Imported into',store.backend);await store.pool?.end();process.exit(0);}
 const client=process.env.INTEL_ENABLE_AI==='true'&&process.env.OPENAI_API_KEY?new OpenAI({apiKey:process.env.OPENAI_API_KEY,baseURL:process.env.OPENAI_BASE_URL,timeout:75000,maxRetries:0}):null;
 // Read-only opt-in: explicit migration/capture is required. Never bootstrap from current on GET.
 const researchLedger=process.env.INTEL_RESEARCH_BACKEND==='postgres'&&store.pool?new ResearchLedger(new PostgresResearchRepository(store.pool)):process.env.INTEL_RESEARCH_ARCHIVE?new ResearchLedger(new FileResearchRepository(process.env.INTEL_RESEARCH_ARCHIVE)):null;
@@ -69,9 +71,10 @@ const limits=new Map();function limited(req,kind,max,ms){const key=(req.headers[
 const publicDoc=d=>{const {content,contentZh,embedding,chunks,extraction,...safe}=translatedDoc(d);return safe;};
 let writing=Promise.resolve();const serial=fn=>{const p=writing.then(fn);writing=p.catch(()=>{});return p;};
 const extracting=new Set();
-const scheduler=await createScheduler({store,dir,root,serial,researchLedger:process.env.INTEL_RESEARCH_CAPTURE==='true'?researchLedger:null});
-const processingRuns=store.pool&&auditPool&&client?await createLiveProcessing({dir,store,serial,client,auditPool}):null;
-const collectionStatus=()=>processingRuns?.workers.size?{...scheduler.status(),running:true,runMode:'processing',currentStep:'manual_processing'}:scheduler.status();
+const remoteProcessing=process.env.INTEL_PROCESSING_REMOTE==='true';
+const scheduler=remoteProcessing?await createProcessingClient({store,serial,dir}):await createScheduler({store,dir,root,serial,researchLedger:process.env.INTEL_RESEARCH_CAPTURE==='true'?researchLedger:null});
+const processingRuns=!remoteProcessing&&store.pool&&auditPool&&client?await createLiveProcessing({dir,store,serial,client,auditPool}):null;
+const collectionStatus=()=>(processingRuns?.workers.size||scheduler.status().manualRunning)?{...scheduler.status(),running:true,runMode:'processing',currentStep:'manual_processing'}:scheduler.status();
 const server=http.createServer(async(req,res)=>{res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('X-Frame-Options','DENY');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'");try{const url=new URL(req.url,'http://localhost'),route=url.pathname;
  if(req.method==='POST'){const origin=req.headers.origin;if(origin){let sameOrigin=false;try{sameOrigin=new URL(origin).host===req.headers.host;}catch{}if(!sameOrigin)return json(res,403,{error:'跨站请求已拒绝'});}}
  if(route==='/api/health')return json(res,200,{ok:true,backend:store.backend,documents:store.data.documents.length});
@@ -92,15 +95,16 @@ const server=http.createServer(async(req,res)=>{res.setHeader('X-Content-Type-Op
   }catch(error){return json(res,error instanceof LedgerError?error.status:400,{code:error.code||'INTAKE_FAILED',message:error instanceof LedgerError?error.message:'附件尚无可用正文或草稿保存失败；原资料保留，可稍后重试。'});}
  }
  if(route.startsWith('/api/period-reports')){try{const match=route.match(/^\/api\/period-reports\/([a-f0-9-]{36})(\/publish)?$/);if(route==='/api/period-reports/preview'&&req.method==='POST')return json(res,200,await periodReports.preview(await body(req)));if(route==='/api/period-reports'&&req.method==='GET')return json(res,200,{items:await periodReports.list()});if(route==='/api/period-reports'&&req.method==='POST')return json(res,202,await periodReports.create(await body(req)));if(match&&req.method==='GET'&&!match[2])return json(res,200,await periodReports.get(match[1]));if(match?.[2]&&req.method==='POST')return json(res,200,await periodReports.publish(match[1]));return json(res,405,{error:'不支持的简报操作'});}catch(e){return json(res,e.status||500,{error:e.status?e.message:'简报服务暂不可用，请稍后重试',code:e.code});}}
- if(await serveProcessingRuns(req,res,url,processingRuns))return;
+ if(remoteProcessing&&await scheduler.proxy(req,res,url))return;
+ if(!remoteProcessing&&await serveProcessingRuns(req,res,url,processingRuns))return;
  if(route==='/api/classification-preview-details'&&req.method==='GET'){try{return json(res,200,await previewDetails(auditPool,{token:url.searchParams.get('token'),page:Number(url.searchParams.get('page')||1)}));}catch(e){return json(res,400,{error:e.message});}}
  if(route==='/api/classification-audit'&&req.method==='GET'){try{const id=url.searchParams.get('id');if(id){const all=auditCache?.value?.documents.some(d=>d.id===id)?auditCache.value:await auditData();const d=all.documents.find(d=>d.id===id);return json(res,d?200:404,d?{data:auditPool?await readAuditBody(auditPool,d):d,observedAt:all.observedAt}:{error:'文章不存在'});}const all=await auditData();return await snapshotJson(req,res,{...all,documents:all.documents.map(({content,contentZh,originalContent,embedding,chunks,extraction,evidenceAssets,...d})=>d)});}catch{return json(res,503,{error:'当前分类台账暂不可用；未使用历史成果替代，请检查数据连接或本地核查副本。'});}}
  if(req.method==='GET'&&(route==='/api/monitor-period'||(url.searchParams.has('periodReportId')&&(route==='/api/research/monitor-summary'||route.startsWith('/api/research/objects'))))){try{const q=Object.fromEntries(url.searchParams),period=await monitorPeriod(periodReports,researchLedger,q);if(route==='/api/monitor-period')return json(res,200,{...period,documentIds:[...period.documentIds]});delete q.periodReportId;q.releaseId=period.releaseId;const result=route==='/api/research/monitor-summary'?await readMonitorSummary(researchLedger,q,period):await readObjects(researchLedger,q,route.split('/')[4]||null,period.documentIds);return json(res,200,result);}catch(e){return json(res,e.status||500,{error:e.status?e.message:'本期资料读取失败',message:e.status?e.message:'本期资料读取失败'});}}
  if(await serveResearchRead(req,res,url,researchLedger,scheduler.journal))return;
  if(route==='/api/freshness'&&req.method==='GET'){const head=await researchLedger?.repository.head();return json(res,200,{workspaceAt:store.data.generatedAt||null,releaseId:head?.releaseId||null,processing:scheduler.status().running,lastMergedAt:scheduler.status().lastMergedAt||null});}
  if(route==='/api/collection'&&req.method==='GET'){const [semanticReview,channelSync]=await Promise.all([semanticActivity(auditPool),channelActivity(auditPool)]);return json(res,200,{...collectionStatus(),semanticReview,channelSync});}
- if(route==='/api/process'&&req.method==='POST'){if(scheduler.status().running||processingRuns?.workers.size)return json(res,409,{error:'处理任务正在运行'});void scheduler.run({processOnly:true});return json(res,202,{accepted:true});}
- if(route==='/api/collection'&&req.method==='POST'){if(scheduler.status().running||processingRuns?.workers.size)return json(res,409,{error:'采集任务正在运行'});void scheduler.run();return json(res,202,{accepted:true});}
+ if(route==='/api/process'&&req.method==='POST'){if(scheduler.status().running||processingRuns?.workers.size)return json(res,409,{error:'处理任务正在运行'});if(remoteProcessing)await scheduler.run({processOnly:true});else void scheduler.run({processOnly:true});return json(res,202,{accepted:true});}
+ if(route==='/api/collection'&&req.method==='POST'){if(scheduler.status().running||processingRuns?.workers.size)return json(res,409,{error:'采集任务正在运行'});if(remoteProcessing)await scheduler.run();else void scheduler.run();return json(res,202,{accepted:true});}
 
  if(route.startsWith('/quant/')&&!(req.method==='GET'&&['/quant/chart-views.js','/quant/charts.js','/quant/official-charts.js'].includes(route))&&!auth(req))return json(res,401,{error:'请先登录主站'});
  if(await serveQuant(req,res,url,store.data,root))return;

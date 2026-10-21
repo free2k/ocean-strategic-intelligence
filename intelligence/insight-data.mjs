@@ -166,12 +166,12 @@ export async function mutateStoreData(store,input,actor){
  if(store.pool){const client=await store.pool.connect();try{
   await client.query('BEGIN');await lockData(client);
   const locked=await client.query("SELECT id,payload->>'insightRevision' AS revision FROM ocean_intel.runs WHERE id='current' FOR UPDATE");if(!locked.rows.length)throw new DataError('当前快照不可用',503);
-  const committed=applyDataEdits(await readWorkspaceClient(client),await loadDataEdits(client));committedForRefresh=committed;
+  const committed=applyDataEdits(await readWorkspaceClient(client,store.data),await loadDataEdits(client));committedForRefresh=committed;
   changed=changeData(committed,input,actor);const {edit,log}=changed;
   await client.query('INSERT INTO ocean_intel.data_overrides(id,payload) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload,updated_at=now()',[edit.kind+':'+edit.key,edit]);
   await client.query('INSERT INTO ocean_intel.data_change_log(id,payload) VALUES($1,$2)',[log.id,log]);
   if(arrays.includes(edit.kind)){const row=edit.deleted?{...log.before,insightDeleted:true,insightDeletedAt:edit.updatedAt}:log.after;await client.query(`INSERT INTO ocean_intel.${edit.kind}(id,payload) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload,updated_at=now()`,[row.id,row]);}
-  await writeWorkspace(client,changed.data);await client.query('COMMIT');
+  changed.data._workspaceDelta=await writeWorkspace(client,changed.data,committed);await client.query('COMMIT');
  }catch(error){await client.query('ROLLBACK');if(error.status===409&&committedForRefresh)store.data=committedForRefresh;throw error;}finally{client.release();}}
  else changed=changeData(store.data,input,actor);
  // A file write failure after a committed DB change must never masquerade as a rollback.

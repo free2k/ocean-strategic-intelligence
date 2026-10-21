@@ -1,8 +1,10 @@
+import {acknowledgeCheckpoints} from './article-checkpoints.mjs';
+import {mergeSnapshotFile} from './merge-snapshot-stream.mjs';
 import {writeJsonFile} from './json-stream.mjs';
 import {assertJobCapacity,retryDelay,finishJobStage} from './job-storage.mjs';
 import {deliveryRevision,acknowledgeDelivery,markDelivery} from './intelligence-delivery.mjs';
 import {acknowledgeClassification} from './classification-jobs.mjs';
-import {mergeProcessedSnapshot,isComplete} from './auto-extract.mjs';
+import {isComplete} from './auto-extract.mjs';
 import {TaskJournal} from './research/task-journal.mjs';
 import {ResearchPublication,publicationHash} from './research/publication.mjs';
 import fs from 'node:fs/promises';
@@ -29,9 +31,9 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
  const persist=async()=>{const tmp=file+'.'+randomUUID()+'.tmp';try{await fs.writeFile(tmp,JSON.stringify(state));await fs.rename(tmp,file);}finally{await fs.rm(tmp,{force:true}).catch(()=>{});}};
  if(interrupted)await persist();
  const runScript=executeWorker||((name,stage)=>new Promise((resolve,reject)=>{
-  const p=spawn(process.execPath,[path.join(root,name)],{cwd:path.dirname(root),env:{...process.env,INTEL_DATA_DIR:stage,IEA_DATA_HOME:process.env.IEA_DATA_HOME||path.join(dir,'iea'),INTEL_MAX_PER_SOURCE:'4',INTEL_ENRICH_LIMIT:process.env.INTEL_ENRICH_BATCH_LIMIT||'6',INTEL_AUTO_EXTRACT_LIMIT:process.env.INTEL_EXTRACT_BATCH_LIMIT||'6'},stdio:['ignore','ignore','ignore']});
+  const p=spawn(process.execPath,[path.join(root,name)],{cwd:path.dirname(root),env:{...process.env,INTEL_DATA_DIR:stage,INTEL_CHECKPOINT_DIR:path.join(dir,'article-checkpoints'),IEA_DATA_HOME:process.env.IEA_DATA_HOME||path.join(dir,'iea'),INTEL_MAX_PER_SOURCE:'4',INTEL_ENRICH_LIMIT:process.env.INTEL_ENRICH_BATCH_LIMIT||'6',INTEL_AUTO_EXTRACT_LIMIT:process.env.INTEL_EXTRACT_BATCH_LIMIT||'6'},stdio:['ignore','ignore','ignore']});
   const timeout=setTimeout(()=>p.kill(),name==='pipeline-worker.mjs'?Math.min(workerTimeoutMs(name),20*60000):workerTimeoutMs(name));
-  p.on('error',()=>{clearTimeout(timeout);reject(new Error('worker_start_failed'));});p.on('exit',code=>{clearTimeout(timeout);code===0?resolve():reject(new Error('worker_failed'));});
+  p.on('error',()=>{clearTimeout(timeout);reject(new Error('worker_start_failed'));});p.on('exit',(code,signal)=>{clearTimeout(timeout);code===0?resolve():reject(Object.assign(new Error('worker_failed'),{code:signal?'WORKER_SIGNAL_'+signal:'WORKER_EXIT_'+code}));});
  }));
  const arm=(completedFull=false)=>{clearTimeout(timer);if(enabled){state.nextRun=new Date(Math.max(Date.parse(nextCollectionTime(state.nextRun,Date.now(),completedFull)),Date.parse(state.retryAt||'')||0)).toISOString();timer=setTimeout(()=>run(),Date.parse(state.nextRun)-Date.now());timer.unref();}};
  async function run({processOnly=false}={}){
@@ -46,31 +48,32 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
    }
    if(publication&&state.taskId){const previous=await publication.recover(state.taskId);if(previous.status==='deferred'&&previous.checkpointHash){state.result='deferred';state.error='上一批资料发布待恢复：'+previous.reason;return false;}}
    if(publication){const latest=await researchLedger.latest();if(!latest){state.result='deferred';state.error='研究版本库尚无明确迁移基线，请先捕获基线';return false;}task=await journal.create({trigger:processOnly?'process_only':'scheduled_collection',expectedReleaseId:latest.releaseId});}
-   await checkCapacity(dir);
+   await checkCapacity(dir);await store.refresh?.();
    delivery=await deliveryRevision(store.pool);
-   state={...state,running:true,runMode:processOnly?'processing':'collection',result:null,taskId:task?.id||null,startedAt:new Date().toISOString(),steps:[],error:null};await persist();
+   state={...state,running:true,runMode:processOnly?'processing':'collection',result:null,taskId:task?.id||null,startedAt:new Date().toISOString(),steps:[],error:null,errorCode:null,errorDetail:null};await persist();
    stage=path.join(dir,'jobs',task?.id||randomUUID());await fs.mkdir(stage,{recursive:true});await writeJsonFile(path.join(stage,'snapshot.json'),store.data);
    const scripts=processOnly?['import-mp2rss.mjs','reconcile-classification.mjs','pipeline-worker.mjs']:['import-mp2rss.mjs','reconcile-classification.mjs','collect.mjs','official-sources.mjs','expanded-sources.mjs','open-datasets.mjs','iea-datasets.mjs','import-mp2rss.mjs','reconcile-classification.mjs',...(process.env.INTEL_EIA_EXTERNAL==='true'?[]:[process.env.EIA_API_KEY?'import-eia.mjs':'import-series.mjs']),'pipeline-worker.mjs'];
    for(const script of scripts){
+    store.suspend?.();
     state.currentStep=script;if(task)task=await journal.update(task.id,task.revision,{status:workerStage(script),currentStep:script});await persist();
     const step={name:script,startedAt:new Date().toISOString()};let fatal=false;
-    try{await runScript(script,stage);step.status='completed';}catch{step.status='failed';step.errorCode='WORKER_FAILED';fatal=script==='reconcile-classification.mjs';}
+    try{await runScript(script,stage);step.status='completed';}catch(error){step.status='failed';step.errorCode=error.code||'WORKER_FAILED';fatal=script==='reconcile-classification.mjs';}
     step.finishedAt=new Date().toISOString();state.steps.push(step);if(task)task=await journal.update(task.id,task.revision,{steps:state.steps,errors:state.steps.filter(s=>s.status==='failed').map(s=>({stage:s.name,code:s.errorCode}))});await persist();if(fatal)throw Error('classification_reconciliation_failed');
-    if(script==='reconcile-classification.mjs'&&step.status==='completed'&&!task){const ready=JSON.parse(await fs.readFile(path.join(stage,'snapshot.json'),'utf8'));await serial(async()=>{const merged=mergeProcessedSnapshot(store.data,ready);merged.generatedAt=new Date().toISOString();await store.import(merged);});state.lastMergedAt=new Date().toISOString();await persist();}
+    if(script==='reconcile-classification.mjs'&&step.status==='completed'&&!task){await store.resume?.();await serial(async()=>{const merged=await mergeSnapshotFile(store.data,path.join(stage,'snapshot.json'));merged.generatedAt=new Date().toISOString();await store.import(merged,{mirror:false});});state.lastMergedAt=new Date().toISOString();await persist();}
    }
-   const candidate=JSON.parse(await fs.readFile(path.join(stage,'snapshot.json'),'utf8'));if(!Array.isArray(candidate.documents)||!candidate.documents.length)throw Error('invalid_snapshot');
+   await store.resume?.();const candidate=await mergeSnapshotFile(store.data,path.join(stage,'snapshot.json'));if(!Array.isArray(candidate.documents)||!candidate.documents.length)throw Error('invalid_snapshot');
    const partial=state.steps.some(s=>s.status==='failed')||candidate.sources?.some(s=>s.status==='failed')||candidate.errors?.some(e=>e.at&&e.at>=state.startedAt);
    state.currentStep='merging';await persist();
    // Place attachment artifacts before exposing a snapshot that references them.
    for(const f of await fs.readdir(stage))if(/\.(html|pdf|json|csv)$/.test(f)&&f!=='snapshot.json'){await fs.copyFile(path.join(stage,f),path.join(dir,f));copied.push(f);}
    await serial(async()=>{
-    const merged=mergeProcessedSnapshot(store.data,candidate);
+    const merged=candidate;
     if(task){task=await publication.prepare(task,merged,{completeness:partial?'partial':'complete',errors:task.errors});merged.researchPublication={taskId:task.id,hash:task.checkpointHash};}
     await store.import(merged);
     if(task){if(publicationHash(store.data)!==task.checkpointHash)throw Error('source_snapshot_changed_during_commit');task=await publication.finish(task);}
     if(store.pool)await acknowledgeClassification(store.pool,store.data,isComplete);
    });
-   committed=true;
+   committed=true;await acknowledgeCheckpoints(dir,store.data).catch(error=>console.error('checkpoint cleanup:',error.code||error.name));
    const unfinished=store.data.documents.some(d=>!d.manual&&(!d.industry||d.industry.status==='accepted')&&!isComplete(d)&&(!d.autoExtraction?.nextRetryAt||d.autoExtraction.nextRetryAt<=new Date().toISOString()));
    if(unfinished&&store.pool)await markDelivery(store.pool);else await acknowledgeDelivery(store.pool,delivery);
    state.lastRun=new Date().toISOString();if(!processOnly)state.lastCollectionRun=state.lastRun;state.result=partial?'partial':'completed';state.documents=store.data.documents.length;completedFull=!processOnly;

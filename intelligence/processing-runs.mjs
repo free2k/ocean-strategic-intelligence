@@ -32,6 +32,7 @@ export class ProcessingRuns{
   Object.assign(this,{dir,readInput,client,model,clock,extract,review,mode,acquire,loadDocument,publish});this.state=new FileRuntimeState(path.join(dir,'tasks'));this.serial=Promise.resolve();this.controllers=new Map();this.workers=new Map();
  }
  tx(fn){const next=this.serial.catch(()=>{}).then(()=>this.state.transact(fn));this.serial=next;return next;}
+ async *iterateResults(task){for(const r of task.results)yield JSON.parse(await fs.readFile(path.join(this.dir,r.file),'utf8'));}
  async recover(){await this.tx(s=>{for(const task of Object.values(s.processingRuns||{}))if(active.has(task.status)){task.status='interrupted';task.stage='interrupted';task.finishedAt=this.clock();this.log(task,'interrupted','服务重启，本轮已中断；已保存检查点，未自动发布。');}});}
  log(t,type,message,details={}){const row={seq:(t.logSeq||t.logs.at(-1)?.seq||0)+1,at:this.clock(),type,message,...details};t.logSeq=row.seq;mkdirSync(path.join(this.dir,t.id),{recursive:true});appendFileSync(path.join(this.dir,t.id,'logs.jsonl'),JSON.stringify(row)+'\n');t.logs.push(row);if(t.logs.length>400)t.logs.splice(0,t.logs.length-400);}
  async preview(scope='pending'){const input=await this.readInput(),config=compileRules(input.config),documents=selectProcessingDocuments(input.documents,scope);
@@ -63,7 +64,7 @@ export class ProcessingRuns{
   }return this.public(task);
  }
  public(t,after=0){if(!t)return null;const {results,...rest}=clone(t);rest.logs=rest.logs.filter(l=>l.seq>after).slice(0,200);rest.lastSeq=t.logSeq||t.logs.length;rest.facts={events:results.reduce((n,r)=>n+(r.extraction?.events.length||0),0),entities:results.reduce((n,r)=>n+(r.extraction?.entities.length||0),0),observations:results.reduce((n,r)=>n+(r.extraction?.observations.length||0),0)};return rest;}
- async current(after=0,id){const task=await this.tx(s=>{const tasks=Object.values(s.processingRuns||{}).sort((a,b)=>b.startedAt.localeCompare(a.startedAt));return this.public(id?tasks.find(t=>t.id===id):tasks[0],after);});if(task&&task.logs[0]?.seq>after+1){const raw=await fs.readFile(path.join(this.dir,task.id,'logs.jsonl'),'utf8');task.logs=raw.trim().split('\n').map(JSON.parse).filter(l=>l.seq>after).slice(0,200);}return task;}
+ async current(after=0,id){const state=await this.state.read();const task=(()=>{const s=state;const tasks=Object.values(s.processingRuns||{}).sort((a,b)=>b.startedAt.localeCompare(a.startedAt));return this.public(id?tasks.find(t=>t.id===id):tasks[0],after);})();if(task&&task.logs[0]?.seq>after+1){const raw=await fs.readFile(path.join(this.dir,task.id,'logs.jsonl'),'utf8');task.logs=raw.trim().split('\n').map(JSON.parse).filter(l=>l.seq>after).slice(0,200);}return task;}
  async stop(id,{confirmed}){
   if(confirmed!==true)fail('请先确认中断',400);
   const task=await this.tx(s=>{const t=s.processingRuns?.[id];if(!t)fail('任务不存在',404);if(!active.has(t.status))return this.public(t);
@@ -83,10 +84,10 @@ export class ProcessingRuns{
   if(task.publication)return task.publication;
   // Check all checkpoints before changing the task state. No model client is used.
   const saved=JSON.parse(await fs.readFile(path.join(this.dir,'previews',task.previewToken+'.json'),'utf8'));
-  const results=[];for(const r of task.results)results.push(JSON.parse(await fs.readFile(path.join(this.dir,r.file),'utf8')));
-  await this.update(id,t=>{t.status='running';t.stage='merging';delete t.finishedAt;this.log(t,'merging','从已保存检查点恢复合并；不重复调用模型',{checkpointCount:results.length});});
+  const results=[];if(!this.publish)for await(const result of this.iterateResults(task))results.push(result);
+  await this.update(id,t=>{t.status='running';t.stage='merging';delete t.finishedAt;this.log(t,'merging','从已保存检查点恢复合并；不重复调用模型',{checkpointCount:task.results.length});});
   try{
-   const publication=await this.publish({task,input:saved.input,readResults:async()=>results});
+   const publication=await this.publish({task,input:saved.input,iterateResults:()=>this.iterateResults(task),readResults:async()=>{const rows=[];for await(const row of this.iterateResults(task))rows.push(row);return rows;}});
    await this.update(id,t=>{t.status=t.retries.length?'partial':'completed';t.stage='published';t.finishedAt=this.clock();t.publication=publication;delete t.failedStage;this.log(t,'published','已恢复合并并发布网站成果',publication);});return publication;
   }catch(error){await this.update(id,t=>{t.status='failed';t.failedStage='merging';t.stage='failed';t.finishedAt=this.clock();this.log(t,'failed','恢复合并失败，检查点保留',{...extractionError(error),errorCode:/^[A-Z0-9_]{3,50}$/.test(error.code||'')?error.code:null,failedStage:'merging'});});throw error;}
  }
@@ -136,7 +137,7 @@ export class ProcessingRuns{
    // Keep the cancellation decision and the local publication pointer under one lock.
    await this.tx(async s=>{
     const t=s.processingRuns[id];check();if(t.status==='stopping')throw Object.assign(Error('stopped'),{name:'AbortError'});
-    if(this.publish){const publication=await this.publish({task:t,input,readResults:async()=>Promise.all(t.results.map(r=>fs.readFile(path.join(this.dir,r.file),'utf8').then(JSON.parse)))});t.status=t.retries.length?'partial':'completed';t.stage='published';t.finishedAt=this.clock();t.publication=publication;this.log(t,'published','网站成果已发布',{releaseId:publication.releaseId});return;}
+    if(this.publish){const publication=await this.publish({task:t,input,iterateResults:()=>this.iterateResults(t),readResults:async()=>Promise.all(t.results.map(r=>fs.readFile(path.join(this.dir,r.file),'utf8').then(JSON.parse)))});t.status=t.retries.length?'partial':'completed';t.stage='published';t.finishedAt=this.clock();t.publication=publication;this.log(t,'published','网站成果已发布',{releaseId:publication.releaseId});return;}
     const previous=await fs.readFile(path.join(this.dir,'published.json'),'utf8').then(JSON.parse).catch(e=>{if(e.code==='ENOENT')return null;throw e;});
     const snapshot=previous?JSON.parse(await fs.readFile(path.join(this.dir,previous.file),'utf8')):{documents:[],entities:[],events:[],relations:[],observations:[],evidence:[]};
     for(const saved of t.results){const result=saved.file?JSON.parse(await fs.readFile(path.join(this.dir,saved.file),'utf8')):saved;const d=result.document,old=snapshot.documents.find(x=>x.id===d.id);if(old?.manual)continue;

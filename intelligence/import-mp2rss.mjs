@@ -1,3 +1,5 @@
+import {writeJsonFile} from './json-stream.mjs';
+import {readSnapshot} from './snapshot-reader.mjs';
 import {reconcileDocument} from './reconcile-classification.mjs';
 // MP_CLEAN_V1
 import fs from 'node:fs/promises';import path from 'node:path';import pg from 'pg';
@@ -7,7 +9,7 @@ const dir=process.env.INTEL_DATA_DIR||'.data/intelligence',file=path.join(dir,'s
 const pool=new pg.Pool({connectionString:process.env.DATABASE_URL,max:1});
 try{
  if(!(await pool.query("SELECT to_regclass('mp2rss.items') AS t")).rows[0].t){console.log('Mp2RSS not initialized; skipped');}
- else{const data=JSON.parse(await fs.readFile(file,'utf8'));const ss=(await pool.query('SELECT * FROM mp2rss.subscriptions')).rows;
+ else{const data=await readSnapshot(file);const ss=(await pool.query('SELECT * FROM mp2rss.subscriptions')).rows;
  for(const s of ss){const source={id:'mp2rss_'+s.id,name:s.payload.name,country:s.payload.platform==='mp'?'CN':'GLOBAL',level:'S4',language:s.payload.platform==='mp'?'zh':'en',method:'api',url:s.payload.platform==='x'&&s.payload.handle?'https://x.com/'+encodeURIComponent(s.payload.handle):'https://mp.weixin.qq.com/',scope:'Mp2RSS 获取；原平台出处逐文保留；不是机构官网认证',status:s.present&&s.enabled?'ready':'paused',checkedAt:s.checked_at?.toISOString()};data.sources=[...data.sources.filter(x=>x.id!==source.id),source];}
  const allItems=(await pool.query('SELECT payload,classification FROM mp2rss.items')).rows;
  for(const row of allItems){const d=data.documents.find(d=>d.url===row.payload.url&&d.providerHash);if(d){reconcileDocument(d,row.classification);if(row.classification.primary)d.topic=row.classification.primary;}}
@@ -27,5 +29,5 @@ try{
   const esc=x=>String(x).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');await fs.writeFile(path.join(dir,versionId+'.html'),`<!doctype html><meta charset="utf-8"><h1>${esc(p.title)}</h1><p>${esc(p.author)} · ${esc(p.publishedAt)}</p><a href="${esc(p.url)}">原文</a><pre>${esc(p.content)}</pre>`);added++;
  }
  await importXEvidence(data,pool,dir);
- data.generatedAt=new Date().toISOString();await fs.writeFile(file+'.mp2.tmp',JSON.stringify(data));await fs.rename(file+'.mp2.tmp',file);console.log(JSON.stringify({provider:'Mp2RSS',added,eligible:rows.length}));}
+ data.generatedAt=new Date().toISOString();await writeJsonFile(file+'.mp2.tmp',data);await fs.rename(file+'.mp2.tmp',file);console.log(JSON.stringify({provider:'Mp2RSS',added,eligible:rows.length}));}
 }finally{await pool.end();}
