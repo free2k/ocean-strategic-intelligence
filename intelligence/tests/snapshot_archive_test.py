@@ -18,6 +18,30 @@ spec.loader.exec_module(module)
 
 
 class ArchiveTests(unittest.TestCase):
+    def test_invalid_utf8_is_retained_and_other_snapshots_continue(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            archive = module.Archive(root / "archive")
+            bad = root / "bad.json"
+            raw = b'{"documents":[],"text":"broken\xff"}'
+            bad.write_bytes(raw)
+            manifest = root / "bad.manifest"
+            self.assertIsNone(module.archive_candidate(archive, bad, manifest, set()))
+            self.assertEqual(bad.read_bytes(), raw)
+            self.assertFalse(manifest.exists())
+            with patch.object(archive, "archive", side_effect=AssertionError("must not reparse")):
+                self.assertIsNone(module.archive_candidate(archive, bad, manifest, set()))
+            good = root / "good.json"
+            good.write_bytes(b'{"documents":[]}')
+            module.archive_candidate(archive, good, root / "good.manifest", set())
+            self.assertFalse(good.exists())
+            # A repaired/replaced source is revalidated, never permanently blacklisted.
+            bad.write_bytes(b'{"documents":[],"text":"repaired"}')
+            module.archive_candidate(archive, bad, manifest, set())
+            self.assertFalse(bad.exists())
+            archive.restore(manifest, root / "restored")
+            self.assertEqual((root / "restored").read_bytes(), b'{"documents":[],"text":"repaired"}')
+
     def test_short_pressure_pause_resumes_without_reading_or_restarting(self):
         budget = module.Budget(seconds=10, rate=0)
         with patch.object(budget, "pressure", side_effect=["memory pressure", None]), patch.object(module.time, "sleep") as sleep:

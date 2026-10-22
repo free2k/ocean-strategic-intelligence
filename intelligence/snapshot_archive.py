@@ -25,6 +25,33 @@ class Deferred(Exception):
     """Leave original intact and retry in a later timer run."""
 
 
+def archive_candidate(archive, source, manifest, baseline):
+    """Isolate malformed inputs without changing or deleting their original bytes."""
+    stat = source.stat()
+    identity = [stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns]
+    rejected = source.parent / (source.name + ".validation-error.json")
+    if rejected.exists():
+        try:
+            if json.loads(rejected.read_bytes()).get("identity") == identity:
+                print(json.dumps({"status": "retained", "source": str(source),
+                                  "reason": "unchanged invalid snapshot; manual review required"}), flush=True)
+                return None
+        except (ValueError, OSError):
+            pass
+    try:
+        return archive.archive(source, manifest, baseline, remove=True)
+    except (ijson.JSONError, UnicodeError, EOFError, gzip.BadGzipFile) as exc:
+        # Parser errors are not ValueError subclasses in every ijson backend.
+        # Record metadata only: do not leak article excerpts from parser messages.
+        record = {"source": str(source), "identity": identity,
+                  "errorType": type(exc).__name__, "status": "needs_review",
+                  "checkedAt": time.time()}
+        atomic(rejected, json.dumps(record).encode())
+        print(json.dumps({"status": "retained", "source": str(source),
+                          "reason": record["errorType"], "review": str(rejected)}), flush=True)
+        return None
+
+
 class Budget:
     def __init__(self, seconds=600, rate=8 * 1024**2, min_available=2 * 1024**3, pause_seconds=60):
         self.deadline = time.monotonic() + seconds
@@ -470,7 +497,7 @@ def main():
             break
         manifest = source.parent / (source.name + ".archive.json")
         try:
-            result = archive.archive(source, manifest, baseline, remove=True)
+            result = archive_candidate(archive, source, manifest, baseline)
         except Deferred as exc:
             print(json.dumps({"status": "deferred", "reason": str(exc),
                               "source": str(source)}), flush=True)
@@ -480,6 +507,8 @@ def main():
             continue
         # The source-side manifest is the durable recovery pointer. Audit output
         # is informational and never used to decide whether a block can be deleted.
+        if result is None:
+            continue
         print(json.dumps(result), flush=True)
         count += 1
     print(json.dumps({"completed": count}), flush=True)
