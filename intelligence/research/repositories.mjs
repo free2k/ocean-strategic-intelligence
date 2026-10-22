@@ -36,14 +36,18 @@ export class PostgresResearchRepository{
   if(encoded===undefined){
    if(!this.pendingReads.has(id))this.pendingReads.set(id,(async()=>{
     const value=(await this.pool.query('SELECT payload::text AS payload FROM ocean_research.records WHERE id=$1',[id])).rows[0]?.payload;
-    if(!value)return null;let text=typeof value==='string'?value:JSON.stringify(value);if(text.includes('"_chunkedFields"')){const hydrated=await hydrateRecord(JSON.parse(text),async field=>(await this.pool.query('SELECT payload::text AS payload FROM ocean_research.record_parts WHERE record_id=$1 AND field=$2 ORDER BY part',[id,field])).rows);text=JSON.stringify(hydrated);}const bytes=Buffer.byteLength(text);
+    if(!value)return null;const text=typeof value==='string'?value:JSON.stringify(value);const bytes=Buffer.byteLength(text);
     if(bytes<=64*1024*1024){while(this.records.size&&(this.recordBytes+bytes>64*1024*1024||this.records.size>=32)){const oldest=this.records.keys().next().value;this.recordBytes-=Buffer.byteLength(this.records.get(oldest));this.records.delete(oldest);}this.records.set(id,text);this.recordBytes+=bytes;}
     return text;
    })().finally(()=>this.pendingReads.delete(id)));
    encoded=await this.pendingReads.get(id);
   }
   // Immutable records are cached; callers receive an independent mutable copy.
-  return encoded?JSON.parse(encoded):null;
+  if(!encoded)return null;
+  const root=JSON.parse(encoded);
+  // Cache only the stored representation. Hydrate chunks into a fresh object
+  // per caller; never stringify the complete record (which may exceed V8 limits).
+  return hydrateRecord(root,async field=>(await this.pool.query('SELECT payload::text AS payload FROM ocean_research.record_parts WHERE record_id=$1 AND field=$2 ORDER BY part',[id,field])).rows);
  }
  async readProjection(id,view,sql,params=[]){
   sql=sql.replace(/jsonb_array_elements\(payload->'([a-zA-Z]+)'\)/g,(_,field)=>`ocean_research.array_items($1,'${field}',payload->'${field}')`);

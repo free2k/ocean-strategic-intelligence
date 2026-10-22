@@ -32,4 +32,4 @@ try{
     release_id=EXCLUDED.release_id,updated_at=now()`,[current.revision,release.releaseId]);
   console.log(JSON.stringify({status:release.unchanged?'unchanged':'published',releaseId:release.releaseId,snapshotId:release.snapshotId,objectRegistryId:release.objectRegistryId}));
   }
-}catch(e){console.error(JSON.stringify({stage:'publish_committed_workspace',code:e.code||'WORKSPACE_PUBLICATION_FAILED',message:e.message,at:new Date().toISOString()}));process.exitCode=1;}finally{await pool.end();}
+}catch(e){console.error(JSON.stringify({stage:'publish_committed_workspace',code:e.code||'WORKSPACE_PUBLICATION_FAILED',message:e.message,stack:e.stack,at:new Date().toISOString()}));process.exitCode=1;}finally{await pool.end();}
