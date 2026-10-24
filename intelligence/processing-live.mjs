@@ -1,5 +1,6 @@
 import {writeJsonFile} from './json-stream.mjs';
 import {textSlice} from './unicode-text.mjs';
+import {isLowCarbon} from './system-profile.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
@@ -87,6 +88,6 @@ export async function createLiveProcessing({dir,store,serial,client,auditPool}){
   invalidateAudit(pool);invalidateAudit(auditPool);
   return {mode:'live',releaseId:release.releaseId,publishedAt:new Date().toISOString(),skippedChanged,classificationJobId:job.id};
  }).finally(()=>store.suspend?.());
- const manager=new ProcessingRuns({dir:path.join(dir,'processing-runs'),readInput,client,model:process.env.CHAT_MODEL||'qwen-plus',mode:'live',acquire:()=>acquireProcessingGuard(pool),loadDocument,publish});
+ const manager=new ProcessingRuns({dir:path.join(dir,'processing-runs'),readInput,client,model:process.env.CHAT_MODEL||'qwen-plus',mode:'live',acquire:()=>acquireProcessingGuard(pool,isLowCarbon?path.join(process.env.LC_LOCK_DIR,'pipeline.lock'):'/opt/ocean-intelligence/eia-daily.lock'),loadDocument,publish});
  await manager.recover();return manager;
 }

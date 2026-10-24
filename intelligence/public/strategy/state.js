@@ -1,5 +1,6 @@
 import {hydrateScope} from './scope-state.js';
-export const DRAFT_KEY='ocean-strategy-draft-v2';
+import {statePrefix} from '../system-profile.mjs';
+export const DRAFT_KEY=statePrefix+'draft-v2';
 export const matrixMethods=new Set(['equal','manual','entropy','critic','weighted','topsis','entropy-topsis','ahp-topsis','rank-robustness']);
 export const seriesMethods=new Set(['describe','growth','cagr','trend','moving']);
 export const scenarioOnly=d=>matrixMethods.has(d.method)?d.evidence?.length>0&&d.evidence.every(row=>row.length>0&&row.every(e=>e.nature==='demo')):d.constraintScope==='scenario';
@@ -38,4 +39,4 @@ export function restoreRecord(r){const d=blankDraft();d.tab='quant';d.step=1;d.t
  if(x.rows)d.rows=structuredClone(x.rows);if(x.cashflows)d.cashflows=x.cashflows.map(value=>({value}));if(x.values&&!x.matrix)d.values=x.values.map((value,i)=>({label:String(i+1),value,other:x.other?.[i]??null,sourceRef:''}));if(x.edges)d.edges=structuredClone(x.edges);if(d.method==='ahp'){d.judgments=structuredClone(x.judgments);d.ahpLabels=x.judgments.map((_,i)=>'判断维度'+(i+1));}if(x.scan){p.scanEnabled=true;p.scanIndicator=x.scan.indicatorIndex;}return d;}
 export function loadDraft(){try{const d=JSON.parse(sessionStorage.getItem(DRAFT_KEY)||'null');if(d?.schemaVersion===2&&Array.isArray(d.matrix)&&d.objects?.length&&d.indicators?.length)return hydrateScope(d);}catch{}return blankDraft();}
 export function saveDraft(d){try{sessionStorage.setItem(DRAFT_KEY,JSON.stringify(d));return true;}catch{return false;}}
-export function clearDraft(){for(const key of Object.keys(sessionStorage))if(key.startsWith('ocean-strategy-'))sessionStorage.removeItem(key);}
+export function clearDraft(){for(const key of Object.keys(sessionStorage))if(key.startsWith(statePrefix))sessionStorage.removeItem(key);}

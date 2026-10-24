@@ -1,0 +1,23 @@
+{
+  "at": "2026-10-18T13:42:53.188Z",
+  "identity": {
+    "name": "knowledge_base",
+    "port": 5432
+  },
+  "rules": {
+    "digest": "5bb2ac0163e4a95a30498b279d535e0b"
+  },
+  "counts": {
+    "articles": "6273",
+    "documents": "1317",
+    "sources": "105"
+  },
+  "files": {
+    "/opt/knowledge-base/.env": "698cad3ad23e7ccff4f1c12a8feb80e45cbc7f99a58b3c8902be59df2fdc4f2e",
+    "/etc/nginx/sites-enabled/knowledge-base": "bd0425f34abd8b83616e889fecdd69ac66bbad0324deb03fb716fe9e0142cc7e"
+  },
+  "services": {
+    "knowledge-base": "ActiveEnterTimestamp=Sat 2026-10-17 19:47:08 CST\nMainPID=613652\n",
+    "ocean-intelligence": "ActiveEnterTimestamp=Sat 2026-10-17 23:53:34 CST\nMainPID=615848\n"
+  }
+}

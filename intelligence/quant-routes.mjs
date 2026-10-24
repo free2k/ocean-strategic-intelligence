@@ -1,3 +1,4 @@
+import {brandText} from './system-profile.mjs';
 // IEA_UNIFIED_V1
 import {unifiedIEA,integrateIEACatalog} from './iea-quant.mjs';
 import {gzipSync} from 'node:zlib';
@@ -31,6 +32,7 @@ export async function serveQuant(req,res,url,raw,root){
  else if(file==='echarts.js')target=path.join(root,'../node_modules/echarts/dist/echarts.min.js');
  else {res.writeHead(404);res.end();return true;}
  let bytes=await fs.readFile(target);if(file==='index.html')bytes=Buffer.from(bytes.toString().replaceAll('href="/','href="').replaceAll('src="/','src="').replace('<body>','<body class="embedded">'));
+ if(/\.(html|css|js)$/.test(file))bytes=Buffer.from(brandText(bytes.toString()));
  res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript; charset=utf-8':file.endsWith('.css')?'text/css; charset=utf-8':file.endsWith('.json')?'application/json':'text/html; charset=utf-8');res.end(bytes);return true;
 }
 

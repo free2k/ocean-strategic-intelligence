@@ -1,13 +1,23 @@
-﻿import {createHash} from 'node:crypto';
+import {createHash} from 'node:crypto';
 import {standardTopics,canonicalTopic,topicDefinition,marineContextPattern,supplementalRules,taxonomyVersion} from './industry-topics.mjs';
 export const industries=standardTopics.map(t=>t.id);
+import {isLowCarbon} from './system-profile.mjs';
+import {classifyLowCarbon} from './low-carbon/taxonomy.mjs';
 export const industryNames=Object.fromEntries(standardTopics.map(t=>[t.id,t.name]));
 const marine=new RegExp(marineContextPattern,'i');
 const aliases=supplementalRules;
 const visible=s=>String(s||'').replace(/<(script|style|head)\b[^>]*>[\s\S]*?<\/\1>/gi,' ').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
-export function hasTerm(text,term){if(!term?.trim())return false;const t=term.trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return /[a-z]/i.test(term)?new RegExp('(?<![a-z0-9])'+t+'(?![a-z0-9])','i').test(text):text.includes(term);}
-export function compileRules(config){const rules=config.rules.filter(r=>r.type==='context'||r.enabled!==false).map(r=>({...(r.type==='context'?{enabled:r.enabled!==false}:{}),id:r.id,type:r.type,topic:canonicalTopic(r.topic),description:topicDefinition(r.topic)?.definition||r.description,title_keywords:r.title_keywords||r.titleKeywords||[],content_keywords:r.content_keywords||r.contentKeywords||[],priority:r.priority??99,require_all:r.require_all??r.requireAll??false,groups:r.groups||[]})).sort((a,b)=>a.priority-b.priority||(a.id||0)-(b.id||0));return{rules,version:createHash('sha256').update(JSON.stringify({rules,aliases,standardTopics,taxonomyVersion,policy:'marine-lead-context-focus-v2'})).digest('hex').slice(0,12),origin:config.exportedAt||'repository'};}
+const lowCarbonPatterns=new Map();
+export function hasTerm(text,term){
+ if(!term?.trim())return false;
+ if(!/[a-z]/i.test(term))return text.includes(term);
+ const key=term.trim().toLowerCase();let pattern=isLowCarbon?lowCarbonPatterns.get(key):null;
+ if(!pattern){const t=term.trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');pattern=new RegExp('(?<![a-z0-9])'+t+'(?![a-z0-9])','i');if(isLowCarbon){if(lowCarbonPatterns.size>=4096)lowCarbonPatterns.delete(lowCarbonPatterns.keys().next().value);lowCarbonPatterns.set(key,pattern);}}
+ return pattern.test(text);
+}
+export function compileRules(config){const rules=config.rules.filter(r=>r.type==='context'||r.enabled!==false).map(r=>({...(r.type==='context'?{enabled:r.enabled!==false}:{}),id:r.id,type:r.type,topic:canonicalTopic(r.topic),description:isLowCarbon?r.description:topicDefinition(r.topic)?.definition||r.description,title_keywords:r.title_keywords||r.titleKeywords||[],content_keywords:r.content_keywords||r.contentKeywords||[],priority:r.priority??99,require_all:r.require_all??r.requireAll??false,groups:r.groups||[]})).sort((a,b)=>a.priority-b.priority||(a.id||0)-(b.id||0));return{rules,version:createHash('sha256').update(JSON.stringify({rules,aliases,standardTopics,taxonomyVersion,policy:isLowCarbon?'low-carbon-context-lexicons-v5':'marine-lead-context-focus-v2'})).digest('hex').slice(0,12),origin:config.exportedAt||'repository'};}
 export function classifyRecord(record,compiled){
+ if(isLowCarbon)return classifyLowCarbon(record,compiled,hasTerm);
  const title=visible([record.title,record.titleZh].filter(Boolean).join('\n')),content=visible([record.content,record.contentZh].filter(Boolean).join('\n')),text=title+' '+content,positive=[],negative=[];
  for(const rule of compiled.rules){if(rule.type==='context')continue;const titleHits=(rule.title_keywords||[]).filter(k=>hasTerm(title,k)),contentHits=(rule.content_keywords||[]).filter(k=>hasTerm(content,k));const hits=[...titleHits.map(keyword=>({keyword,field:'标题'})),...contentHits.map(keyword=>({keyword,field:'正文'}))];
  if(rule.type==='exclude'){negative.push(...hits);continue;}const topic=topicDefinition(rule.topic)?.id;if(!topic)continue;const groups=rule.groups||[],groupHits=groups.map(g=>g.filter(k=>hasTerm(text,k)));const grouped=groups.length>0&&groupHits.every(g=>g.length>0);

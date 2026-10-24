@@ -1,0 +1,132 @@
+{
+  "at": "2026-10-18T14:05:58.876Z",
+  "checks": [
+    {
+      "name": "independent_database",
+      "passed": true,
+      "identity": {
+        "name": "low_carbon_kb",
+        "port": 55432,
+        "role": "lc_app"
+      }
+    },
+    {
+      "name": "original_database_unchanged",
+      "passed": true,
+      "identity": {
+        "name": "knowledge_base",
+        "port": 5432
+      }
+    },
+    {
+      "name": "original_rules_match_baseline",
+      "passed": true
+    },
+    {
+      "name": "low_carbon_rule_change_does_not_change_original",
+      "passed": true
+    },
+    {
+      "name": "committed_article_and_vector_absent_from_original",
+      "passed": true
+    },
+    {
+      "name": "low_carbon_login",
+      "passed": true
+    },
+    {
+      "name": "original_cookie_positive_control",
+      "passed": true
+    },
+    {
+      "name": "low_carbon_cookie_positive_control",
+      "passed": true
+    },
+    {
+      "name": "original_cookie_rejected_by_low_carbon",
+      "passed": true
+    },
+    {
+      "name": "low_carbon_cookie_rejected_by_original",
+      "passed": true
+    },
+    {
+      "name": "logout_clears_only_low_carbon_cookie",
+      "passed": true
+    },
+    {
+      "name": "gateway_blocks_/api/articles",
+      "passed": true
+    },
+    {
+      "name": "gateway_blocks_/api/filters",
+      "passed": true
+    },
+    {
+      "name": "gateway_blocks_/api/data",
+      "passed": true
+    },
+    {
+      "name": "gateway_blocks_/api/rss/sync",
+      "passed": true
+    },
+    {
+      "name": "original_file_unchanged_/opt/knowledge-base/.env",
+      "passed": true
+    },
+    {
+      "name": "original_file_unchanged_/etc/nginx/sites-enabled/knowledge-base",
+      "passed": true
+    },
+    {
+      "name": "original_service_not_restarted_knowledge-base",
+      "passed": true
+    },
+    {
+      "name": "original_service_not_restarted_ocean-intelligence",
+      "passed": true
+    },
+    {
+      "name": "original_health_3000",
+      "passed": true
+    },
+    {
+      "name": "original_health_3101",
+      "passed": true
+    },
+    {
+      "name": "low_carbon_user_cannot_read_/opt/knowledge-base/.env",
+      "passed": true
+    },
+    {
+      "name": "low_carbon_user_cannot_read_/opt/ocean-intelligence/data",
+      "passed": true
+    }
+  ],
+  "counts": {
+    "articles": 126,
+    "documents": 17,
+    "vectors": 15,
+    "rules": 12,
+    "researchrecords": 35
+  },
+  "domains": [
+    {
+      "topic": "lc_ccus_removal",
+      "count": 7
+    },
+    {
+      "topic": "lc_clean_energy_integration",
+      "count": 3
+    },
+    {
+      "topic": "lc_strategy_market",
+      "count": 5
+    }
+  ],
+  "limits": [
+    "same host and Nginx",
+    "shared AI quota and provider subscription registry",
+    "no original production outage or cancellation tests"
+  ]
+}

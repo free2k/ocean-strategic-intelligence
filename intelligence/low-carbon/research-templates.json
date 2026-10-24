@@ -1,0 +1,180 @@
+{
+  "version": "lc-1.0",
+  "meaning": "低碳专题研究设计；数据与研究成果独立保存。",
+  "templates": [
+    {
+      "id": "LC01",
+      "title": "CCUS全链条技术与项目跟踪",
+      "question": "捕集、运输、利用与封存项目如何推进",
+      "indicators": "阶段、捕集量、封存量、设计能力与事件日期",
+      "methods": "describe,growth",
+      "tier": "A 优先核验",
+      "guardrail": "捕集量、封存量和净减排量分别保存；规划不计入实际",
+      "dataRequirements": "项目注册表、可追溯原文、阶段与容量边界",
+      "references": [],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "development",
+        "industryIds": [
+          "lc_ccus_removal"
+        ]
+      },
+      "taskType": "statistics",
+      "engineProfile": "partial",
+      "seriesTopics": [
+        "lc_ccus_removal"
+      ],
+      "tracking": {
+        "object": "CCUS全链条技术与项目跟踪",
+        "refreshTrigger": "新增公开原文、项目节点或核定数据",
+        "comparisonBasis": "固定对象、期间、单位与系统边界，变化后另存版本。"
+      }
+    },
+    {
+      "id": "LC02",
+      "title": "节能工艺与余能改造方案评价",
+      "question": "哪些节能工艺适合给定工况",
+      "indicators": "能耗基线、节能率、负荷、余热品位与可用时数",
+      "methods": "weighted,topsis,rank-robustness",
+      "tier": "A 优先核验",
+      "guardrail": "节能率须注明基线；专家评分与实测数据分列",
+      "dataRequirements": "同工况基线、计量记录、可比指标和硬约束",
+      "references": [],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "decision",
+        "industryIds": [
+          "lc_efficiency_recovery"
+        ]
+      },
+      "taskType": "evaluation",
+      "engineProfile": "partial",
+      "seriesTopics": [
+        "lc_efficiency_recovery"
+      ],
+      "tracking": {
+        "object": "节能工艺与余能改造方案评价",
+        "refreshTrigger": "新增公开原文、项目节点或核定数据",
+        "comparisonBasis": "固定对象、期间、单位与系统边界，变化后另存版本。"
+      }
+    },
+    {
+      "id": "LC03",
+      "title": "清洁能源替代与多能协同研究",
+      "question": "清洁供能方案在成本与可靠性上如何取舍",
+      "indicators": "资源、负荷、可靠性、成本及排放边界",
+      "methods": "weighted,topsis,scenario",
+      "tier": "A 优先核验",
+      "guardrail": "不以文章数量代替装机；逐时优化须有专用数据与引擎",
+      "dataRequirements": "同期资源与负荷、设备参数、可比矩阵与约束",
+      "references": [],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "systems",
+        "industryIds": [
+          "lc_clean_energy_integration"
+        ]
+      },
+      "taskType": "evaluation",
+      "engineProfile": "partial",
+      "seriesTopics": [
+        "lc_clean_energy_integration"
+      ],
+      "tracking": {
+        "object": "清洁能源替代与多能协同研究",
+        "refreshTrigger": "新增公开原文、项目节点或核定数据",
+        "comparisonBasis": "固定对象、期间、单位与系统边界，变化后另存版本。"
+      }
+    },
+    {
+      "id": "LC04",
+      "title": "绿色装备与低碳材料对标",
+      "question": "哪些装备材料在给定应用中更适用",
+      "indicators": "效率、寿命、适配性、成本与生命周期边界",
+      "methods": "weighted,topsis,entropy",
+      "tier": "A 优先核验",
+      "guardrail": "统一功能单位；宣传性低碳标签不能替代检测或核算",
+      "dataRequirements": "产品技术报告、检测口径、功能单位与逐项依据",
+      "references": [],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "decision",
+        "industryIds": [
+          "lc_equipment_materials"
+        ]
+      },
+      "taskType": "evaluation",
+      "engineProfile": "partial",
+      "seriesTopics": [
+        "lc_equipment_materials"
+      ],
+      "tracking": {
+        "object": "绿色装备与低碳材料对标",
+        "refreshTrigger": "新增公开原文、项目节点或核定数据",
+        "comparisonBasis": "固定对象、期间、单位与系统边界，变化后另存版本。"
+      }
+    },
+    {
+      "id": "LC05",
+      "title": "能碳数字化应用与数据质量评价",
+      "question": "数智手段能否形成可核验的节能与管理效益",
+      "indicators": "监测覆盖、准确性、核算边界、基线与应用效果",
+      "methods": "weighted,topsis",
+      "tier": "A 优先核验",
+      "guardrail": "碳监测不等于认证；相关性不推断减排因果",
+      "dataRequirements": "计量体系、数据质量记录、基准和对比期间",
+      "references": [],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "decision",
+        "industryIds": [
+          "lc_digital_carbon_management"
+        ]
+      },
+      "taskType": "evaluation",
+      "engineProfile": "partial",
+      "seriesTopics": [
+        "lc_digital_carbon_management"
+      ],
+      "tracking": {
+        "object": "能碳数字化应用与数据质量评价",
+        "refreshTrigger": "新增公开原文、项目节点或核定数据",
+        "comparisonBasis": "固定对象、期间、单位与系统边界，变化后另存版本。"
+      }
+    },
+    {
+      "id": "LC06",
+      "title": "低碳战略与碳市场情景分析",
+      "question": "政策与碳价变化如何影响转型方案",
+      "indicators": "碳价、配额、现金流、折现率与风险情景",
+      "methods": "npv,scenario,sensitivity",
+      "tier": "A 优先核验",
+      "guardrail": "碳价假设与市场事实分列；不输出投资承诺",
+      "dataRequirements": "明确政策适用范围、现金流、配额及情景假设",
+      "references": [],
+      "liveReadiness": "未连接生产数据核验，不能宣称当前可计算",
+      "longTermValue": "核定新数据后沿用可比指标与研究设计，保存新版本并比较变化。",
+      "classification": {
+        "directionId": "economics",
+        "industryIds": [
+          "lc_strategy_market"
+        ]
+      },
+      "taskType": "economics",
+      "engineProfile": "partial",
+      "seriesTopics": [
+        "lc_strategy_market"
+      ],
+      "tracking": {
+        "object": "低碳战略与碳市场情景分析",
+        "refreshTrigger": "新增公开原文、项目节点或核定数据",
+        "comparisonBasis": "固定对象、期间、单位与系统边界，变化后另存版本。"
+      }
+    }
+  ]
+}

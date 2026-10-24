@@ -1,0 +1,272 @@
+{
+  "auditDate": "2026-10-18",
+  "codeRevision": "bbc9f064b2badf2bcd57911d57acbaa34fd3fb1f",
+  "scope": "Current repository coupling risks. This is not acceptance of an implemented low-carbon system.",
+  "verdict": {
+    "existingCodeHasCouplings": true,
+    "directCopyIsIsolationSafe": false,
+    "lowCarbonRuntimeIsolationVerified": false
+  },
+  "safety": {
+    "applicationEntrypointsImported": 0,
+    "realDatabaseConnections": 0,
+    "realNetworkRequests": 0,
+    "actualServiceControlCommands": 0,
+    "businessFilesWritten": 0,
+    "productionEnvironmentFilesRead": 0
+  },
+  "trackedRuntimeFilesFingerprinted": 860,
+  "sourceFingerprintBefore": "f1dadb135b1d1ff103233b209dc850ce4986f1232549e696a9a4abf1346f7bc6",
+  "sourceFingerprintAfter": "f1dadb135b1d1ff103233b209dc850ce4986f1232549e696a9a4abf1346f7bc6",
+  "changedRuntimeFiles": [],
+  "behaviorProbeCount": 8,
+  "confirmedCouplingProbeCount": 8,
+  "probes": [
+    {
+      "id": "P01",
+      "name": "Different database variables can select different databases",
+      "scope": "existing reusable code, synthetic inputs",
+      "confirmedCoupling": true,
+      "observations": {
+        "onlyChangingIntelDatabaseIsInsufficient": true,
+        "syntheticTargets": {
+          "intelligence": "MOCK_LOW_CARBON_DB",
+          "mp2rssImport": "MOCK_ORIGINAL_DB",
+          "mp2rssStore": "MOCK_ORIGINAL_DB",
+          "liveClassification": "MOCK_ORIGINAL_AUDIT_DB"
+        }
+      }
+    },
+    {
+      "id": "P02",
+      "name": "A different path does not isolate root API requests",
+      "scope": "existing reusable code, synthetic inputs",
+      "confirmedCoupling": true,
+      "observations": {
+        "sameHostPathIsolationFails": true,
+        "syntheticPage": "https://same-host.example.invalid/low-carbon/workspace/",
+        "resolved": [
+          "https://same-host.example.invalid/api/filters",
+          "https://same-host.example.invalid/api/subscriptions/action",
+          "https://same-host.example.invalid/api/rss/sources"
+        ]
+      }
+    },
+    {
+      "id": "P03",
+      "name": "The delivery worker calls the fixed original port",
+      "scope": "existing reusable code, synthetic inputs",
+      "confirmedCoupling": true,
+      "observations": {
+        "interceptedRequests": [
+          "http://127.0.0.1:3101/api/login",
+          "http://127.0.0.1:3101/api/process"
+        ],
+        "realRequestsSent": 0
+      }
+    },
+    {
+      "id": "P04",
+      "name": "The legacy authentication accepts a reused site cookie",
+      "scope": "existing reusable code, synthetic inputs",
+      "confirmedCoupling": true,
+      "observations": {
+        "sharedSecretAndLegacyCookieAccepted": true,
+        "differentSecretAccepted": false,
+        "newCookieAcceptedByLegacyCode": false,
+        "legacyLogoutClearsRootSiteCookie": true,
+        "noTokensRecorded": true
+      }
+    },
+    {
+      "id": "P05",
+      "name": "Shared browser context reuses and clears the same draft keys",
+      "scope": "existing reusable code, synthetic inputs",
+      "confirmedCoupling": true,
+      "observations": {
+        "condition": "same origin and same browser storage context",
+        "draftOverwritten": true,
+        "legacyPrefixKeysAllRemoved": true,
+        "unrelatedKeyPreserved": true
+      }
+    },
+    {
+      "id": "P06",
+      "name": "Disabling the intel timer does not disable manual runs or the old lock",
+      "scope": "existing reusable code, synthetic inputs",
+      "confirmedCoupling": true,
+      "observations": {
+        "simulatedPlatform": "linux",
+        "timerDisabled": true,
+        "manualRunAttempted": true,
+        "interceptedCommands": [
+          {
+            "command": "flock",
+            "lock": "/opt/ocean-intelligence/eia-daily.lock"
+          }
+        ],
+        "realProcessesStarted": 0,
+        "memoryWritesOnly": true
+      }
+    },
+    {
+      "id": "P07",
+      "name": "Store initialization issues writes before business requests",
+      "scope": "existing reusable code, synthetic inputs",
+      "confirmedCoupling": true,
+      "observations": {
+        "executedOnStubs": {
+          "createStatements": true,
+          "metadataUpdate": true,
+          "snapshotWrite": true
+        },
+        "realDatabaseConnections": 0,
+        "realBusinessFilesWritten": 0
+      }
+    },
+    {
+      "id": "P08",
+      "name": "The data adapter defaults to the original service",
+      "scope": "existing reusable code, synthetic inputs",
+      "confirmedCoupling": true,
+      "observations": {
+        "interceptedRequests": [
+          "http://127.0.0.1:3101/api/data"
+        ],
+        "realRequestsSent": 0,
+        "noSocketOpened": true
+      }
+    }
+  ],
+  "staticEvidenceCheckCount": 5,
+  "staticChecks": [
+    {
+      "id": "S01",
+      "name": "Recovery controls the original named process",
+      "path": "intelligence/processing-recover.mjs",
+      "confirmed": true,
+      "mode": "source inspection only; code not executed"
+    },
+    {
+      "id": "S02",
+      "name": "Nuxt registers its own recurring scraper",
+      "path": "server/plugins/scraper-scheduler.ts",
+      "confirmed": true,
+      "mode": "source inspection only; code not executed"
+    },
+    {
+      "id": "S03",
+      "name": "Unsubscribe modifies the remote provider collection",
+      "path": "server/api/subscriptions/action.post.ts",
+      "confirmed": true,
+      "mode": "source inspection only; code not executed"
+    },
+    {
+      "id": "S04",
+      "name": "Existing worker unit loads original environment and directory",
+      "path": "deploy/mp2rss-sync.service",
+      "confirmed": true,
+      "mode": "source inspection only; code not executed"
+    },
+    {
+      "id": "S05",
+      "name": "Classification modifies original article, vector and provider tables",
+      "path": "intelligence/processing-live.mjs",
+      "confirmed": true,
+      "mode": "source inspection only; code not executed"
+    }
+  ],
+  "sourceReferences": [
+    {
+      "path": "intelligence/run.mjs",
+      "line": 2,
+      "sha256": "1dfe3610806b354a6643f872bf65475be38d518978e92e4329581a954ebe1995"
+    },
+    {
+      "path": "intelligence/import-mp2rss.mjs",
+      "line": 7,
+      "sha256": "ef17b26d09a563e3707625d7cf50ea7cf39a359938cf5d95fb5a62139b0e7df7"
+    },
+    {
+      "path": "server/integrations/mp2rss-store.mjs",
+      "line": 12,
+      "sha256": "232f385718de69fe5185babf9a553a6d23cd9c88d923e8c45289ed5aeb353558"
+    },
+    {
+      "path": "intelligence/processing-live.mjs",
+      "line": 33,
+      "sha256": "4feb8367fe36d2fa3326b41e77a9813e9e26d4ad143faa8b9ea3030da1576dfb"
+    },
+    {
+      "path": "intelligence/public/rule-editor.js",
+      "line": 6,
+      "sha256": "efc95cec25109d85e91f353ac364b543349c1e7153a4e37727eab4c846794c63"
+    },
+    {
+      "path": "intelligence/public/sensing.js",
+      "line": 111,
+      "sha256": "6f5513a62808b2870a89c8c0dec7ea7d8056a8f25dd67714f61d177419e94084"
+    },
+    {
+      "path": "scripts/mp2rss-worker.mjs",
+      "line": 8,
+      "sha256": "499d91b7034d0cf556a71cc94669011516818a3feb6505c6120b3aa634b0c5ab"
+    },
+    {
+      "path": "intelligence/server.mjs",
+      "line": 59,
+      "sha256": "f5d03eb8a6f329ab2e17e38f39e617440855f0707631fd3f316e5f5d134fc664"
+    },
+    {
+      "path": "intelligence/public/strategy/state.js",
+      "line": 2,
+      "sha256": "2d78216d18ebe9593abd903b9fee3e2f177b16bce79f9aee30333fa6f20fa9d2"
+    },
+    {
+      "path": "intelligence/scheduler.mjs",
+      "line": 37,
+      "sha256": "80023cca6a4cbd203510e6097f9ebf93252cbfa402eeced7003320c5dc5925ba"
+    },
+    {
+      "path": "intelligence/store.mjs",
+      "line": 8,
+      "sha256": "cf062565c30942561d72bfe82803da539a7c1e14b410a9f758cfa01271de9525"
+    },
+    {
+      "path": "intelligence/workspace-data-server.mjs",
+      "line": 11,
+      "sha256": "45c14b9884c2581fc913cbc82889b2bd0ef74d7c1a8023b54a6cb2ef40e0bec4"
+    },
+    {
+      "path": "intelligence/processing-recover.mjs",
+      "line": 18,
+      "sha256": "01381a00ae57d95a79d8b13162620c738f2db97d6bf4e4093dae4792dddf4194"
+    },
+    {
+      "path": "server/plugins/scraper-scheduler.ts",
+      "line": 93,
+      "sha256": "066ae09a3213b7f8431a1589de2f403f1fe89db161415ec1be87d58f7c9851d8"
+    },
+    {
+      "path": "server/api/subscriptions/action.post.ts",
+      "line": 12,
+      "sha256": "0c9b339ad0dc7137fca413430b309ab18c27978bb7c7439ca0575d5d688efaad"
+    },
+    {
+      "path": "deploy/mp2rss-sync.service",
+      "line": 8,
+      "sha256": "7c00ad0dba1b4051ea5d0aabe96ba66dac7b3a8bae5c0bc1fcff64954eeaaf07"
+    },
+    {
+      "path": "intelligence/processing-live.mjs",
+      "line": 57,
+      "sha256": "4feb8367fe36d2fa3326b41e77a9813e9e26d4ad143faa8b9ea3030da1576dfb"
+    }
+  ],
+  "notVerified": [
+    "Two deployed systems and database instances",
+    "Real provider account, budget, concurrency and egress isolation",
+    "Production host, proxy, storage and network separation",
+    "Operational rollback or failure against a running low-carbon instance"
+  ]
+}

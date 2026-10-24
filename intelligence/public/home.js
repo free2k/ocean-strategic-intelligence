@@ -2,6 +2,12 @@ import {canonicalTopic,topicLabel} from './industry-topics.mjs';
 import {formatDisplayDate} from './preview.js';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fieldIcons={
+ 'lc_ccus_removal':'<circle cx="32" cy="31" r="18"/><path d="m25 21-5 5 5 5m14 9 5-5-5-5M20 26h17m7 9H27M19 52h26"/>',
+ 'lc_efficiency_recovery':'<path d="M17 50h30M19 42c-10-9 9-13 0-22m13 22c-10-9 9-13 0-22m13 22c-10-9 9-13 0-22M15 12h34"/>',
+ 'lc_clean_energy_integration':'<path d="M32 28v27M32 28 26 8m6 20 20-6m-20 6-14 16M12 55h41M42 38l-4 8h9l-5 10"/><circle cx="32" cy="28" r="4"/>',
+ 'lc_equipment_materials':'<path d="m15 22 17-10 17 10v22L32 54 15 44zM15 22l17 10 17-10M32 32v22M22 17l20 11"/>',
+ 'lc_digital_carbon_management':'<rect x="12" y="13" width="40" height="32" rx="4"/><path d="M22 54h20M32 45v9M20 35l8-10 8 5 9-10"/><circle cx="20" cy="35" r="2"/><circle cx="45" cy="20" r="2"/>',
+ 'lc_strategy_market':'<path d="M18 9h23l7 8v38H18zM40 9v10h8M25 28h15M25 35h10M25 42h15"/>',
  '海洋油气':'<path d="M17 33h30M22 33l6-23h8l6 23M26 19h12M24 26h16M23 33v17m18-17v17M17 42h30M12 53q5-5 10 0t10 0t10 0t10 0"/>',
  '海上风电':'<path d="M32 27v27M32 27L28 8Q35 7 36 23M32 27L49 20Q54 26 38 31M32 27L22 44Q15 41 27 29M16 55h32"/><circle cx="32" cy="27" r="3"/>',
  '海洋低碳':'<path d="M19 44C8 23 31 11 49 12c1 23-8 38-27 33M18 51l24-30M27 39l-2-10m7 5 10-1"/>',

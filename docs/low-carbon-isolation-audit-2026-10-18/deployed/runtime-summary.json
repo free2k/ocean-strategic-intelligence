@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-18T14:01:58.002Z",
+  "sharedSubscriptions": 50,
+  "modelHTTPStatus": 200,
+  "accepted": 15,
+  "retainedDocumentVersions": 17,
+  "aiDocuments": 6,
+  "ruleDocuments": 11,
+  "processingComplete": true
+}

@@ -1,0 +1,11 @@
+{
+  "command": "node --loader ./intelligence/tests/browser-route-loader.mjs --test --test-concurrency=4 intelligence/tests/*.test.mjs",
+  "tests": 408,
+  "passed": 406,
+  "failed": 0,
+  "skipped": 2,
+  "skips": [
+    "PostgreSQL country projections and complete publication history match the file backend",
+    "Postgres projections preserve merged objects, scoped histories and summary comparisons"
+  ]
+}

@@ -4,6 +4,7 @@ import {initSemantic,queueSemantic} from './semantic-classification.mjs';
 import {createHash} from 'node:crypto';
 import {compileRules,classifyRecord} from './industry-classification.mjs';
 import {dateRangeStart} from './article-scope.mjs';
+import {isLowCarbon} from './system-profile.mjs';
 
 export const digest=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 export const textBody=value=>String(value||'').replace(/<(script|style|head)\b[^>]*>[\s\S]*?<\/\1>/gi,' ').replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi,'\n').replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
@@ -32,7 +33,7 @@ export function classificationChanged(article,decision){
 }
 export async function articleRows(db,scope,lock=false,after=0){return (await db.query(`SELECT a.id,a.title,CASE WHEN i.id IS NULL THEN a.content ELSE NULL END content,a.link,a.source_id,a.published_at,a.filter_status,a.matched_topic,a.reject_reason,a.manual_classify,a.classify_method,s.name source_name,s.type source_kind,
  i.id item_id,i.subscription_id,i.payload->>'content' mp_content,i.classification mp_classification
- FROM public.articles a LEFT JOIN public.sources s ON s.id=a.source_id LEFT JOIN mp2rss.items i ON i.article_id=a.id
+ FROM public.articles a LEFT JOIN public.sources s ON s.id=a.source_id ${isLowCarbon?'LEFT JOIN LATERAL (SELECT x.* FROM mp2rss.items x WHERE x.article_id=a.id ORDER BY x.updated_at DESC,x.id LIMIT 1) i ON true':'LEFT JOIN mp2rss.items i ON i.article_id=a.id'}
  WHERE ($1::integer IS NULL OR a.source_id=$1) AND ($2::timestamptz IS NULL OR a.published_at >= $2) AND (NOT $3::boolean OR a.filter_status='pending') AND a.id>$4
  AND ($5='' OR CASE WHEN $5='manual' THEN a.manual_classify ELSE a.filter_status=$5 END)
  AND ($6='' OR a.source_type=$6) AND ($7='' OR a.title LIKE '%'||$7||'%')

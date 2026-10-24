@@ -1,0 +1,17 @@
+{
+  "release": "/opt/low-carbon/releases/20261018-lc5",
+  "url": "http://low-carbon.39.96.24.170.sslip.io/",
+  "health": {
+    "ok": true,
+    "backend": "postgres",
+    "documents": 17
+  },
+  "shared": {
+    "ai": true,
+    "sources": true,
+    "provider": true,
+    "model": "qwen-plus",
+    "embeddingModel": "text-embedding-v4"
+  },
+  "originalConfigUnmodified": true
+}

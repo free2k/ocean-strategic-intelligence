@@ -1,0 +1,14 @@
+{
+  "createdAt": "20261018T140156Z",
+  "files": {
+    "lowcarbon-20261018T140156Z.dump": {
+      "bytes": 2128484,
+      "sha256": "25fbbc17faf583b300b808bc3bc8670354c200e41b429a280d18a23fe580bb1f"
+    },
+    "lowcarbon-20261018T140156Z.tar.gz": {
+      "bytes": 262917,
+      "sha256": "2d848703197fb454f7c17087074030dd5ceb53544de21564d48552bcef09c588"
+    }
+  },
+  "restoreVerified": true
+}

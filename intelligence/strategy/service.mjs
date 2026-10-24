@@ -1,3 +1,4 @@
+import {isLowCarbon} from '../system-profile.mjs';
 import fs from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import {compute,StrategyError,seriesRows,ENGINE_VERSION} from './engine.mjs';
@@ -18,7 +19,7 @@ import {publishCaseAnswers} from './case-answers.mjs';
 export {StrategyRepository};
 const load=async name=>JSON.parse(await fs.readFile(new URL('./'+name,import.meta.url),'utf8'));
 export const methodCatalog=await load('methods.json');
-const templates=await load('specs/research-templates.json'),governance=await load('specs/parameter-governance.json'),indicators=await load('specs/indicator-dictionary.json');
+const templates=isLowCarbon?JSON.parse(await fs.readFile(new URL('../low-carbon/research-templates.json',import.meta.url),'utf8')):await load('specs/research-templates.json'),governance=await load('specs/parameter-governance.json'),indicators=await load('specs/indicator-dictionary.json');
 const advisors=new WeakMap();
 function advisorFor(store,client,model){let a=advisors.get(store);if(!a||a.client!==client||a.model!==model){a=new MethodAdvisor({client,model,methods:methodCatalog.methods});advisors.set(store,a);}return a;}
 const engines={'1.0.0':computeV1,'1.1.0':computeV110,'1.1.1':compute};
@@ -32,7 +33,7 @@ export function recommendations(catalog){
  if(rows.length>=6&&continuous&&full)items.push({id:'trend:'+s.id,title:s.name+'：已观测趋势与阶段研判',method:'trend',taskType:'statistics',dataset:{kind:'series',id:s.id},status:'ready',engineStatus:'accepted',dataStatus:'ready',reason:`${rows.length}个连续完整统计期，满足描述性拟合的基础条件。`,gaps:'不作未来预测；预测模型需时间外验证。',coverage:{n:rows.length,from:rows[0].period,to:rows.at(-1).period,unit:s.unit},priority:2});
  }
  for(const item of catalog.industries||[]){if(!item.articles&&!item.observations&&!item.series?.length)continue;items.push({id:'matrix:'+item.topic,title:item.name+'：技术路线／项目综合评价',method:'entropy-topsis',taskType:'evaluation',industryIds:[item.topic],status:'needs-data',engineStatus:'accepted',dataStatus:'needs-data',reason:`已有${item.articles}篇资料与${item.observations}条指标线索，可寻找评价依据。`,gaps:'尚未证明同对象、同期间、同口径完整矩阵；须补齐来源、单位和方向。',priority:3});}
- items.push({id:'planned:milp',title:'风浪光储互补与容量配置研究方案',method:'milp',taskType:'optimization',industryIds:['多能融合'],status:'engine-pending',engineStatus:'planned',dataStatus:'needs-data',reason:'该问题需要同期逐时资源、约束与专用优化求解器。',gaps:'逐时数据、可行域和优化引擎待接入；仅可建立方案。',priority:4});
+ items.push({id:'planned:milp',title:'风浪光储互补与容量配置研究方案',method:'milp',taskType:'optimization',industryIds:[isLowCarbon?'lc_clean_energy_integration':'多能融合'],status:'engine-pending',engineStatus:'planned',dataStatus:'needs-data',reason:'该问题需要同期逐时资源、约束与专用优化求解器。',gaps:'逐时数据、可行域和优化引擎待接入；仅可建立方案。',priority:4});
  return items.sort((a,b)=>a.priority-b.priority||a.id.localeCompare(b.id)).map(item=>classifyRecommendation(item,catalog));
 }
 

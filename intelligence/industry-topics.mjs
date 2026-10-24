@@ -1,5 +1,7 @@
+import {isLowCarbon} from './system-profile.mjs';
+import {lowCarbonTopics} from './low-carbon/taxonomy.mjs';
 // Stable storage keys, display names and historical aliases share one definition.
-export const standardTopics=[
+const marineTopics=[
  {id:'海洋油气',name:'海洋油气',aliases:['海洋油气']},
  {id:'海上风电',name:'海洋新能源',aliases:['海上风电','海洋新能源','海洋新能源（含海上风电）']},
  {id:'海洋低碳',name:'海洋低碳',aliases:['海洋低碳','海洋低碳领域']},
@@ -7,7 +9,8 @@ export const standardTopics=[
  {id:'宏观政策',name:'宏观政策',aliases:['宏观政策','海洋能源资源宏观政策']},
  {id:'海洋装备',name:'海洋装备',aliases:['海洋装备','海洋油气装备']},
 ];
-export const taxonomyVersion='marine-six-v1';
+export const standardTopics=isLowCarbon?lowCarbonTopics:marineTopics;
+export const taxonomyVersion=isLowCarbon?'low-carbon-six-v1.1.0':'marine-six-v1';
 const definitions={
  '海洋油气':{definition:'海上及海底油气资源勘探、开发、生产、集输、运营和安全环保。',boundary:'以油气项目、资源或运营为主；以装备研发制造为主的归海洋装备。陆上油气及泛能源地缘政治不因提及油价而纳入。'},
  '海上风电':{definition:'海上风电、海上光伏、波浪能、潮汐能、潮流能、海洋温差能、盐差能及以海洋可再生能源或海水为核心的制氢项目与技术。',boundary:'必须明确海上或海洋能源场景；一般陆上风光、生物质、航空燃料不纳入。跨能源协同系统归多能融合，通用装备制造归海洋装备。'},
