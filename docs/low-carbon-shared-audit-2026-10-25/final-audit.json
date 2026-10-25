@@ -1,0 +1,77 @@
+{
+  "capturedAt": "2026-10-25 20:26:00 CST",
+  "apps": [
+    {
+      "name": "knowledge-base",
+      "status": "online",
+      "pid": 11257
+    },
+    {
+      "name": "ocean-intelligence",
+      "status": "online",
+      "pid": 16783
+    },
+    {
+      "name": "ocean-workspace-data",
+      "status": "online",
+      "pid": 1881
+    }
+  ],
+  "units": {
+    "low-carbon-app.service": "inactive",
+    "low-carbon-projector.service": "inactive",
+    "low-carbon-projector.timer": "inactive",
+    "ocean-processing.service": "active",
+    "model-operations.timer": "active",
+    "research-period-reports.timer": "active"
+  },
+  "configUnchanged": {
+    ".env": true,
+    "model-cost.env": true,
+    "processing.env": true
+  },
+  "workersUnchangedSinceRestore": {
+    "ocean-processing.service": true,
+    "model-operations.timer": true
+  },
+  "lowCarbon": {
+    "cacheRecords": 13260,
+    "documents": 2090,
+    "semanticQueue": 0,
+    "modelRequestsTableAbsent": true,
+    "collection": {
+      "mode": "shared",
+      "result": "completed",
+      "enabled": true,
+      "lastRun": "2026-10-25T12:17:27.202Z",
+      "nextRun": "2026-10-25T12:26:33.912Z",
+      "running": false,
+      "updated": 2,
+      "documents": 2090,
+      "releaseId": "release_eec8512ba63d9d3e816f5b32ba82b72e2556b0c568f2a8a050c75c9243889c55",
+      "modelCalls": 0,
+      "sharedRecords": 13260
+    }
+  },
+  "roleIsolation": {
+    "readerCanSelectArticles": true,
+    "readerCanUpdateArticles": false,
+    "readerCanEnqueueModelRequests": false,
+    "appCanUpdateOriginalArticles": false
+  },
+  "memoryBudget": "MemoryPeak=593723392\nCPUQuotaPerSecUSec=200ms\nMemoryMax=671088640\n",
+  "mainHealth": {
+    "status": 200,
+    "value": {
+      "authenticated": false
+    }
+  },
+  "oceanHealth": {
+    "status": 200,
+    "value": {
+      "ok": true,
+      "backend": "postgres",
+      "documents": 2236
+    }
+  }
+}

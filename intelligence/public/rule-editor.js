@@ -1,9 +1,10 @@
+import {systemApi} from './system-api.js';
 import {mountProcessingRuns} from './processing-runs.js';
 import {standardTopics,canonicalTopic,topicLabel} from './industry-topics.mjs';
 import {escapeHtml as esc,enhanceReader,originalSourceLink} from './preview.js';
 // Both interfaces use the same Nuxt database APIs, never a second rules file.
 async function request(path,body,method='POST'){
- let r;try{r=await fetch('/api/filters'+path,{...(body===undefined?{}:{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),signal:AbortSignal.timeout(90000)});}catch(e){if(e.name==='TimeoutError')throw Error('请求超时。预览可重试；若在提交任务，请先刷新任务状态确认结果。');throw e;}
+ let r;try{r=await fetch(systemApi('/api/filters'+path),{...(body===undefined?{}:{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),signal:AbortSignal.timeout(90000)});}catch(e){if(e.name==='TimeoutError')throw Error('请求超时。预览可重试；若在提交任务，请先刷新任务状态确认结果。');throw e;}
  const type=r.headers.get('content-type')||'';
  if(!type.includes('json'))throw Error('规则管理服务暂不可用，请通过完整网站访问此页面。');
  const value=await r.json();if(!r.ok)throw Error(value.message||value.error||'规则请求失败');return value;

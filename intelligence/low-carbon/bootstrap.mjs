@@ -10,6 +10,7 @@ import {Store} from '../store.mjs';
 import {ResearchLedger} from '../research/ledger.mjs';
 import {PostgresResearchRepository} from '../research/repositories.mjs';
 import {publishWorkspace} from '../research/publish-workspace.mjs';
+import {projectionSchema} from './shared-projection.mjs';
 
 await verifyLowCarbonEnvironment({bootstrap:true});
 const pool=new pg.Pool({connectionString:process.env.DATABASE_URL,max:1});
@@ -39,7 +40,8 @@ try{
  if(identity&&identity.instance_id!==process.env.LC_INSTANCE_ID)throw Error('LOW_CARBON_INSTANCE_REJECTED');
  await pool.query("INSERT INTO public.app_instance(app_id,instance_id) VALUES('low-carbon',$1) ON CONFLICT DO NOTHING",[process.env.LC_INSTANCE_ID]);
  await initClassification(pool);
- for(const file of ['001-ledger.sql','002-products-runtime.sql','003-object-registry.sql'])await pool.query(await fs.readFile(new URL('../research/migrations/'+file,import.meta.url),'utf8'));
+ await pool.query(projectionSchema);
+ for(const file of (await fs.readdir(new URL('../research/migrations/',import.meta.url))).filter(n=>/^\d+.*\.sql$/.test(n)).sort())await pool.query(await fs.readFile(new URL('../research/migrations/'+file,import.meta.url),'utf8'));
  if(!(await pool.query('SELECT 1 FROM public.filter_rules LIMIT 1')).rowCount){for(const r of lowCarbonSeedRules().rules)await pool.query('INSERT INTO public.filter_rules(type,topic,description,title_keywords,content_keywords,priority,require_all,groups,enabled) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)',[r.type,r.topic,r.description,JSON.stringify(r.title_keywords),JSON.stringify(r.content_keywords),r.priority,r.require_all,JSON.stringify(r.groups),r.enabled]);}
  const config={rules:(await pool.query('SELECT * FROM public.filter_rules ORDER BY id')).rows};
  if(!(await pool.query('SELECT 1 FROM classification.jobs LIMIT 1')).rowCount)await pool.query("INSERT INTO classification.jobs(version,config,scope,status,preview,result,started_at,finished_at) VALUES($1,$2,'{}','completed','{}','{}',now(),now())",[compileRules(config).version,JSON.stringify(config)]);

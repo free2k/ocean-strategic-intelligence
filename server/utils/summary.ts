@@ -52,7 +52,7 @@ export async function generateSummary(article: {
 文章内容：
 ${article.content}`;
 
-  const response = await chatCompletion(systemPrompt, userMessage);
+  const response = await chatCompletion(systemPrompt, userMessage, { task: 'summary' });
 
   let summary = response.trim();
 

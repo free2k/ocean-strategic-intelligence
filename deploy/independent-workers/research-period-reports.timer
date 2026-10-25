@@ -1,0 +1,10 @@
+[Unit]
+Description=Keep existing daily brief independent of the selected web system
+[Timer]
+OnBootSec=15
+OnCalendar=*-*-* *:*:00,30
+AccuracySec=1
+Persistent=true
+Unit=research-period-reports.service
+[Install]
+WantedBy=timers.target

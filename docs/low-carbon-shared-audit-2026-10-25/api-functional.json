@@ -1,0 +1,72 @@
+{
+  "verificationId": "lc-verify-1792930726298",
+  "system": {
+    "appId": "low-carbon",
+    "database": "low_carbon_kb",
+    "collectionMode": "shared",
+    "aiPolicy": "reuse-only",
+    "modelCallsEnabled": false,
+    "capabilities": {
+      "collection": "shared-read-only",
+      "classification": "local-rules",
+      "questionAnswering": "local-evidence",
+      "reports": "extractive",
+      "paidGeneration": false,
+      "sourceManagement": false
+    },
+    "collection": {
+      "enabled": true,
+      "running": true,
+      "mode": "shared",
+      "modelCalls": 0,
+      "error": null,
+      "total": 2,
+      "result": "running",
+      "lastRun": "2026-10-25T11:15:34.503Z",
+      "nextRun": "2026-10-25T11:23:31.995Z",
+      "updated": 1,
+      "prepared": 2,
+      "documents": 2087,
+      "releaseId": "release_6876eae8f8f45573217e47df92e7f7c0b976a4429beafc96c1ef67c2ddeefbc9",
+      "startedAt": "2026-10-25T12:17:25.995Z",
+      "sharedRecords": 13248
+    }
+  },
+  "reader": {
+    "id": "doc_ae8e4128b787eb596310",
+    "title": "Login",
+    "bodyLength": 361,
+    "modelOperationsAvailable": false
+  },
+  "qa": {
+    "id": "research_60f6d7fb-8908-4a1b-bc1a-4f9f21e577f5",
+    "mode": "本地全文关键词检索与证据整理",
+    "references": 8,
+    "model": null,
+    "generated": false
+  },
+  "blockedVision": {
+    "status": 409,
+    "code": "SHARED_RESULT_UNAVAILABLE"
+  },
+  "blockedSourceWrite": {
+    "status": 403
+  },
+  "preview": {
+    "modelReady": false,
+    "generationReady": true,
+    "eligible": 179
+  },
+  "report": {
+    "id": "86804245-21b8-48e1-885b-64de2c5ca866",
+    "status": "published",
+    "methods": [
+      "extractive",
+      "extractive",
+      "extractive",
+      "extractive",
+      "extractive",
+      "extractive"
+    ]
+  }
+}

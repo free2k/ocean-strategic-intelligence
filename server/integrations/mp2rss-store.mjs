@@ -7,7 +7,7 @@ import {runBatch} from './mp2rss-batch.mjs';
 import {runDiscovery,enqueueVerified} from './mp-discovery.mjs';
 import pg from 'pg';
 import {subscriptionHistory} from './subscription-history.mjs';
-import {client,connection,subscriptions,items,hash} from './mp2rss-client.mjs';
+import {client,connection,subscriptions,items,hash,syncSince} from './mp2rss-client.mjs';
 import {classifyRecord,compileRules} from '../../intelligence/industry-classification.mjs';
 export const pool=new pg.Pool({connectionString:process.env.DATABASE_URL,max:3,connectionTimeoutMillis:8000});
 let initialized;
@@ -70,10 +70,10 @@ export async function execute(){await init();const guard=await pool.connect();tr
   const rules=(await pool.query('SELECT * FROM public.filter_rules')).rows,compiled=compileRules({rules});const ss=(await pool.query('SELECT * FROM mp2rss.subscriptions WHERE present AND ($1::text IS NULL OR id=$1) AND ($2::text[] IS NULL OR id=ANY($2::text[]))',[job.target,job.action==='batch_sync'?job.request:null])).rows;
   for(const s of ss){const src=s.payload;const kinds=src.platform==='mp'?['articles']:[...(s.posts?['posts']:[]),'articles'];let sourceFailed=false;
    for(const kind of kinds){const report={source:s.id,kind,inserted:0,updated:0,duplicate:0,failed:0};try{
-     // Initial 3 days; recover downtime and overlap 7 days. Weekly full scan revisits old revisions/null bodies.
+     // Initial provider history; overlap seven days thereafter. Weekly full scans revisit revisions/null bodies.
      const prior=(await pool.query("SELECT payload FROM mp2rss.state WHERE id=$1",['deep:'+s.id+':'+kind])).rows[0]?.payload;
      const deep=!!s.last_sync&&(!prior?.at||Date.parse(prior.at)<Date.now()-7*86400000);
-     const since=deep?null:s.last_sync?new Date(s.last_sync).getTime()-7*86400000:Date.now()-3*86400000;
+     const since=syncSince(s.last_sync,{deep});
      for await(const item of items(api,src,kind,{since})){const key=await persistItem(s,item,compiled);report[key]++;result[key]++;}
      if(deep||!s.last_sync)await pool.query('INSERT INTO mp2rss.state(id,payload) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload',['deep:'+s.id+':'+kind,{at:new Date().toISOString()}]);
     }catch(e){sourceFailed=true;report.failed++;result.failed++;report.error=e instanceof Error&&e.name==='ProviderError'?e.message:'本内容流处理失败，已保存资料保留';}

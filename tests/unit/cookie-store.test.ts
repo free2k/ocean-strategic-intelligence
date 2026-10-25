@@ -105,13 +105,13 @@ describe('CookieStore', () => {
   });
 
   describe('isExpired', () => {
-    it('returns true for non-existent key', () => {
-      expect(store.isExpired('missing')).toBe(true);
+    it('returns true for non-existent key', async () => {
+      expect(await store.isExpired('missing')).toBe(true);
     });
 
     it('returns false for freshly stored cookie', async () => {
       await store.setCookie('key1', 'token1', ['c=v']);
-      expect(store.isExpired('key1')).toBe(false);
+      expect(await store.isExpired('key1')).toBe(false);
     });
 
     it('returns true for expired cookie', async () => {
@@ -119,7 +119,7 @@ describe('CookieStore', () => {
       // Manually expire the entry
       const entry = (store as any).cache.get('key1');
       entry.expiresAt = Date.now() - 1000;
-      expect(store.isExpired('key1')).toBe(true);
+      expect(await store.isExpired('key1')).toBe(true);
     });
   });
 

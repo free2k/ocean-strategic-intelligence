@@ -1,0 +1,16 @@
+[Unit]
+Description=Reconcile model batches and generate requested translations/images
+After=network-online.target postgresql.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/knowledge-base/mp2rss-current
+EnvironmentFile=/opt/knowledge-base/mp2rss.env
+EnvironmentFile=-/opt/knowledge-base/model-cost.env
+ExecStart=/usr/bin/node --env-file=/opt/knowledge-base/.env scripts/model-operations-worker.mjs
+TimeoutStartSec=25min
+TimeoutStopSec=30s
+UMask=0077
+MemoryMax=768M
+CPUQuota=50%
+Nice=10

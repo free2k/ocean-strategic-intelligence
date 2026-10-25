@@ -71,7 +71,7 @@ async function generateArticleSummary(article: {
   const userMessage = `文章标题：${article.title}\n\n文章内容：\n${inputText}`;
 
   try {
-    const summary = await chatCompletion(systemPrompt, userMessage);
+    const summary = await chatCompletion(systemPrompt, userMessage, { task: 'summary' });
     return summary.trim() || article.digest || '（摘要生成失败）';
   } catch (e) {
     // LLM 调用失败时降级为截取正文

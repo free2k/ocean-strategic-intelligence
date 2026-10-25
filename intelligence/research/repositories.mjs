@@ -29,7 +29,7 @@ export class FileResearchRepository{
 
 // Schema installation is an explicit migration, never an application-start side effect.
 export class PostgresResearchRepository{
- constructor(pool){this.pool=pool;this.records=new Map();this.recordBytes=0;this.pendingReads=new Map();}
+ constructor(pool,{cacheBytes=64*1024*1024}={}){this.pool=pool;this.cacheBytes=cacheBytes;this.records=new Map();this.recordBytes=0;this.pendingReads=new Map();}
  async head(){return (await this.pool.query("SELECT payload FROM ocean_research.head WHERE id='latest'")).rows[0]?.payload||null;}
  async read(id){
   check(id);let encoded=this.records.get(id);
@@ -37,7 +37,7 @@ export class PostgresResearchRepository{
    if(!this.pendingReads.has(id))this.pendingReads.set(id,(async()=>{
     const value=(await this.pool.query('SELECT payload::text AS payload FROM ocean_research.records WHERE id=$1',[id])).rows[0]?.payload;
     if(!value)return null;const text=typeof value==='string'?value:JSON.stringify(value);const bytes=Buffer.byteLength(text);
-    if(bytes<=64*1024*1024){while(this.records.size&&(this.recordBytes+bytes>64*1024*1024||this.records.size>=32)){const oldest=this.records.keys().next().value;this.recordBytes-=Buffer.byteLength(this.records.get(oldest));this.records.delete(oldest);}this.records.set(id,text);this.recordBytes+=bytes;}
+    if(bytes<=this.cacheBytes){while(this.records.size&&(this.recordBytes+bytes>this.cacheBytes||this.records.size>=32)){const oldest=this.records.keys().next().value;this.recordBytes-=Buffer.byteLength(this.records.get(oldest));this.records.delete(oldest);}this.records.set(id,text);this.recordBytes+=bytes;}
     return text;
    })().finally(()=>this.pendingReads.delete(id)));
    encoded=await this.pendingReads.get(id);
@@ -56,6 +56,7 @@ export class PostgresResearchRepository{
   if(!this.projectionPending.has(key))this.projectionPending.set(key,(async()=>{const value=(await this.pool.query(sql,[id,...params])).rows[0]?.payload;if(!value)return null;const text=typeof value==='string'?value:JSON.stringify(value);if(Buffer.byteLength(text)<16*1024*1024){while(this.projections.size>=2)this.projections.delete(this.projections.keys().next().value);this.projections.set(key,text);}return text;})().finally(()=>this.projectionPending.delete(key)));
   const text=await this.projectionPending.get(key);return text?JSON.parse(text):null;
  }
+ async readSnapshotComparison(id){return this.readProjection(id,'snapshot-comparison',`SELECT jsonb_build_object('kind',payload->'kind','entries',(SELECT coalesce(jsonb_agg(jsonb_build_object('documentId',e->'documentId','bodyVersionId',e->'bodyVersionId','classificationVersionId',e->'classificationVersionId','structureVersionId',e->'structureVersionId')),'[]'::jsonb) FROM jsonb_array_elements(payload->'entries') e))::text payload FROM ocean_research.records WHERE id=$1`);}
  async readObjectIndex(id,snapshotId){return this.readProjection(id,'object-index',`SELECT jsonb_build_object('kind',payload->'kind','objects',
  (SELECT coalesce(jsonb_agg(jsonb_build_object('id',o->'id','name',o->'name','type',o->'type','aliases',o->'aliases','identityWarning',o->'identityWarning','mergedInto',o->'mergedInto','firstSeenAt',o->'firstSeenAt','eventIds',o->'eventIds','documentRefs',
  (SELECT coalesce(jsonb_agg(DISTINCT jsonb_build_object('documentId',d->'documentId','snapshotId',d->'snapshotId','publishedAt',d->'publishedAt','topic',d->'topic','sourceId',d->'sourceId')),'[]'::jsonb) FROM jsonb_array_elements(o->'documentRefs') d WHERE d->>'snapshotId'=$2))), '[]'::jsonb) FROM jsonb_array_elements(payload->'objects') o),

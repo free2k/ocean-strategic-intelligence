@@ -24,7 +24,7 @@ const store=new Store(dir,process.env.INTEL_DATABASE_URL);await store.init({defe
 // gives it exactly one worker owner and is released by PostgreSQL on a crash.
 const ownership=await store.pool.connect();
 if(!(await ownership.query('SELECT pg_try_advisory_lock(73201930) AS held')).rows[0].held)throw Error('Processing worker already active');
-await recoverTaskWorkspaces(store.pool,dir);
+if(process.env.INTEL_PRESERVE_STARTUP_DATA!=='true')await recoverTaskWorkspaces(store.pool,dir);
 await fs.rm(path.join(dir,'processing-runs','tasks','runtime.lock'),{force:true});
 let pending=Promise.resolve();const serial=fn=>{const p=pending.then(fn);pending=p.catch(()=>{});return p;};
 const auditPool=process.env.INTEL_AUDIT_DATABASE_URL?new pg.Pool({connectionString:process.env.INTEL_AUDIT_DATABASE_URL,max:2}):store.pool;

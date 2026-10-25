@@ -1,6 +1,11 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import os from 'node:os';import path from 'node:path';
 import {reportRange,selectReport,PeriodReports} from '../research/period-reports.mjs';import {FileRuntimeState} from '../research/runtime-state.mjs';
 const now='2026-10-15T04:00:00Z';
+test('web recovery and external daily recovery only touch their own interrupted jobs',async()=>{
+ const data={periodReports:{daily:{id:'daily',requestId:'daily-weekly-2026-10-25',status:'running'},manual:{id:'manual',requestId:'manual-request',status:'running'}}};
+ const reports=new PeriodReports({state:{transact:async fn=>fn(data)}});await reports.recover({preserveScheduled:true});assert.equal(data.periodReports.daily.status,'running');assert.equal(data.periodReports.manual.status,'failed');
+ data.periodReports.manual.status='running';await reports.recover({scheduledOnly:true});assert.equal(data.periodReports.daily.status,'failed');assert.equal(data.periodReports.manual.status,'running');
+});
 test('Beijing inclusive dates, rolling presets and invalid ranges',()=>{assert.equal(reportRange({preset:7},now).from,'2026-10-09');assert.equal(reportRange({preset:14},now).from,'2026-10-02');assert.equal(reportRange({preset:30},now).from,'2026-09-16');const r=reportRange({from:'2026-10-01',to:'2026-10-15'},now);assert.equal(new Date(r.end).toISOString(),'2026-10-15T16:00:00.000Z');for(const input of [{from:'2026-02-30',to:'2026-03-01'},{from:'2026-10-16',to:'2026-10-16'},{from:'2026-10-15',to:'2026-10-14'}])assert.throws(()=>reportRange(input,now));});
 const doc=(id,publishedAt,status='accepted')=>({id,title:id,url:'https://example.com/'+id,publishedAt,classification:{status,primary:'海洋油气'}});
 test('period selection uses publication date and excludes rejected/pending from input',()=>{const range=reportRange({from:'2026-10-15',to:'2026-10-15'},now);const a={documents:[doc('start','2026-10-14T16:00:00Z'),doc('end','2026-10-15T15:59:59Z'),doc('outside','2026-10-15T16:00:00Z'),doc('excluded','2026-10-15T00:00:00Z','excluded'),doc('pending','2026-10-15T00:00:00Z','unmatched'),doc('unknown',null)]};const s=selectReport(a,range);assert.equal(s.total,4);assert.equal(s.domains[0].eligible.length,2);assert.equal(s.excluded,1);assert.equal(s.pending,1);assert.equal(s.undated,1);});

@@ -11,9 +11,9 @@ export function errorDetails(error,stage){
 }
 export function boundedClient(client,deadline,onStage=async()=>{}){
  return {chat:{completions:{create:async request=>{
-  await onStage('model');const timeout=remainingMs(deadline);
+  const timeout=remainingMs(deadline);await onStage('model');
   try{return await client.chat.completions.create(request,{timeout,signal:AbortSignal.timeout(timeout)});}
-  catch(error){if(Date.now()>=deadline-1000)throw Object.assign(new Error('batch_budget_exhausted'),{code:'BATCH_DEFERRED'});throw error;}
+  catch(error){if(!error.status&&!error.code&&Date.now()>=deadline-1000)throw Object.assign(new Error('batch_budget_exhausted'),{code:'BATCH_DEFERRED',cause:error});throw error;}
  }}}};
 }
 export async function boundedLookup(operation,deadline){

@@ -74,7 +74,7 @@ export async function createScheduler({store,dir,root,serial,researchLedger=null
     if(store.pool)await acknowledgeClassification(store.pool,store.data,isComplete);
    });
    committed=true;await acknowledgeCheckpoints(dir,store.data).catch(error=>console.error('checkpoint cleanup:',error.code||error.name));
-   const unfinished=store.data.documents.some(d=>!d.manual&&(!d.industry||d.industry.status==='accepted')&&!isComplete(d)&&(!d.autoExtraction?.nextRetryAt||d.autoExtraction.nextRetryAt<=new Date().toISOString()));
+   const unfinished=store.data.documents.some(d=>!d.manual&&d.autoExtraction?.status!=='paused'&&(!d.industry||d.industry.status==='accepted')&&!isComplete(d)&&(!d.autoExtraction?.nextRetryAt||d.autoExtraction.nextRetryAt<=new Date().toISOString()));
    if(unfinished&&store.pool)await markDelivery(store.pool);else await acknowledgeDelivery(store.pool,delivery);
    state.lastRun=new Date().toISOString();if(!processOnly)state.lastCollectionRun=state.lastRun;state.result=partial?'partial':'completed';state.documents=store.data.documents.length;completedFull=!processOnly;
    state.failureCount=0;state.retryAt=null;state.errorCode=null;state.errorDetail=null;

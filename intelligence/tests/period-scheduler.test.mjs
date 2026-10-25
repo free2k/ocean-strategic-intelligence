@@ -18,6 +18,11 @@ test('no scheduler activity when disabled; waits for other running work',async()
  const s=createPeriodScheduler(reports,{interval:1e8});await new Promise(r=>setTimeout(r,5));assert.equal(calls,0);s.stop();
  const disabled=createPeriodScheduler({list:()=>{throw Error('disabled');}},{enabled:false});await disabled.tick();disabled.stop();
 });
+test('external one-shot ticks preserve daily identity without a startup tick or duplicate model work',async()=>{
+ let reads=0,creates=0;const jobs=[],reports={list:async()=>{reads++;return jobs;},get:async()=>jobs[0],create:async input=>{creates++;jobs.push({id:'daily',requestId:input.requestId,range:{from:input.from,to:input.to},status:'ready'});return jobs[0];},publish:async()=>{jobs[0].status='published';}};
+ const clock=()=>new Date('2026-10-25T04:00:00Z');let schedule=createPeriodScheduler(reports,{clock,enabled:true,startImmediately:false,interval:0});assert.equal(reads,0);await schedule.tick();assert.equal(creates,1);schedule.stop();
+ schedule=createPeriodScheduler(reports,{clock,enabled:true,startImmediately:false,interval:0});await schedule.tick();schedule.stop();assert.equal(creates,1);assert.equal(jobs[0].requestId,'daily-weekly-2026-10-25');
+});
 test('charts reconcile source, industry, dates and Beijing hours for each saved run',()=>{
  const range={from:'2026-10-10',to:'2026-10-16'},domains=[{name:'Oil',topic:'oil'},{name:'Wind',topic:'wind'}];
  const doc=(topic,publishedAt,sourceName)=>({classification:{primary:topic},sourceName,body:{publishedAt}});

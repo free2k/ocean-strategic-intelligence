@@ -1,0 +1,50 @@
+{
+  "checks": [
+    {
+      "step": "main-navigation",
+      "current": "海洋能源\n低碳研究"
+    },
+    {
+      "step": "low-carbon-deep-link",
+      "topic": "lc_efficiency_recovery",
+      "draft": "低碳切换验收草稿"
+    },
+    {
+      "step": "returned-main",
+      "path": "/articles"
+    },
+    {
+      "step": "state-preserved",
+      "path": "/low-carbon/#library?topic=lc_efficiency_recovery&country=&sourceId=&from=&to=",
+      "topic": "lc_efficiency_recovery",
+      "lowCarbonDraft": "低碳切换验收草稿",
+      "oceanDraft": "ocean-isolated-sentinel"
+    },
+    {
+      "step": "shared-login",
+      "authenticated": true
+    },
+    {
+      "step": "mobile",
+      "width": 390,
+      "scrollWidth": 390,
+      "switchVisible": true
+    },
+    {
+      "step": "shared-source-page",
+      "switchVisible": true
+    }
+  ],
+  "errors": [],
+  "failed": [
+    {
+      "path": "/low-carbon/api/classification-audit",
+      "status": 409
+    },
+    {
+      "path": "/low-carbon/api/period-reports",
+      "status": 409
+    }
+  ],
+  "wrongSystemApi": []
+}

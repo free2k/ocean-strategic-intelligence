@@ -26,6 +26,16 @@ export function classifyLowCarbon(record,compiled,hasTerm){
  // body once per phrase; reserve paragraph iteration for grouped conditions.
  const cleanContent=contentParagraphs.join('\n');
  const hitsFor=(r,body=cleanContent)=>[...(r.title_keywords||[]).filter(k=>hasTerm(title,k)).map(keyword=>({keyword,field:'标题'})),...(r.content_keywords||[]).filter(k=>hasTerm(body,k)).map(keyword=>({keyword,field:'正文'}))];
+ // Background projections need the business decision. Avoid scanning every
+ // professional dictionary when a mandatory gate already rejects the record.
+ // Interactive rule previews retain the complete positive-match explanation.
+ if(compiled.summaryOnly){
+  const contextRules=compiled.rules.filter(r=>r.type==='context');
+  const contextHits=contextRules.filter(r=>r.enabled!==false).flatMap(r=>hitsFor(r,cleanContent.slice(0,1800)).map(h=>({...h,field:h.field==='正文'?'正文前1800字符':h.field})));
+  const negative=compiled.rules.filter(r=>r.type==='exclude'&&r.enabled!==false).flatMap(r=>hitsFor(r));
+  const inScope=contextRules.length?contextHits.length>0:true;
+  if(negative.length||!inScope)return {status:negative.length?'excluded':'unmatched',primary:null,topics:[],positive:[],negative,context:{matched:inScope,basis:'数据库通用低碳语境词',hits:contextHits},reason:negative.length?'命中六领域通用反向排除规则':'缺少标题或正文前1800字符的低碳语境',version:compiled.version,method:'rules',primaryBasis:'反向优先；公共语境仅检查范围；后台只跳过不会改变分类结论的专业词扫描'};
+ }
  const positive=[],negative=[];
  for(const r of compiled.rules){if(r.enabled===false||r.type==='context')continue;const hits=hitsFor(r);
   if(r.type==='exclude'){negative.push(...hits);continue;}

@@ -1,0 +1,40 @@
+{
+  "capturedAt": "2026-10-25T20:40:39.565034",
+  "selection": {
+    "system": "low-carbon",
+    "changedAt": 1792931961.6632078
+  },
+  "apps": [
+    {
+      "name": "knowledge-base",
+      "pid": 11257,
+      "status": "online"
+    },
+    {
+      "name": "ocean-intelligence",
+      "pid": 0,
+      "status": "stopped"
+    },
+    {
+      "name": "ocean-workspace-data",
+      "pid": 1881,
+      "status": "online"
+    }
+  ],
+  "units": {
+    "low-carbon-app.service": "active",
+    "low-carbon-projector.timer": "active",
+    "ocean-processing.service": "active",
+    "model-operations.timer": "active",
+    "research-period-reports.timer": "active"
+  },
+  "lowCarbonHealth": {
+    "status": 200,
+    "value": {
+      "ok": true,
+      "backend": "postgres",
+      "documents": 2090
+    }
+  },
+  "appResource": "NRestarts=0\nMemoryCurrent=175792128\n"
+}

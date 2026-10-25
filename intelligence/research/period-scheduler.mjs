@@ -1,7 +1,7 @@
 import {reportRange} from './period-reports.mjs';
 
 // One persistent idempotency key per Beijing day. Viewing pages never starts a model call.
-export function createPeriodScheduler(reports,{enabled=true,clock=()=>new Date(),interval=30000,onError=()=>{}}={}){
+export function createPeriodScheduler(reports,{enabled=true,startImmediately=true,clock=()=>new Date(),interval=30000,onError=()=>{}}={}){
  let busy=false;
  async function tick(){
   if(!enabled||busy)return;
@@ -21,8 +21,8 @@ export function createPeriodScheduler(reports,{enabled=true,clock=()=>new Date()
    if(job.status==='ready')await reports.publish(job.id);
   }catch(e){onError(e);}finally{busy=false;}
  }
- const timer=enabled?setInterval(()=>void tick(),interval):null;
+ const timer=enabled&&interval>0?setInterval(()=>void tick(),interval):null;
  timer?.unref?.();
- if(enabled)void tick(); // Catch up after a server restart or an offline midnight.
+ if(enabled&&startImmediately)void tick(); // Catch up after a server restart or an offline midnight.
  return {tick,stop:()=>clearInterval(timer)};
 }

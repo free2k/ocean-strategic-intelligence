@@ -44,7 +44,7 @@ export async function hydrateWorkspace(root,readParts){
 }
 // Call with a client already inside a transaction. Readers retain an MVCC
 // snapshot while a concurrent writer replaces the generation.
-export async function readWorkspaceClient(client,previous=null){
+export async function readWorkspaceClient(client,previous=null,{fastMetadata=false}={}){
  const record=(await client.query("SELECT payload,updated_at::text AS version FROM ocean_intel.runs WHERE id='current'")).rows[0],root=record?.payload;
  if(!root)return root;
  if(previous?._readVersion===record.version)return previous;
@@ -55,6 +55,16 @@ export async function readWorkspaceClient(client,previous=null){
   hashes[field]=expected.sha256;
   if(root._workspaceDelta?.fields.includes(field))continue;
   if(previous?._partHashes?.[field]===expected.sha256){data[field]=previous[field];continue;}
+  // A bounded object can be parsed directly. Streaming this known small
+  // metadata object builds and re-encodes its entire tree token by token.
+  // Keep the streaming path for article arrays and larger future snapshots.
+  if(fastMetadata&&field==='ieaDatasets'&&expected.parts<=16){
+   const parts=(await client.query('SELECT part,payload FROM ocean_intel.workspace_parts WHERE generation=$1 AND field=$2 ORDER BY part',[manifest.generation,field])).rows;
+   if(parts.length!==expected.parts||parts.some((p,i)=>p.part!==i||p.payload.length>1024*1024))throw Object.assign(Error('Workspace parts missing or invalid'),{code:'WORKSPACE_PARTS_MISSING'});
+   const text=parts.map(p=>p.payload).join('');
+   if(digest(text)!==expected.sha256)throw Object.assign(Error('Workspace part checksum mismatch'),{code:'WORKSPACE_PARTS_CORRUPT'});
+   data[field]=JSON.parse(text);continue;
+  }
   const hash=createHash('sha256');
   async function* source(){
    yield '{'+JSON.stringify(field)+':';
@@ -72,9 +82,9 @@ export async function readWorkspaceClient(client,previous=null){
  Object.defineProperty(data,'_readVersion',{value:record.version,enumerable:false});
  return data;
 }
-export async function readWorkspace(pool,previous=null){
+export async function readWorkspace(pool,previous=null,options={}){
  const client=await pool.connect();
- try{await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');const data=await readWorkspaceClient(client,previous);await client.query('COMMIT');return data;}
+ try{await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');const data=await readWorkspaceClient(client,previous,options);await client.query('COMMIT');return data;}
  catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
 }
 // Caller owns the transaction and the insight-data advisory lock.

@@ -1,0 +1,789 @@
+{
+  "results": [
+    {
+      "route": "home",
+      "title": "碳索智研 · 低碳情报与决策支持平台",
+      "notice": "资讯默认正常展示 · 来源可追溯 · 复用共享结果 · 本地证据检索",
+      "current": "低碳研究",
+      "loginVisible": false,
+      "bodyTextLength": 1104
+    },
+    {
+      "route": "sources",
+      "title": "碳索智研 · 低碳情报与决策支持平台",
+      "notice": "资讯默认正常展示 · 来源可追溯 · 复用共享结果 · 本地证据检索",
+      "current": "低碳研究",
+      "loginVisible": false,
+      "bodyTextLength": 300
+    },
+    {
+      "route": "library",
+      "title": "碳索智研 · 低碳情报与决策支持平台",
+      "notice": "资讯默认正常展示 · 来源可追溯 · 复用共享结果 · 本地证据检索",
+      "current": "低碳研究",
+      "loginVisible": false,
+      "bodyTextLength": 237
+    },
+    {
+      "route": "monitor",
+      "title": "碳索智研 · 低碳情报与决策支持平台",
+      "notice": "资讯默认正常展示 · 来源可追溯 · 复用共享结果 · 本地证据检索",
+      "current": "低碳研究",
+      "loginVisible": false,
+      "bodyTextLength": 4800
+    },
+    {
+      "route": "dashboard",
+      "title": "碳索智研 · 低碳情报与决策支持平台",
+      "notice": "资讯默认正常展示 · 来源可追溯 · 复用共享结果 · 本地证据检索",
+      "current": "低碳研究",
+      "loginVisible": false,
+      "bodyTextLength": 6741
+    },
+    {
+      "route": "analysis",
+      "title": "碳索智研 · 低碳情报与决策支持平台",
+      "notice": "资讯默认正常展示 · 来源可追溯 · 复用共享结果 · 本地证据检索",
+      "current": "低碳研究",
+      "loginVisible": false,
+      "bodyTextLength": 4305
+    },
+    {
+      "route": "graph",
+      "title": "碳索智研 · 低碳情报与决策支持平台",
+      "notice": "资讯默认正常展示 · 来源可追溯 · 复用共享结果 · 本地证据检索",
+      "current": "低碳研究",
+      "loginVisible": false,
+      "bodyTextLength": 4420
+    },
+    {
+      "route": "research",
+      "title": "碳索智研 · 低碳情报与决策支持平台",
+      "notice": "资讯默认正常展示 · 来源可追溯 · 复用共享结果 · 本地证据检索",
+      "current": "低碳研究",
+      "loginVisible": false,
+      "bodyTextLength": 776
+    }
+  ],
+  "errors": [],
+  "failed": [],
+  "mobile": {
+    "width": 390,
+    "scrollWidth": 390,
+    "switchVisible": true
+  },
+  "requests": [
+    {
+      "path": "/low-carbon/",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/style.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/research-layout.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy-workbench.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/ui-controls.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/home-hero.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon-logo.svg",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/app.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/subsystem-switch.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/multi-select.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy-workbench.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/country-dossier.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/monitor-overview.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/object-browser.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/navigation.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/home.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/change-signals.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/sensing.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/industry-topics.mjs",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/preview.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/globe.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/file-intake.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/country-map.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/x-evidence-view.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/statistical-views.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/interactions.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/enhancements.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/country-ranking.mjs",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/country-assessment.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/case-workflow.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/case-view.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/guided-inputs.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/state.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/scope-state.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/scope-fields.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/wizard.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/matrix.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/results.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/advisor.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/discovery.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/object-supplement.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/object-fields.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/dossier-view.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/system-profile.mjs",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon/taxonomy.mjs",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/system-api.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/classification-current.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/research-replay.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/chart-views.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/evaluation-case-view.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/task-map.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon/lexicon.mjs",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/classification-review.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/rule-editor.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/period-reports.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/brief-view.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/processing-runs.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/period-charts.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/charts.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/official-charts.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/world.json",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/session",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon-logo.svg",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/snapshots/latest-version",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/options",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/data",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon-hero.svg",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/research/products",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/period-reports",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/period-reports/5f788003-6a35-4f51-80c4-326d37998657",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/subscriptions",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/rss/sources",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/sensing-summary",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon-logo.svg",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/sensing.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/research-layout.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/ui-controls.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/classification-audit",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/period-reports",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon-logo.svg",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/research/monitor-summary",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/research/objects",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon-logo.svg",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/research/countries",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/data",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon-logo.svg",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/app.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/index.html",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/style.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/echarts.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon-logo.svg",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/data-workbench.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/chart-rotation.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/chart-caption.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/template-demos.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/api/catalog",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/world.json",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/insight-data",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/options",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/data",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon-logo.svg",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/strategy/catalog",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/research",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/data",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon-logo.svg",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/style.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/research-layout.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy-workbench.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/ui-controls.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/home-hero.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon.css",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon-logo.svg",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/app.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/subsystem-switch.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/multi-select.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy-workbench.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/country-dossier.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/monitor-overview.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/object-browser.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/navigation.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/home.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/change-signals.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/sensing.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/industry-topics.mjs",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/preview.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/globe.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/file-intake.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/country-map.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/x-evidence-view.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/statistical-views.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/interactions.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/enhancements.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/country-ranking.mjs",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/country-assessment.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/object-supplement.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/object-fields.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/dossier-view.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/case-workflow.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/case-view.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/guided-inputs.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/state.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/scope-state.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/scope-fields.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/wizard.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/matrix.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/results.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/advisor.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/discovery.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/system-profile.mjs",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon/taxonomy.mjs",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/system-api.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/classification-current.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/research-replay.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/chart-views.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/evaluation-case-view.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/strategy/task-map.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon/lexicon.mjs",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/classification-review.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/rule-editor.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/period-reports.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/brief-view.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/period-charts.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/processing-runs.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/charts.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/quant/official-charts.js",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/world.json",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/session",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon-logo.svg",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/snapshots/latest-version",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/options",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/data",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon-hero.svg",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/low-carbon-logo.svg",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/research/products",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/period-reports",
+      "method": "GET"
+    },
+    {
+      "path": "/low-carbon/api/period-reports/5f788003-6a35-4f51-80c4-326d37998657",
+      "method": "GET"
+    }
+  ]
+}

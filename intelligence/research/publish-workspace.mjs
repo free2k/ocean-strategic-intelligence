@@ -5,7 +5,7 @@ import {publishCountries} from './countries.mjs';
 export async function publishWorkspace(repository,data,options={}){
  const original=await repository.head();if(!original)fail('BASELINE_REQUIRED','Existing research baseline required');
  let head=original;const records={};
- const staged={head:async()=>head,read:async id=>records[id]||repository.read(id),commit:async change=>{
+ const staged={head:async()=>head,read:async id=>records[id]||repository.read(id),readSnapshotComparison:async id=>records[id]||(repository.readSnapshotComparison?repository.readSnapshotComparison(id):repository.read(id)),commit:async change=>{
   if(change.expectedReleaseId!==head.releaseId)fail('VERSION_CONFLICT','Staged research head changed');
   Object.assign(records,change.records);head=change.head;
  }};

@@ -33,7 +33,7 @@ ${topicList}
   const userMessage = `文章标题：${title}\n\n文章内容：\n${truncatedContent}`;
 
   try {
-    const response = await chatCompletion(systemPrompt+'\n'+domainPrompt(), userMessage);
+    const response = await chatCompletion(systemPrompt+'\n'+domainPrompt(), userMessage, { task: 'classification' });
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;
     const parsed = JSON.parse(jsonMatch[0]) as { category?: string | null };

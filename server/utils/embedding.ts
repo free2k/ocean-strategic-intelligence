@@ -1,6 +1,12 @@
 import OpenAI from 'openai';
+import { usePool } from '~/server/db';
+import { taskClient } from '../../intelligence/model-client.mjs';
+import { taskModel } from '../../intelligence/model-policy.mjs';
+import { ModelRequestStore } from '../../intelligence/model-request-store.mjs';
 
 let _client: OpenAI | null = null;
+let _modelStore: ModelRequestStore | null = null;
+function cachedClient(task: string) { return taskClient(getClient(), { task, automatic: false, store: _modelStore ||= new ModelRequestStore(usePool()) }); }
 
 function getClient() {
   if (!_client) {
@@ -8,6 +14,7 @@ function getClient() {
     _client = new OpenAI({
       apiKey: config.openaiApiKey,
       baseURL: config.openaiBaseUrl,
+      maxRetries: 0,
     });
   }
   return _client;
@@ -27,7 +34,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 /** 批量生成向量（自动分批，DashScope 限制每批最多 10 条） */
 export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
   const config = useRuntimeConfig();
-  const client = getClient();
+  const client = cachedClient('embedding');
   const BATCH_SIZE = 6; // DashScope 限制 10，留余量用 6
   const results: number[][] = [];
 
@@ -69,11 +76,12 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
 }
 
 /** 调用 Chat 模型进行问答 */
-export async function chatCompletion(systemPrompt: string, userMessage: string): Promise<string> {
+export async function chatCompletion(systemPrompt: string, userMessage: string, options: { task?: string } = {}): Promise<string> {
   const config = useRuntimeConfig();
-  const client = getClient();
+  const task = options.task || 'answer';
+  const client = task === 'answer' ? getClient() : cachedClient(task);
   const response = await client.chat.completions.create({
-    model: config.chatModel,
+    model: task === 'answer' ? config.chatModel : taskModel(task, { fallback: config.chatModel }),
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userMessage },

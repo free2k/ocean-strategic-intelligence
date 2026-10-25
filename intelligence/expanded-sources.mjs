@@ -3,8 +3,7 @@ import fs from 'node:fs/promises';import path from 'node:path';
 import {parseHTML} from 'linkedom';import {Readability} from '@mozilla/readability';import {XMLParser} from 'fast-xml-parser';
 import {getResource} from './net.mjs';import {id,clean,canonical,chunks,mergeRecords} from './core.mjs';import {ruleExtract} from './rules.mjs';
 export const profiles=[
- {id:'iaea-news',name:'IAEA 官方新闻',country:'GLOBAL',level:'S1',url:'https://www.iaea.org/feeds/topnews',method:'rss',scope:'发现近期新闻并抓取正文；仅海洋能源相关内容进入后续六领域分类，其余保留候选'},
- {id:'iaea-publications',name:'IAEA 出版物',country:'GLOBAL',level:'S1',url:'https://www.iaea.org/feeds/publications',method:'rss',scope:'出版物介绍页及报告链接；仅发现 PDF 不代表已提取量化数据'},
+ // Nuclear news and technical references use public-source-replacements.mjs.
  {id:'boem-news',name:'BOEM 官方新闻',country:'US',level:'S1',url:'https://www.boem.gov/webteam/rss/boem-rss.xml',method:'rss',scope:'BOEM 新闻 RSS 发现近90天文章；采集可访问正文，随后自动翻译、提取并执行原六大类别规则；RSS 摘要不冒充全文'},
  {id:'boem-policy',name:'BOEM 可再生能源法规索引',country:'US',level:'S1',url:'https://www.boem.gov/renewable-energy/rules-development-and-interim-policy',method:'web-index',scope:'历史法规与临时政策索引，定期检查修订；不是最新新闻，索引读取日期不作为政策发布日期或生效日期'},
  {id:'equinor',name:'Equinor',country:'NO',level:'S2',url:'https://www.equinor.com/news',pattern:/^\/news\/\d{8}-/,scope:'官网当前新闻列表；海上油气、CCS与海上新能源相关正文，不代表历史全量'},

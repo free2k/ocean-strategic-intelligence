@@ -65,7 +65,8 @@ export class ResearchLedger{
   const head=await this.repository.head();if((head?.releaseId||null)!==expectedReleaseId)fail('VERSION_CONFLICT','Latest research release changed',409);
   if(!head&&!baseline)fail('BASELINE_REQUIRED','The first capture must be explicitly marked as a baseline');
   if(head&&baseline)fail('BASELINE_EXISTS','A baseline already exists',409);
-  const previous=head?await this.snapshot(head.snapshotId):null;
+  const previous=head?(this.repository.readSnapshotComparison?await this.repository.readSnapshotComparison(head.snapshotId):await this.snapshot(head.snapshotId)):null;
+  if(head&&previous?.kind!=='snapshot')fail('VERSION_NOT_FOUND','Research snapshot does not exist',404);
   const prepared=prepareSnapshot(data,previous?{...previous,snapshotId:head.snapshotId}:null,{...options,baseline});
   if(head?.snapshotId===prepared.snapshotId)return {...await this.release(head.releaseId),unchanged:true};
   const at=new Date().toISOString(),batchId='batch_'+digest({...prepared.batch,publishedAt:at}),snapshot={kind:'snapshot',...prepared.snapshot};

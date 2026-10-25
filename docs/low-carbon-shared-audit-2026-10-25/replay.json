@@ -1,0 +1,30 @@
+[
+  {
+    "path": "collection",
+    "status": 202
+  },
+  {
+    "path": "collection",
+    "status": 202
+  },
+  {
+    "path": "collection",
+    "status": 202
+  },
+  {
+    "path": "document/not-existing/translation",
+    "status": 409,
+    "code": "SHARED_RESULT_UNAVAILABLE"
+  },
+  {
+    "path": "document/not-existing/vision",
+    "status": 409,
+    "code": "SHARED_RESULT_UNAVAILABLE"
+  },
+  {
+    "path": "insight-data",
+    "status": 200,
+    "items": 10,
+    "total": 2087
+  }
+]

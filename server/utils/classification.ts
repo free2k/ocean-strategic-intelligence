@@ -114,7 +114,7 @@ export async function classifyByLLM(title: string, content: string): Promise<str
   const truncatedContent = content.slice(0, 2000);
   const userMessage = `文章标题：${title}\n\n文章内容：\n${truncatedContent}`;
 
-  const response = await chatCompletion(systemPrompt+'\n'+domainPrompt(), userMessage);
+  const response = await chatCompletion(systemPrompt+'\n'+domainPrompt(), userMessage, { task: 'classification' });
 
   // Parse the LLM response as JSON
   try {

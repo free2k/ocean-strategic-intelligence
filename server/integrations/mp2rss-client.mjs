@@ -2,6 +2,13 @@ import {createHash} from 'node:crypto';
 import {mergeAccountClients} from './mp2rss-accounts.mjs';
 import {fetch as request,ProxyAgent} from 'undici';
 export const hash=x=>createHash('sha256').update(x).digest('hex');
+export function syncSince(lastSync,{deep=false}={}){
+ // The provider already bounds retained history. An initial three-day cutoff
+ // silently loses valid content from less frequent accounts.
+ if(deep||!lastSync)return null;
+ const time=Date.parse(lastSync);if(!Number.isFinite(time))throw Error('无效同步时间');
+ return time-7*86400000;
+}
 export function connection(link=process.env.MP2_RSS_LINK){
  try{const u=new URL(link);const match=u.pathname.match(/^\/feed\/([^/]+)\/(rss|atom|json)\/all\/?$/);if(u.protocol!=='https:'||u.hostname!=='mp2rss.bugcode.dev'||u.username||u.password||u.port||!match)throw 0;return {origin:u.origin,token:match[1]};}catch{throw new Error('MP2_RSS_LINK 未配置或不是官方聚合 Feed 地址');}
 }

@@ -1,4 +1,6 @@
 import {ArticleCheckpoints} from './article-checkpoints.mjs';
+import {taskClient} from './model-client.mjs';
+import {retryPlan} from './model-retry.mjs';
 import {readTaskWorkspace as readSnapshot,saveTaskWorkspace} from './task-workspace.mjs';
 import {scopeName} from './system-profile.mjs';
 import {domainPrompt} from './industry-topics.mjs';
@@ -61,12 +63,12 @@ export async function autoExtract(dir,{client,extract=extractArticle,clock=()=>n
  const file=path.join(dir,'snapshot.json'),data=workspace||await readSnapshot(file);data.errors||=[];
  const save=async()=>{await saveTaskWorkspace(file,data);};const checkpoints=new ArticleCheckpoints(dir,'extraction');await checkpoints.restore(data.documents,(doc,saved)=>{Object.assign(doc,saved);if(saved.autoExtraction?.status==='completed'&&saved.extraction){applyExtraction(data,doc,saved.extraction,saved.autoExtraction.completedAt);doc.autoExtraction=saved.autoExtraction;}});const checkpoint=doc=>checkpoints.save(doc,{autoExtraction:doc.autoExtraction,extraction:doc.extraction,extractionStatus:doc.extractionStatus,extractionVersion:doc.extractionVersion});
  const now=clock();for(const d of data.documents.filter(canAdopt))d.autoExtraction={status:'completed',versionId:d.versionId,pipelineVersion,completedAt:now,method:'采集阶段已提取',attempts:0};
- if(!client&&process.env.INTEL_ENABLE_AI==='true'&&process.env.OPENAI_API_KEY)client=new OpenAI({apiKey:process.env.OPENAI_API_KEY,baseURL:process.env.OPENAI_BASE_URL,timeout:extractionTimeoutMs,maxRetries:0});
- const pending=data.documents.filter(d=>!d.manual&&(!d.industry||d.industry.status==='accepted')&&!isComplete(d)&&(!d.autoExtraction?.nextRetryAt||d.autoExtraction.versionId!==d.versionId||d.autoExtraction.nextRetryAt<=now));
+ if(!client&&process.env.INTEL_ENABLE_AI==='true'&&process.env.OPENAI_API_KEY)client=taskClient(new OpenAI({apiKey:process.env.OPENAI_API_KEY,baseURL:process.env.OPENAI_BASE_URL,timeout:extractionTimeoutMs,maxRetries:0}),{task:'extraction',automatic:true});
+ const pending=data.documents.filter(d=>!d.manual&&(!d.industry||d.industry.status==='accepted')&&!isComplete(d)&&(d.autoExtraction?.status!=='paused'||d.autoExtraction.versionId!==d.versionId)&&(!d.autoExtraction?.nextRetryAt||d.autoExtraction.versionId!==d.versionId||d.autoExtraction.nextRetryAt<=now));
  const queue=limit>0?pending.slice(0,limit):pending;let index=0;
  if(client)await Promise.all(Array.from({length:extractionConcurrency},async()=>{while(index<queue.length){const d=queue[index++];const attempts=d.autoExtraction?.versionId===d.versionId?(d.autoExtraction.attempts||0)+1:1;d.autoExtraction={status:'running',versionId:d.versionId,pipelineVersion,attempts,startedAt:clock()};await checkpoint(d);
   try{if(!d.content?.trim())throw new Error('empty_content');const result=await extract(client,d);applyExtraction(data,d,result,clock());d.autoExtraction.method='自动模型提取';}
-  catch(error){const at=clock(),failure=extractionError(error);d.autoExtraction={...d.autoExtraction,...failure,status:'failed',error:'自动提取未完成，原文与既有结果保留',nextRetryAt:new Date(Date.parse(at)+Math.min(24,2**Math.min(attempts-1,5))*3600000).toISOString()};data.errors.push({sourceId:d.sourceId,documentId:d.id,stage:'auto-extraction',...failure,error:d.autoExtraction.error,at});}
+  catch(error){const at=clock(),failure=extractionError(error),plan=retryPlan(error,{attempts:attempts-1,now:Date.parse(at)});d.autoExtraction={...d.autoExtraction,...failure,status:plan.status==='paused'?'paused':['waiting','deferred'].includes(plan.status)?'pending':'failed',attempts:plan.attempts,error:'自动提取未完成，原文与既有结果保留',nextRetryAt:plan.nextRetryAt};data.errors.push({sourceId:d.sourceId,documentId:d.id,stage:'auto-extraction',...failure,error:d.autoExtraction.error,at});}
   await checkpoint(d);
  }}));
  await checkpoints.pending;data.processing={...processingSummary(data),checkedAt:clock(),modelEnabled:!!client};data.generatedAt=clock();if(!workspace)await save();return data.processing;

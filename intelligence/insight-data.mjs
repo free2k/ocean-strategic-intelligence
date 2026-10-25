@@ -44,6 +44,9 @@ function containers(data,path){
 // Edits accompany the snapshot, so file imports and PostgreSQL imports use identical rules.
 export function applyDataEdits(input,edits=input.insightEdits||{}){
  const data={...input,insightEdits:edits};
+ // Keep the committed read identity when applying a local view. Losing these
+ // non-enumerable markers forces a full reload on the next unchanged request.
+ for(const key of ['_readVersion','_partHashes']){const descriptor=Object.getOwnPropertyDescriptor(input,key);if(descriptor)Object.defineProperty(data,key,descriptor);}
  const byKind=new Map();for(const edit of Object.values(edits)){if(!byKind.has(edit.kind))byKind.set(edit.kind,new Map());byKind.get(edit.kind).set(edit.key,edit);}
  for(const [kind,map]of [...byKind].sort(([a],[b])=>(a==='series'?0:1)-(b==='series'?0:1))){const found=new Set();for(const record of records(data,kind)){const edit=map.get(record.key);if(!edit)continue;found.add(record.key);const target=containers(data,record.path);if(!target)continue;const row={...record.row,...edit.patch};if(kind==='candidates'){if(edit.deleted)delete target[record.path[1]];else target[record.path[1]]=row;}else{const i=target.indexOf(record.row);if(i<0)continue;if(edit.deleted)target.splice(i,1);else target[i]=row;}}
   for(const edit of map.values())if(!found.has(edit.key)&&edit.restored&&!edit.deleted){const target=containers(data,edit.path);if(target){const row={...edit.original,...edit.patch};if(kind==='candidates')target[edit.path[1]]=row;else target.push(row);}}

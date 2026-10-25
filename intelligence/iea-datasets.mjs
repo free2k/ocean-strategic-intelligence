@@ -1,4 +1,5 @@
 import {readTaskWorkspace as readSnapshot,saveTaskWorkspace} from './task-workspace.mjs';
+import {collectPublicReplacements,updateOilpriceMetrics} from './public-source-replacements.mjs';
 import {snapshotRules} from './published-rules.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -72,6 +73,13 @@ export function commitVersion(state,dataset){
  state.history.push({key,at:dataset.checkedAt,hash:dataset.contentHash,previousHash:old?.contentHash||null,added,changed,removed:before.size,filename:dataset.filename,release:dataset.release});state.datasets[key]=dataset;return true;
 }
 export async function collectIEA(dir,{force=false}={}){
+ // Public replacements are the normal unattended path. The authenticated
+ // legacy importer remains available only when explicitly requested.
+ if(process.env.INTEL_IEA_AUTHENTICATED_DATASETS!=='true'){
+  const result=await collectPublicReplacements(dir);
+  await updateOilpriceMetrics(dir);
+  return result;
+ }
  const file=path.join(dir,'snapshot.json'),data=await readSnapshot(file);const state=data.ieaDatasets||={datasets:{},history:[],products:{}};state.products||={};
  const home=process.env.IEA_DATA_HOME||path.join(dir,'iea'),session=process.env.IEA_SESSION_FILE||path.join(home,'session.json');await fs.mkdir(path.join(home,'archive'),{recursive:true});const config=snapshotRules(data);
  let browser;

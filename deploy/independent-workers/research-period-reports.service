@@ -1,0 +1,11 @@
+[Unit]
+Description=Shared existing marine daily brief
+After=network.target
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ocean-intelligence/current
+Environment=INTEL_DATA_DIR=/opt/ocean-intelligence/data
+Environment=INTEL_ENABLE_AI=true
+ExecStart=/usr/bin/node-20 --env-file=/opt/knowledge-base/.env /opt/ocean-intelligence/current/intelligence/period-schedule-run.mjs
+TimeoutStartSec=0
+UMask=0077

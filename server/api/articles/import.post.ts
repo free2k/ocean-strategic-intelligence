@@ -1,4 +1,4 @@
-import { eq, and, isNotNull } from 'drizzle-orm';
+import { eq, and, isNotNull, inArray } from 'drizzle-orm';
 import { useDB, schema } from '~/server/db';
 import type { ImportBatch } from '~/types/article';
 
@@ -12,6 +12,7 @@ export default defineEventHandler(async (event) => {
   const db = useDB();
   let importedCount = 0;
   let skippedCount = 0;
+  const importedIds: number[] = [];
 
   for (const account of body.accounts) {
     // 确保来源存在
@@ -32,7 +33,7 @@ export default defineEventHandler(async (event) => {
     // 导入文章
     for (const article of account.articles) {
       try {
-        await db.insert(schema.articles).values({
+        const inserted = await db.insert(schema.articles).values({
           title: article.title,
           link: article.link,
           cover: article.cover || null,
@@ -43,8 +44,9 @@ export default defineEventHandler(async (event) => {
           externalId: article.aid || null,
           publishedAt: new Date(article.create_time * 1000),
           content: article.content || null,
-        }).onConflictDoNothing({ target: schema.articles.link });
-        importedCount++;
+        }).onConflictDoNothing({ target: schema.articles.link }).returning({ id: schema.articles.id });
+        if (inserted[0]) { importedIds.push(inserted[0].id); importedCount++; }
+        else skippedCount++;
       } catch (e: any) {
         if (e.code === '23505') {
           // 唯一约束冲突，文章已存在
@@ -58,7 +60,7 @@ export default defineEventHandler(async (event) => {
 
   // Optional: auto-classify newly imported articles
   let classifyResult = null;
-  if (body.autoClassify) {
+  if (body.autoClassify && importedIds.length) {
     const { classifyArticle } = await import('~/server/utils/classification');
 
     // Get all pending articles that were just imported (have content)
@@ -70,6 +72,7 @@ export default defineEventHandler(async (event) => {
       .from(schema.articles)
       .where(and(
         eq(schema.articles.filterStatus, 'pending'),
+        inArray(schema.articles.id, importedIds),
         isNotNull(schema.articles.content),
       ));
 

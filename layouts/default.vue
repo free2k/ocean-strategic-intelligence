@@ -1,6 +1,24 @@
 <script setup lang="ts">
 const route = useRoute();
 const colorMode = useColorMode();
+const lowCarbonHref = ref('/low-carbon/');
+const switchingSubsystem = ref(false);
+const subsystemMessage = ref('');
+onMounted(() => { try { const saved = sessionStorage.getItem('subsystem-last:low-carbon'); if (saved?.startsWith('/low-carbon/')) lowCarbonHref.value = saved; } catch {} });
+function rememberOceanLocation() { try { sessionStorage.setItem('subsystem-last:ocean', route.fullPath); } catch {} }
+async function activateSubsystem(system: 'ocean' | 'low-carbon', href: string) {
+  if (switchingSubsystem.value) return;
+  switchingSubsystem.value = true; subsystemMessage.value = '正在切换…';
+  rememberOceanLocation();
+  try {
+    await $fetch('/api/subsystems/activate', { method: 'POST', body: { system } });
+    window.location.assign(href);
+  } catch (error: any) {
+    subsystemMessage.value = error.data?.message || error.data?.statusMessage || '切换暂未完成，请稍后重试';
+    switchingSubsystem.value = false;
+  }
+}
+
 
 function toggleTheme() {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark';
@@ -68,6 +86,11 @@ async function logout() {
             </NuxtLink>
           </nav>
 
+          <nav aria-label="切换子系统" :aria-busy="switchingSubsystem" class="ml-3 flex items-center gap-1 shrink-0 text-xs">
+            <a href="/ocean-intelligence/" @click.prevent="activateSubsystem('ocean', '/ocean-intelligence/')" aria-current="page" class="px-2 py-1.5 rounded border font-semibold">海洋能源</a>
+            <a :href="lowCarbonHref" @click.prevent="activateSubsystem('low-carbon', lowCarbonHref)" class="px-2 py-1.5 rounded border">低碳研究</a>
+          </nav>
+          <span v-if="subsystemMessage" role="status" class="absolute right-4 top-14 max-w-sm rounded border bg-white p-2 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-200">{{ subsystemMessage }}</span>
           <!-- 登出 -->
           <button
             @click="logout"

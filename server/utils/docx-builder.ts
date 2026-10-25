@@ -59,7 +59,7 @@ export async function generateArticleSummary(article: {
 - 输出纯文本，不要使用 Markdown 格式`;
 
   try {
-    const summary = await chatCompletion(systemPrompt, `文章标题：${article.title}\n\n文章内容：\n${inputText}`);
+    const summary = await chatCompletion(systemPrompt, `文章标题：${article.title}\n\n文章内容：\n${inputText}`, { task: 'summary' });
     return summary.trim() || article.digest || '（摘要生成失败）';
   } catch {
     const fallback = cleanText.slice(0, 400);
