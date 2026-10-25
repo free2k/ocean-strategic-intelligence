@@ -6,6 +6,8 @@ import {canonicalTopic} from './industry-topics.mjs';
 import {classifyRecord,classifySnapshot,compileRules} from './industry-classification.mjs';
 import {snapshotRules} from './published-rules.mjs';
 import {unifiedIEA} from './iea-quant.mjs';
+import {dataOrigin,originNames} from './data-provenance.mjs';
+import {serveInsightImport} from './insight-import.mjs';
 
 export class DataError extends Error{constructor(message,status=400){super(message);this.status=status;}}
 // jsonb normalizes object key order; revisions must survive a database round-trip.
@@ -27,7 +29,7 @@ const fields={
 function descriptor(kind,row,parts,path,context={}){return {kind,key:keyOf(parts),row,path,context};}
 export function* records(data,kind){
  if(arrays.includes(kind)){for(const row of data[kind]||[])yield descriptor(kind,row,[row.id],[kind],{});return;}
- if(kind==='series'||kind==='statistics'){for(const s of data.series||[]){const context={dataset:s.name,sourceId:s.sourceId,topic:s.topic,unit:s.unit,country:s.country,sourceUrl:s.sourceUrl};if(kind==='series')yield descriptor(kind,s,[s.id],['series'],context);else for(const row of s.rows||[])yield descriptor(kind,row,[s.id,row.period],['series',s.id,'rows'],context);}return;}
+ if(kind==='series'||kind==='statistics'){for(const s of data.series||[]){const context={dataset:s.name,sourceId:s.sourceId,topic:s.topic,unit:s.unit,country:s.country,sourceUrl:s.sourceUrl,ingestion:s.ingestion};if(kind==='series')yield descriptor(kind,s,[s.id],['series'],context);else for(const row of s.rows||[])yield descriptor(kind,row,[s.id,row.period],['series',s.id,'rows'],context);}return;}
  if(kind==='registries'){for(const [id,s]of Object.entries(data.assetRegistries||{}))for(const row of s.rows||[])yield descriptor(kind,row,[id,String(row.id||row.lease)],['assetRegistries',id,'rows'],{dataset:s.name||id,sourceId:s.sourceId||id,topic:s.topic||(id==='boem'?'海上风电':''),country:s.country||(id==='boem'?'US':null),sourceUrl:s.sourceUrl});return;}
  if(kind==='official'){for(const [id,s]of Object.entries(data.ieaDatasets?.datasets||{}))for(const row of s.records||[])yield descriptor(kind,row,[id,row.id],['ieaDatasets','datasets',id,'records'],{dataset:s.name||row.filename,sourceId:row.sourceId,sourceUrl:row.sourceUrl});return;}
  if(kind==='reports'){for(const row of data.reportCatalog||[])yield descriptor(kind,row,[row.sourceId,row.url],['reportCatalog']);return;}
@@ -79,7 +81,7 @@ function summarize(record,ctx,edit){
  const sourceId=r.sourceId||record.context.sourceId||d?.sourceId||(record.kind==='sources'?r.id:''),topic=canonicalTopic(classification?.primary||r.topic||record.context.topic||d?.topic||'');
  const title=r.titleZh||r.title||r.objectZh||r.object||r.nameZh||r.name||r.project||r.label||r.subject||(r.from?`${ctx.entities.get(r.from)?.nameZh||ctx.entities.get(r.from)?.name||r.from} → ${ctx.entities.get(r.to)?.nameZh||ctx.entities.get(r.to)?.name||r.to}`:'')||record.context.dataset||r.quoteZh||r.quote||r.period||'未命名';
  const recordStatus=r.status||(record.kind==='registries'?r.type:'')||'';
- return {kind:record.kind,key:record.key,id:r.id||r.lease||r.period||'',title,subtitle:r.name&&r.subject?r.subject:r.metric||r.type||textSlice(r.summaryZh||'',0,120)||record.context.dataset||'',topic,sourceId,source:ctx.sources.get(sourceId)?.name||sourceId||'未标注',status:classification?.status||recordStatus||'unclassified',recordStatus,recordStatusLabel:r.statusZh||recordStatus,state:edit?.deleted?'deleted':edit?'edited':'original',date:String(r.period||r.publicationDate||r.publishedAt||r.eventDate||r.effectiveYear||''),country:countryValues(r.countryCode,r.country,r.countries,record.context.country,d?.countries,ctx.countryByDoc.get(documentId)),scopes:recordScopes(record,ctx,classification,documentIds),value:r.value??r.rawValue??r.capacityMW??null,unit:r.unit||record.context.unit||'',url:r.sourceUrl||r.url||record.context.sourceUrl||d?.url||'',documentId:r.documentId||'',updatedAt:edit?.updatedAt||null,revision:hash([record.kind,record.key,r,edit?.updatedAt]),deleted:!!edit?.deleted};
+ return {kind:record.kind,key:record.key,id:r.id||r.lease||r.period||'',title,subtitle:r.name&&r.subject?r.subject:r.metric||r.type||textSlice(r.summaryZh||'',0,120)||record.context.dataset||'',topic,sourceId,source:ctx.sources.get(sourceId)?.name||sourceId||'未标注',...dataOrigin(r.ingestion?r:{...r,ingestion:record.context.ingestion},d,ctx.sources.get(sourceId)),status:classification?.status||recordStatus||'unclassified',recordStatus,recordStatusLabel:r.statusZh||recordStatus,state:edit?.deleted?'deleted':edit?'edited':'original',date:String(r.period||r.publicationDate||r.publishedAt||r.eventDate||r.effectiveYear||''),country:countryValues(r.countryCode,r.country,r.countries,record.context.country,d?.countries,ctx.countryByDoc.get(documentId)),scopes:recordScopes(record,ctx,classification,documentIds),value:r.value??r.rawValue??r.capacityMW??null,unit:r.unit||record.context.unit||'',url:r.sourceUrl||r.url||record.context.sourceUrl||d?.url||'',documentId:r.documentId||'',updatedAt:edit?.updatedAt||null,revision:hash([record.kind,record.key,r,edit?.updatedAt]),deleted:!!edit?.deleted};
 }
 const readCache=new WeakMap();
 function allSummaries(data){
@@ -105,12 +107,12 @@ export function queryData(data,filters={}){
  const hasShared=filters.topic||filters.sourceId||country||from||to;
  const shared=hasShared?rows.filter(r=>r.scopes.some(s=>(!filters.topic||s.topic===canonicalTopic(filters.topic))&&(!filters.sourceId||s.sourceId===filters.sourceId||ctx.sourceAliases.get(s.sourceId)===filters.sourceId)&&(!country||s.country.some(c=>String(c).toLowerCase().includes(String(country).toLowerCase())))&&(!from||periodBounds(s.date)?.[1]>=from)&&(!to||periodBounds(s.date)?.[0]<=to))):rows;
  const scope=shared.filter(r=>r.deleted===deleted&&(kind==='all'||r.kind===kind));
- const matched=scope.filter(r=>(!filters.status||(filters.status.startsWith('record:')?r.recordStatus===filters.status.slice(7):r.status===filters.status))&&(!filters.state||r.state===filters.state)&&(!q||JSON.stringify(r).toLowerCase().includes(q)));
+ const matched=scope.filter(r=>(!filters.status||(filters.status.startsWith('record:')?r.recordStatus===filters.status.slice(7):r.status===filters.status))&&(!filters.state||r.state===filters.state)&&(!filters.origin||r.origin===filters.origin)&&(!q||JSON.stringify(r).toLowerCase().includes(q)));
  const sort=['title','date','value','updatedAt'].includes(filters.sort)?filters.sort:'date',dir=filters.order==='asc'?1:-1;
  matched.sort((a,b)=>{if(sort==='value'){if(a.value===null)return b.value===null?a.key.localeCompare(b.key):1;if(b.value===null)return -1;return (Number(String(a.value).replaceAll(',',''))-Number(String(b.value).replaceAll(',','')))*dir||a.key.localeCompare(b.key);}return String(a[sort]||'').localeCompare(String(b[sort]||''),'zh-CN')*dir||a.key.localeCompare(b.key);});
  const pageSize=Math.max(10,Math.min(100,Math.floor(Number(filters.pageSize)||25))),pages=Math.max(1,Math.ceil(matched.length/pageSize)),page=Math.max(1,Math.min(pages,Math.floor(Number(filters.page)||1)));
  const business=scope.filter(r=>r.recordStatus&&r.recordStatus!==r.status);
- return {items:filters.format==='csv'?matched:matched.slice((page-1)*pageSize,page*pageSize),total:matched.length,page,pages,pageSize,revision:data.insightRevision||data.generatedAt,kinds:dataKinds.map(k=>({...k,count:shared.filter(r=>r.kind===k.id&&!r.deleted).length})),totalActive:shared.filter(r=>!r.deleted).length,deletedCount:shared.filter(r=>r.deleted).length,editedCount:shared.filter(r=>r.state==='edited').length,options:{topics:[...new Set(scope.map(r=>r.topic).filter(Boolean))].sort(),sources:[...new Map(scope.filter(r=>r.sourceId).map(r=>[r.sourceId,{id:r.sourceId,name:r.source}])).values()].sort((a,b)=>a.name.localeCompare(b.name,'zh-CN')),statuses:[...new Set([...scope.map(r=>r.status),...business.map(r=>'record:'+r.recordStatus)])].sort(),statusLabels:Object.fromEntries(business.map(r=>['record:'+r.recordStatus,'记录状态 · '+r.recordStatusLabel]))}};
+ return {items:filters.format==='csv'?matched:matched.slice((page-1)*pageSize,page*pageSize),total:matched.length,page,pages,pageSize,revision:data.insightRevision||data.generatedAt,kinds:dataKinds.map(k=>({...k,count:shared.filter(r=>r.kind===k.id&&!r.deleted).length})),totalActive:shared.filter(r=>!r.deleted).length,deletedCount:shared.filter(r=>r.deleted).length,editedCount:shared.filter(r=>r.state==='edited').length,originCounts:Object.fromEntries(Object.keys(originNames).map(origin=>[origin,shared.filter(r=>!r.deleted&&r.origin===origin).length])),options:{topics:[...new Set(scope.map(r=>r.topic).filter(Boolean))].sort(),sources:[...new Map(scope.filter(r=>r.sourceId).map(r=>[r.sourceId,{id:r.sourceId,name:r.source}])).values()].sort((a,b)=>a.name.localeCompare(b.name,'zh-CN')),origins:Object.entries(originNames).map(([id,name])=>({id,name})),statuses:[...new Set([...scope.map(r=>r.status),...business.map(r=>'record:'+r.recordStatus)])].sort(),statusLabels:Object.fromEntries(business.map(r=>['record:'+r.recordStatus,'记录状态 · '+r.recordStatusLabel]))}};
 }
 export function readDataRecord(data,kind,key){
  if(!dataKinds.some(k=>k.id===kind))throw new DataError('未知数据类型');
@@ -184,12 +186,13 @@ export async function mutateStoreData(store,input,actor){
 }
 
 export async function serveInsightData(req,res,url,{store,serial,body,json}){
+ if(await serveInsightImport(req,res,url,{store,serial,body,json,actor:'session_'+hash(req.headers.cookie||'local').slice(0,16)}))return true;
  if(url.pathname!=='/api/insight-data'&&url.pathname!=='/api/insight-data/record')return false;
  try{
   if(req.method==='GET'){
    const params=Object.fromEntries(url.searchParams),value=url.pathname.endsWith('/record')?readDataRecord(store.data,params.kind,params.key):queryData(store.data,params);
    if(params.format==='csv'&&Array.isArray(value.items)){
-    const columns=[['kind','数据类型'],['id','编号'],['title','记录名称'],['subtitle','说明'],['topic','行业'],['status','分类或状态'],['recordStatusLabel','记录状态'],['value','数值'],['unit','单位'],['date','统计期或日期'],['country','国家'],['source','来源'],['state','修改状态'],['url','原始来源']];
+    const columns=[['kind','数据类型'],['id','编号'],['title','记录名称'],['subtitle','说明'],['topic','行业'],['status','分类或状态'],['recordStatusLabel','记录状态'],['value','数值'],['unit','单位'],['date','统计期或日期'],['country','国家'],['source','来源'],['originLabel','数据来源类型'],['state','修改状态'],['url','原始来源']];
     const cell=v=>'"'+String(v??'').replace(/^[=+@\t\r-]/,"'$&").replaceAll('"','""')+'"';
     const csv='\ufeff'+[columns.map(c=>c[1]),...value.items.map(r=>columns.map(([k])=>r[k]))].map(row=>row.map(cell).join(',')).join('\r\n');
     res.writeHead(200,{'Content-Type':'text/csv; charset=utf-8','Cache-Control':'no-store','Content-Disposition':"attachment; filename*=UTF-8''"+encodeURIComponent('产业数据明细.csv')});res.end(csv);return true;

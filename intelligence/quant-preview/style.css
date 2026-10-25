@@ -249,7 +249,7 @@ dialog.dw-dialog{padding:0;margin:auto;width:min(1050px,calc(100vw - 48px));max-
 
 .metrics[hidden]{display:none}
 
-/* The workspace switch sits directly below the shared filter bar. */
+/* The workspace switch precedes the slotted shared filter bar. */
 .toolbar{margin:0 0 10px;padding:0 0 13px}
 .dw-filters{grid-template-columns:minmax(150px,1.5fr) minmax(120px,1fr) minmax(110px,.9fr) auto;align-items:end;gap:12px}
 .dw-filters label>span{line-height:18px;margin:0}
@@ -268,3 +268,28 @@ dialog.dw-dialog{padding:0;margin:auto;width:min(1050px,calc(100vw - 48px));max-
 .dw-edit-grid :is(input:not([type=checkbox]), select) { min-height: 44px; line-height: 22px; padding: 10px 12px; }
 .dw-heading-actions { align-items: center; }
 .dw-heading-actions > button { min-height: 36px; }
+
+/* Imports keep provenance visible beside the channel in both record views. */
+.dw-badge.imported{color:#8760c2;background:rgba(137,98,197,.1);border:1px solid rgba(137,98,197,.2)}
+[data-theme="dark"] .dw-badge.imported{color:#c6afff;background:rgba(146,110,214,.14);border-color:rgba(172,137,239,.28)}
+.dw-source-cell small{display:block;margin-top:6px;color:var(--muted);font-size:11px}
+.dw-stats{flex-wrap:wrap;row-gap:12px}.dw-stats>div:nth-child(4) b{color:#8c68c9}
+.dw-filters{grid-template-columns:minmax(160px,1.4fr) repeat(3,minmax(110px,1fr)) auto}
+.dw-import-original{display:inline-flex;align-items:center;font-size:12px;padding:7px 10px;color:var(--accent);text-decoration:none}
+.dw-import-dialog[open]{width:min(1100px,calc(100vw - 48px))}.di-form{margin:0;display:flex;flex-direction:column;min-height:0;flex:1;overflow:hidden}.di-form .dw-dialog-body{position:relative;flex:1;min-height:0;max-height:calc(90dvh - 225px);overflow:auto}
+.di-steps{display:flex;gap:25px;list-style:none;padding:0;margin:0 0 22px;color:var(--muted);font-size:12px}.di-steps .active{color:var(--ink);font-weight:600}
+.di-modes,.di-input-tabs{display:flex;gap:8px;margin-bottom:16px}.di-modes button{flex:1;padding:14px;border:1px solid var(--line);border-radius:11px;font-size:15px}.di-modes [aria-pressed="true"]{color:var(--ink);border-color:var(--dw-accent);background:rgba(66,163,167,.1)}
+.di-input-tabs button{border:0;background:transparent;color:var(--muted);border-bottom:2px solid transparent;border-radius:0;padding:8px 12px}.di-input-tabs [aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.di-upload{border:1px dashed var(--line);border-radius:12px;padding:20px;margin-bottom:22px;background:rgba(114,145,161,.035)}.di-upload input{width:100%;min-height:42px;margin-top:8px}.di-upload p{margin:9px 0 0;font-size:11px}
+.di-form label{display:flex;flex-direction:column;gap:8px;color:var(--ink);font-size:12px}.di-form label[hidden],[data-di-default-unit][hidden]{display:none}
+.di-form :is(input:not([type=file]),textarea,select){box-sizing:border-box;width:100%;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px 12px;line-height:22px;font:inherit}.di-form textarea{resize:vertical}.di-form textarea[name=text]{font-family:ui-monospace,monospace;margin-bottom:20px}
+.di-metadata{gap:16px}.di-form .dw-wide{grid-column:1/-1}.di-preview{border-top:1px solid var(--line);padding-top:22px;margin-top:24px}.di-preview-title{display:flex;align-items:center;gap:12px}.di-preview-title h3{margin:0;font-size:17px}
+.di-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}.di-summary>div{padding:14px 16px;background:rgba(103,139,165,.06);border:1px solid var(--line);border-radius:10px}.di-summary b{display:block;font-size:25px;font-weight:600}.di-summary span{font-size:11px;color:var(--muted)}
+.di-mapping{margin:18px 0;padding:16px;border:1px solid var(--line);border-radius:10px}.di-mapping summary{cursor:pointer;margin-bottom:12px}.di-mapping .dw-edit-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.di-mapping>label{margin-bottom:12px;max-width:330px}
+.di-table{max-height:400px;margin-top:18px;border:1px solid var(--line);border-radius:9px}.di-table table{min-width:720px}.di-table caption{text-align:left;color:var(--muted);padding:12px}.di-table th{position:sticky;top:0;background:var(--panel);z-index:1}.di-table td{vertical-align:top}.di-table small{display:block;color:var(--muted);margin-top:4px}.di-table details{font-size:11px;max-width:330px;margin-top:8px}.di-table details p{white-space:pre-wrap;overflow-wrap:anywhere}.di-table td:nth-child(2){min-width:170px}
+.di-issues{border-left:3px solid #c19a5c;padding:10px 14px;background:rgba(193,154,92,.06);margin:16px 0}.di-issues summary{cursor:pointer;color:var(--ink);font-size:12px}.di-issues ul{padding-left:20px;color:var(--muted);font-size:12px}
+.di-excerpt{margin:15px 0;font-size:12px}.di-excerpt summary{cursor:pointer}.di-excerpt pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow:auto;font:12px/1.7 ui-monospace,monospace;color:var(--muted)}
+.di-empty,.di-status{font-size:12px;color:var(--muted);line-height:1.8}.di-error{color:#b45369;border:1px solid rgba(180,83,105,.3);background:rgba(180,83,105,.06);border-radius:8px;padding:12px;margin-top:14px;font-size:12px}.di-form [disabled]{opacity:.55;cursor:wait}
+@media(max-width:1250px){.dw-filters{grid-template-columns:repeat(4,minmax(0,1fr))}.dw-search{grid-column:span 2}.dw-filter-actions{grid-column:span 2;justify-content:flex-end}.dw-heading{flex-wrap:wrap}.dw-heading-actions{flex-wrap:wrap}.dw-stats{column-gap:25px}}
+@media(max-width:800px){.dw-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.dw-search,.dw-filter-actions{grid-column:1/-1}.di-mapping .dw-edit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.di-summary{grid-template-columns:repeat(2,1fr)}.di-form .dw-dialog-footer>span{display:none}.di-steps{gap:14px}.dw-heading-actions{max-width:none}.di-form .dw-dialog-body{max-height:calc(90dvh - 180px)}}
+@media(max-width:520px){.dw-import-dialog[open]{width:calc(100vw - 16px)}.di-mapping .dw-edit-grid{grid-template-columns:1fr}.di-form .dw-dialog-footer>div{width:100%;flex-wrap:wrap;justify-content:flex-end}.di-steps{font-size:10px}.di-modes button{font-size:13px}.dw-heading-actions{justify-content:flex-start}.dw-stats{gap:14px}}

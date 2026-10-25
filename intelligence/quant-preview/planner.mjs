@@ -2,7 +2,7 @@ import {createHash} from 'node:crypto';
 import {templates,templateVersion,templateById} from './templates.mjs';
 import {comparableGroups} from './metric-normalize.mjs';
 const key=s=>createHash('sha256').update(s).digest('hex').slice(0,12);
-export function validPeriod(p){return /^\d{4}-(0[1-9]|1[0-2])$/.test(p)||/^\d{4}-Q[1-4]$/.test(p);}
+export function validPeriod(p){return /^\d{4}$/.test(p)||/^\d{4}-(0[1-9]|1[0-2])$/.test(p)||/^\d{4}-Q[1-4]$/.test(p)||/^\d{4}-\d{2}-\d{2}$/.test(p)&&Number.isFinite(Date.parse(p))&&new Date(p).toISOString().slice(0,10)===p;}
 export function publicationDay(value){
  if(typeof value!=='string')return null;
  if(/^\d{4}-\d{2}-\d{2}$/.test(value))return Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value?value:null;
@@ -17,11 +17,11 @@ export function normalizeSeries(series){
 export function planTemplates(catalog){
  const generated=[],decisions=[],sourcesFor=ids=>catalog.sources.filter(s=>ids.includes(s.id));
  const metrics=comparableGroups(catalog.observations);
- for(const group of metrics.groups){const row=group.rows[0];generated.push({id:'metric-'+key(group.key),industry:row.topic,title:row.metricName+'：原文对象对比',types:['dot',...(group.rows.length>=5?['boxplot']:[])],renderer:'metric-comparison',templateId:'metric-comparison',unit:row.unit,rows:group.rows,sources:sourcesFor([row.sourceId]),content:`同一篇披露，${row.nature}，${row.unit}；统计期：${row.period||'原文未提供，仅比较本篇披露对象'}。不跨文章推断可比性；不同对象工况可能不同，不据此归因技术效果。`,why:`${group.rows.length} 个不同对象去除指标名中逐字相同的对象前缀后，指标名称、单位、性质与统计期一致，数值有逐字证据。点图便于比较，不将对象数值相加。`,update:templateById.get('metric-comparison').update});}
+ for(const group of metrics.groups){const row=group.rows[0];generated.push({id:'metric-'+key(group.key),industry:row.topic,title:row.metricName+(group.rows.length===1?'：导入数值':'：原文对象对比'),types:['dot',...(group.rows.length>=5?['boxplot']:[])],renderer:'metric-comparison',templateId:'metric-comparison',unit:row.unit,rows:group.rows,sources:sourcesFor([row.sourceId]),content:`同一篇披露，${row.nature}，${row.unit}；统计期：${row.period||'原文未提供，仅比较本篇披露对象'}。不跨文章推断可比性；不同对象工况可能不同，不据此归因技术效果。`,why:`${group.rows.length} 个不同对象去除指标名中逐字相同的对象前缀后，指标名称、单位、性质与统计期一致，数值有逐字证据。点图便于比较，不将对象数值相加。`,update:templateById.get('metric-comparison').update});}
  for(const s of catalog.series){
   const {rows,rejected}=normalizeSeries(s);decisions.push({dataset:s.name,accepted:rows.length,rejected:rejected.length,reason:!s.unit?'缺少单位':rows.length<2?'不足两个有效统计期':'单序列同单位，统计期合法',details:rejected});
   if(!s.unit||rows.length<2)continue;
-  if(new Set(rows.map(r=>r.period.includes('Q')?'quarter':'month')).size>1){decisions.at(-1).reason='混合月度与季度统计期，拒绝合并绘图';continue;}
+  if(new Set(rows.map(r=>r.period.includes('Q')?'quarter':r.period.length===4?'year':r.period.length===10?'day':'month')).size>1){decisions.at(-1).reason='混合不同统计频率，拒绝合并绘图';continue;}
   const month=rows.every(r=>/^\d{4}-\d{2}$/.test(r.period));
   const years=new Map();rows.forEach(r=>years.set(r.period.slice(0,4),(years.get(r.period.slice(0,4))||0)+1));
   const constant=new Set(rows.map(r=>r.value)).size===1,zero=constant&&rows[0].value===0;

@@ -25,6 +25,6 @@ export function comparableGroups(observations){
   const bySubject=new Map();let conflict=false;
   for(const row of rows){const prior=bySubject.get(row.subject);if(prior&&prior.value!==row.value)conflict=true;bySubject.set(row.subject,row);}
   // Same disclosure and exact metric identity only; never pool publications.
-  return !conflict&&bySubject.size>=2?[{key,rows:[...bySubject.values()]}]:[];
+  return !conflict&&(bySubject.size>=2||bySubject.size===1&&rows.every(r=>r.ingestion?.method==='import'))?[{key,rows:[...bySubject.values()]}]:[];
  }),rejected};
 }

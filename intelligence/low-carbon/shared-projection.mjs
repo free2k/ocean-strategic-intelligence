@@ -8,6 +8,7 @@ import {attachPublishedRules} from '../published-rules.mjs';
 import {PostgresResearchRepository} from '../research/repositories.mjs';
 import {publishWorkspace} from '../research/publish-workspace.mjs';
 import {fingerprint} from './shared-source.mjs';
+import {preserveImportedData} from '../data-provenance.mjs';
 export const projectionSchema=`CREATE SCHEMA IF NOT EXISTS lc_shared;
  CREATE TABLE IF NOT EXISTS lc_shared.projections(url text PRIMARY KEY,source_fingerprint text NOT NULL,rule_version text NOT NULL,document jsonb NOT NULL,source jsonb NOT NULL,classification jsonb NOT NULL,provider jsonb,subscription_id text,updated_at timestamptz DEFAULT now());
  ALTER TABLE lc_shared.projections ADD COLUMN IF NOT EXISTS audited_fingerprint text;
@@ -43,7 +44,7 @@ export function projectionSnapshot(previous,rows,metadata,config){
  for(const s of next.series||[]){s.industry=classifyRecord({title:s.name,content:[s.note,s.classificationContext,...(s.keywords||[])].join(' ')},compiled);s.topic=s.industry.primary;}
  next.series=(next.series||[]).filter(s=>s.industry.status==='accepted');
  for(const [key,r]of Object.entries(next.assetRegistries||{})){r.industry=classifyRecord({title:r.name||key,content:[r.classificationContext,r.note].join(' ')},compiled);if(r.industry.status!=='accepted')delete next.assetRegistries[key];}
- return next;
+ return preserveImportedData(next,old);
 }
 export async function updateProjection({source,store}){
  memory('before-index');

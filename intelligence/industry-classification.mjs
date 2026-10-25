@@ -41,7 +41,7 @@ const seriesContext={'eia-offshore-crude':{topic:'海洋油气',text:'offshore o
 export function classifySnapshot(snapshot,config){
  const compiled=compileRules(config),data=structuredClone(snapshot);
  data.documents=data.documents.map(d=>({...d,industry:(d.classificationManaged&&d.industry)||d.industry?.manual||d.industry?.version===compiled.version?d.industry:classifyRecord(d,compiled)}));
- data.series=(data.series||[]).map(s=>{const meta=seriesContext[s.id],industry=classifyRecord({title:s.name,content:[s.note,meta?.text,s.classificationContext].join(' ')},compiled);if(industry.status==='accepted'&&meta&&industry.topics.includes(meta.topic))industry.primary=meta.topic;return{...s,industry};});
+ data.series=(data.series||[]).map(s=>{const meta=seriesContext[s.id],industry=s.industry?.manual?s.industry:classifyRecord({title:s.name,content:[s.note,meta?.text,s.classificationContext].join(' ')},compiled);if(industry.status==='accepted'&&meta&&industry.topics.includes(meta.topic))industry.primary=meta.topic;return{...s,industry};});
  data.assetRegistries=Object.fromEntries(Object.entries(data.assetRegistries||{}).map(([key,r])=>[key,{...r,industry:classifyRecord({title:key==='boem'?'offshore wind 海上风电租约登记表':r.name||key,content:[r.classificationContext,r.rows.map(x=>x.resource).join(' ')].join(' ')},compiled)}]));
  data.industryRuleVersion=compiled.version;return data;
 }
