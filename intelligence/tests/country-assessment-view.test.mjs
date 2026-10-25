@@ -17,7 +17,7 @@ async function mount(t,ledger,options={},response=null){
  const requests=[];globalThis.fetch=async input=>{
   const url=new URL(input,'http://localhost/');requests.push(url);
   try{
-   if(url.pathname==='/api/research/countries')return Response.json(response||await readCountries(ledger,Object.fromEntries(url.searchParams)));
+   if(url.pathname==='/api/dashboard-page')return Response.json(response||await readCountries(ledger,Object.fromEntries(url.searchParams)));
    const match=url.pathname.match(/^\/api\/document\/([^/]+)\/versions\/([^/]+)$/);assert(match);
    return Response.json(await ledger.document(decodeURIComponent(match[1]),decodeURIComponent(match[2]),Object.fromEntries(url.searchParams)));
   }catch(error){return Response.json({message:error.message},{status:error.status||500});}

@@ -16,7 +16,7 @@ export function eventRecency(event={},today=new Date(Date.now()+8*3600000).toISO
 const compare=(a,b)=>(b.recency?.date||'').localeCompare(a.recency?.date||'')||String(a.id||a.eventId||'').localeCompare(String(b.id||b.eventId||''));
 export function recentCountryRows(payload,now=Date.now()){
  const today=new Date(+new Date(now)+8*3600000).toISOString().slice(0,10),events=new Map((payload.events||[]).map(e=>[e.id,e]));
- const themes=(payload.themes||[]).map(t=>{const members=t.members.map(m=>({...m,recency:eventRecency(events.get(m.eventId)||m,today)})).sort(compare);return {...t,members,recency:members[0]?.recency||eventRecency({},today)};}).sort(compare);
+ const themes=(payload.themes||[]).map(t=>{if(t.previewOnly)return t;const members=t.members.map(m=>({...m,recency:eventRecency(events.get(m.eventId)||m,today)})).sort(compare);return {...t,members,recency:members[0]?.recency||eventRecency({},today)};}).sort(compare);
  const coOccurrences=(payload.coOccurrences||[]).map(r=>({...r,recency:eventRecency(events.get(r.eventId)||r,today)})).sort(compare);
  return {...payload,themes,coOccurrences};
 }
