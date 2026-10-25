@@ -1,0 +1,50 @@
+[
+  {
+    "path": "options?",
+    "status": 200,
+    "ms": 7752,
+    "bytes": 47610
+  },
+  {
+    "path": "data?projection=summary",
+    "status": 200,
+    "ms": 4447,
+    "bytes": 320740
+  },
+  {
+    "path": "data?projection=signals",
+    "status": 200,
+    "ms": 5280,
+    "bytes": 2582713
+  },
+  {
+    "path": "research/countries?relationMode=external&view=overview",
+    "status": 200,
+    "ms": 1855,
+    "bytes": 6492970
+  },
+  {
+    "path": "research/objects?offset=0&limit=12",
+    "status": 200,
+    "ms": 3147,
+    "bytes": 4711
+  },
+  {
+    "path": "sensing-summary",
+    "status": 200,
+    "ms": 8623,
+    "bytes": 231131
+  },
+  {
+    "path": "options?",
+    "status": 200,
+    "ms": 174,
+    "bytes": 47610
+  },
+  {
+    "path": "data?projection=signals",
+    "status": 200,
+    "ms": 11655,
+    "bytes": 2582713
+  }
+]

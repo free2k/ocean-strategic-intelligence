@@ -11,7 +11,7 @@ import {parseRoute,routeHash,sharedScope,readNavigation,saveNavigation} from './
 import {homeView,setupHome} from './home.js';
 import {renderChangeSignals,renderSignalEvidence} from './change-signals.js';
 let signalDays=7,signalTheme='';
-import {mountSensing,loadSensingPayload,invalidateSensingCache,prefetchSources} from './sensing.js';
+import {mountSensing,loadSensingPayload,invalidateSensingCache,prefetchSources,get as sensingGet} from './sensing.js';
 import {topicLabel,standardTopics} from './industry-topics.mjs';
 // MP_CLEAN_UI_V2
 // MP_CLEAN_V1
@@ -36,10 +36,11 @@ const source=id=>data.sources.find(s=>s.id===id)?.name||id,entity=id=>data.entit
 function filters(){return{sourceId:$('#source').value,topic:$('#topic').value,country:$('#country').value,from:$('#from').value,to:$('#to').value};}
 const readCache=new Map(),pendingReads=new Map();let cacheEpoch=0;
 async function api(p,body){
+ if(!body&&p==='sensing-summary'){try{return await sensingGet('api/sensing-summary');}catch(error){if(error.status===401)$('#login').hidden=false;throw error;}}
  const cachedRead=!body&&/^(data|options)\?|^(source-funnels|sensing-summary)$/.test(p),cached=readCache.get(p);
  if(cachedRead&&cached&&Date.now()-cached.at<60000)return cached.value;
  if(cachedRead&&pendingReads.has(p))return pendingReads.get(p);
- if(body){cacheEpoch++;readCache.clear();pendingReads.clear();}
+ if(body){cacheEpoch++;readCache.clear();pendingReads.clear();invalidateSensingCache();}
  const epoch=cacheEpoch;
  const task=(async()=>{const r=await fetch('api/'+p,{...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});const d=await r.json();if(r.status===401){readCache.clear();$('#login').hidden=false;}if(!r.ok)throw Object.assign(new Error(d.message||d.error||'请求失败'),{fieldErrors:d.fieldErrors||[]});if(cachedRead&&epoch===cacheEpoch){if(readCache.size>=12)readCache.delete(readCache.keys().next().value);readCache.set(p,{at:Date.now(),value:d});}return d;})();
  if(cachedRead)pendingReads.set(p,task);

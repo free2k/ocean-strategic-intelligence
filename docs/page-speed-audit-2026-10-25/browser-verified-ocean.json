@@ -1,0 +1,254 @@
+{
+  "label": "verified-ocean",
+  "base": "http://49.233.77.111/ocean-intelligence/",
+  "results": [
+    {
+      "tab": "sources",
+      "ms": 13249,
+      "network": [
+        {
+          "path": "/ocean-intelligence/api/sensing-summary",
+          "ms": 6232,
+          "bytes": 34486
+        },
+        {
+          "path": "/api/rss/sources",
+          "ms": 7300,
+          "bytes": 9822
+        },
+        {
+          "path": "/api/subscriptions",
+          "ms": 13169,
+          "bytes": 243632
+        }
+      ],
+      "requests": [
+        {
+          "path": "/ocean-intelligence/api/sensing-summary",
+          "method": "GET"
+        },
+        {
+          "path": "/api/subscriptions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/rss/sources",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "library",
+      "ms": 3806,
+      "network": [
+        {
+          "path": "/ocean-intelligence/api/classification-audit",
+          "ms": 3668,
+          "bytes": 4263098
+        },
+        {
+          "path": "/ocean-intelligence/api/period-reports",
+          "ms": 578,
+          "bytes": 4895
+        },
+        {
+          "path": "/ocean-intelligence/api/period-reports/963adf6c-a3a6-46dc-a949-e6b35c80f54d",
+          "ms": 240,
+          "bytes": 483893
+        },
+        {
+          "path": "/ocean-intelligence/api/period-reports/preview",
+          "ms": 70,
+          "bytes": 454
+        }
+      ],
+      "requests": [
+        {
+          "path": "/ocean-intelligence/api/classification-audit?view=inventory",
+          "method": "GET"
+        },
+        {
+          "path": "/ocean-intelligence/api/period-reports",
+          "method": "GET"
+        },
+        {
+          "path": "/ocean-intelligence/api/period-reports/963adf6c-a3a6-46dc-a949-e6b35c80f54d",
+          "method": "GET"
+        },
+        {
+          "path": "/ocean-intelligence/api/period-reports/preview",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "tab": "analysis",
+      "ms": 17970,
+      "network": [
+        {
+          "path": "/ocean-intelligence/quant/api/catalog",
+          "ms": 17838,
+          "bytes": 2943657
+        }
+      ],
+      "requests": [
+        {
+          "path": "/ocean-intelligence/quant/api/catalog?sourceId=&topic=&country=&from=&to=",
+          "method": "GET"
+        },
+        {
+          "path": "/ocean-intelligence/api/insight-data?kind=documents&page=1&pageSize=25",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "research",
+      "ms": 8356,
+      "network": [
+        {
+          "path": "/ocean-intelligence/api/research",
+          "ms": 8215,
+          "bytes": 82105
+        },
+        {
+          "path": "/ocean-intelligence/api/strategy/catalog",
+          "ms": 8280,
+          "bytes": 247441
+        }
+      ],
+      "requests": [
+        {
+          "path": "/ocean-intelligence/api/strategy/catalog?topic=&country=&sourceId=&from=&to=",
+          "method": "GET"
+        },
+        {
+          "path": "/ocean-intelligence/api/research",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "sources",
+      "ms": 1387,
+      "network": [
+        {
+          "path": "/ocean-intelligence/api/sensing-summary",
+          "ms": 123,
+          "bytes": 34501
+        },
+        {
+          "path": "/api/subscriptions",
+          "ms": 821,
+          "bytes": 243632
+        },
+        {
+          "path": "/api/rss/sources",
+          "ms": 1342,
+          "bytes": 9822
+        }
+      ],
+      "requests": [
+        {
+          "path": "/ocean-intelligence/api/sensing-summary",
+          "method": "GET"
+        },
+        {
+          "path": "/api/subscriptions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/rss/sources",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "library",
+      "ms": 99,
+      "network": [
+        {
+          "path": "/ocean-intelligence/api/classification-audit",
+          "ms": 13,
+          "bytes": 0
+        }
+      ],
+      "requests": [
+        {
+          "path": "/ocean-intelligence/api/classification-audit?view=inventory",
+          "method": "GET"
+        },
+        {
+          "path": "/ocean-intelligence/api/period-reports",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "analysis",
+      "ms": 2108,
+      "network": [
+        {
+          "path": "/ocean-intelligence/api/options",
+          "ms": 34,
+          "bytes": 653
+        },
+        {
+          "path": "/ocean-intelligence/api/data",
+          "ms": 1050,
+          "bytes": 216816
+        },
+        {
+          "path": "/ocean-intelligence/quant/api/catalog",
+          "ms": 2028,
+          "bytes": 2943657
+        }
+      ],
+      "requests": [
+        {
+          "path": "/ocean-intelligence/api/options",
+          "method": "GET"
+        },
+        {
+          "path": "/ocean-intelligence/api/data?projection=summary",
+          "method": "GET"
+        },
+        {
+          "path": "/ocean-intelligence/quant/api/catalog?sourceId=&topic=&country=&from=&to=",
+          "method": "GET"
+        },
+        {
+          "path": "/ocean-intelligence/api/insight-data?kind=documents&page=1&pageSize=25",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "research",
+      "ms": 282,
+      "network": [
+        {
+          "path": "/ocean-intelligence/api/research",
+          "ms": 98,
+          "bytes": 82105
+        },
+        {
+          "path": "/ocean-intelligence/api/strategy/catalog",
+          "ms": 219,
+          "bytes": 247441
+        }
+      ],
+      "requests": [
+        {
+          "path": "/ocean-intelligence/api/strategy/catalog?topic=&country=&sourceId=&from=&to=",
+          "method": "GET"
+        },
+        {
+          "path": "/ocean-intelligence/api/research",
+          "method": "GET"
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

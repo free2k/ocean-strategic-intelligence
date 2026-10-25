@@ -46,9 +46,9 @@ run('/usr/bin/node-20','--env-file='+str(root/'app.env'),str(release/'intelligen
 write('/etc/systemd/system/low-carbon.slice','''[Unit]
 Description=Low-carbon resource budget
 [Slice]
-CPUQuota=20%
-MemoryMax=640M
-TasksMax=80
+CPUQuota=
+MemoryMax=infinity
+TasksMax=infinity
 ''',0o644)
 common='''Restart=on-failure
 RestartSec=15
@@ -65,7 +65,7 @@ IPAddressDeny=any
 IPAddressAllow=localhost
 UMask=0007
 '''
-for name,user,script,heap in [('app','lowcarbon','run.mjs',320),('projector','lcprojector','shared-projector-run.mjs',256)]:
+for name,user,script in [('app','lowcarbon','run.mjs'),('projector','lcprojector','shared-projector-run.mjs')]:
  write('/etc/systemd/system/low-carbon-'+name+'.service',f'''[Unit]
 Description=Low-carbon shared {name}
 After=network.target
@@ -77,7 +77,7 @@ User={user}
 Group=lowcarbon
 WorkingDirectory={release}
 CPUWeight={1000 if name=='app' else 100}
-ExecStart=/usr/bin/node-20 --expose-gc --max-old-space-size={heap} --max-semi-space-size=2 {release}/intelligence/low-carbon/{script}
+ExecStart=/usr/bin/node-20 --expose-gc {release}/intelligence/low-carbon/{script}
 '''+common+('EnvironmentFile=/opt/low-carbon/projector.env\n' if name=='projector' else '')+'''[Install]
 WantedBy=multi-user.target
 ''',0o644)

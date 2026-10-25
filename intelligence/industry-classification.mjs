@@ -11,8 +11,8 @@ const lowCarbonPatterns=new Map();
 export function hasTerm(text,term){
  if(!term?.trim())return false;
  if(!/[a-z]/i.test(term))return text.includes(term);
- const key=term.trim().toLowerCase();let pattern=isLowCarbon?lowCarbonPatterns.get(key):null;
- if(!pattern){const t=term.trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');pattern=new RegExp('(?<![a-z0-9])'+t+'(?![a-z0-9])','i');if(isLowCarbon){if(lowCarbonPatterns.size>=4096)lowCarbonPatterns.delete(lowCarbonPatterns.keys().next().value);lowCarbonPatterns.set(key,pattern);}}
+ const key=term.trim();let pattern=lowCarbonPatterns.get(key);
+ if(!pattern){const t=term.trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');pattern=new RegExp('(?<![a-z0-9])'+t+'(?![a-z0-9])','i');if(lowCarbonPatterns.size>=4096)lowCarbonPatterns.delete(lowCarbonPatterns.keys().next().value);lowCarbonPatterns.set(key,pattern);}
  return pattern.test(text);
 }
 export function compileRules(config){const rules=config.rules.filter(r=>r.type==='context'||r.enabled!==false).map(r=>({...(r.type==='context'?{enabled:r.enabled!==false}:{}),id:r.id,type:r.type,topic:canonicalTopic(r.topic),description:isLowCarbon?r.description:topicDefinition(r.topic)?.definition||r.description,title_keywords:r.title_keywords||r.titleKeywords||[],content_keywords:r.content_keywords||r.contentKeywords||[],priority:r.priority??99,require_all:r.require_all??r.requireAll??false,groups:r.groups||[]})).sort((a,b)=>a.priority-b.priority||(a.id||0)-(b.id||0));return{rules,version:createHash('sha256').update(JSON.stringify({rules,aliases,standardTopics,taxonomyVersion,policy:isLowCarbon?'low-carbon-context-lexicons-v5':'marine-lead-context-focus-v2'})).digest('hex').slice(0,12),origin:config.exportedAt||'repository'};}

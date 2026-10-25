@@ -6,11 +6,15 @@ import vm from 'node:vm';
 const code=await fs.readFile(new URL('../public/app.js',import.meta.url),'utf8');
 const start=code.indexOf('const readCache='),end=code.indexOf('\n}',start)+2;
 function harness(){
- let calls=0,now=0,fail=false;
- const context=vm.createContext({Map,Date:{now:()=>now},$:()=>({}),fetch:async()=>{calls++;await Promise.resolve();return {status:fail?500:200,ok:!fail,json:async()=>fail?{error:'failed'}:{version:calls}};}});
+ let calls=0,now=0,fail=false,invalidations=0,sensingCalls=0;
+ const context=vm.createContext({Map,Date:{now:()=>now},$:()=>({}),invalidateSensingCache:()=>invalidations++,sensingGet:async path=>{sensingCalls++;return {path};},fetch:async()=>{calls++;await Promise.resolve();return {status:fail?500:200,ok:!fail,json:async()=>fail?{error:'failed'}:{version:calls}};}});
  const api=vm.runInContext(code.slice(start,end)+'\napi',context);
- return {api,calls:()=>calls,tick:()=>now+=61000,fail:value=>fail=value};
+ return {api,calls:()=>calls,invalidations:()=>invalidations,sensingCalls:()=>sensingCalls,tick:()=>now+=61000,fail:value=>fail=value};
 }
+test('toolbar statistics use the same loader as the sources page and writes invalidate both',async()=>{
+ const h=harness();assert.equal((await h.api('sensing-summary')).path,'api/sensing-summary');assert.equal(h.sensingCalls(),1);assert.equal(h.calls(),0);
+ await h.api('events',{});assert.equal(h.invalidations(),1);
+});
 test('navigation coalesces reads, isolates filters and expires cached snapshots',async()=>{
  const h=harness();await Promise.all([h.api('data?country=US'),h.api('data?country=US')]);assert.equal(h.calls(),1);
  await h.api('data?country=US');assert.equal(h.calls(),1);

@@ -1,0 +1,190 @@
+{
+  "label": "final-low-carbon",
+  "base": "http://49.233.77.111/low-carbon/",
+  "results": [
+    {
+      "tab": "sources",
+      "ms": 18468,
+      "network": [
+        {
+          "path": "/low-carbon/api/sensing-summary",
+          "ms": 18124,
+          "bytes": 37280
+        },
+        {
+          "path": "/low-carbon/api/rss/sources",
+          "ms": 18111,
+          "bytes": 62
+        },
+        {
+          "path": "/low-carbon/api/subscriptions",
+          "ms": 18211,
+          "bytes": 8428
+        }
+      ],
+      "requests": [
+        {
+          "path": "/low-carbon/api/sensing-summary",
+          "method": "GET"
+        },
+        {
+          "path": "/low-carbon/api/subscriptions",
+          "method": "GET"
+        },
+        {
+          "path": "/low-carbon/api/rss/sources",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "library",
+      "ms": 12271,
+      "network": [
+        {
+          "path": "/low-carbon/api/classification-audit",
+          "ms": 12134,
+          "bytes": 2648409
+        },
+        {
+          "path": "/low-carbon/api/period-reports",
+          "ms": 11127,
+          "bytes": 924
+        }
+      ],
+      "requests": [
+        {
+          "path": "/low-carbon/api/classification-audit?view=inventory",
+          "method": "GET"
+        },
+        {
+          "path": "/low-carbon/api/period-reports",
+          "method": "GET"
+        },
+        {
+          "path": "/low-carbon/api/period-reports/86804245-21b8-48e1-885b-64de2c5ca866",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "analysis",
+      "ms": 36852,
+      "network": [
+        {
+          "path": "/low-carbon/quant/api/catalog",
+          "ms": 35917,
+          "bytes": 3338907
+        }
+      ],
+      "requests": [
+        {
+          "path": "/low-carbon/quant/api/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/low-carbon/api/insight-data?kind=documents&page=1&pageSize=25",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "research",
+      "ms": 22605,
+      "network": [
+        {
+          "path": "/low-carbon/api/strategy/catalog",
+          "ms": 22532,
+          "bytes": 229468
+        }
+      ],
+      "requests": [
+        {
+          "path": "/low-carbon/api/strategy/catalog?topic=&country=&sourceId=&from=&to=",
+          "method": "GET"
+        },
+        {
+          "path": "/low-carbon/api/research",
+          "method": "GET"
+        },
+        {
+          "path": "/low-carbon/api/options",
+          "method": "GET"
+        },
+        {
+          "path": "/low-carbon/api/data?projection=summary",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "library",
+      "ms": 1238,
+      "network": [
+        {
+          "path": "/low-carbon/api/classification-audit",
+          "ms": 1145,
+          "bytes": 0
+        }
+      ],
+      "requests": [
+        {
+          "path": "/low-carbon/api/classification-audit?view=inventory",
+          "method": "GET"
+        },
+        {
+          "path": "/low-carbon/api/period-reports",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "analysis",
+      "ms": 139,
+      "network": [
+        {
+          "path": "/low-carbon/quant/api/catalog",
+          "ms": 61,
+          "bytes": 0
+        }
+      ],
+      "requests": [
+        {
+          "path": "/low-carbon/quant/api/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/low-carbon/api/insight-data?kind=documents&page=1&pageSize=25",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "research",
+      "ms": 816,
+      "network": [
+        {
+          "path": "/low-carbon/api/strategy/catalog",
+          "ms": 752,
+          "bytes": 229468
+        },
+        {
+          "path": "/low-carbon/api/research",
+          "ms": 721,
+          "bytes": 22
+        }
+      ],
+      "requests": [
+        {
+          "path": "/low-carbon/api/strategy/catalog?topic=&country=&sourceId=&from=&to=",
+          "method": "GET"
+        },
+        {
+          "path": "/low-carbon/api/research",
+          "method": "GET"
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

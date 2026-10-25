@@ -1,0 +1,15 @@
+[
+  {
+    "path": "options?",
+    "status": 200,
+    "ms": 73,
+    "dataPreserved": true
+  },
+  {
+    "path": "data?projection=summary",
+    "status": 200,
+    "ms": 378,
+    "dataPreserved": true,
+    "generatedAt": "2026-10-25T12:58:05.575Z"
+  }
+]

@@ -10,10 +10,10 @@ export function unifiedIEA(raw){
  const data={...raw,sources:[...raw.sources.filter(s=>!ids.has(s.id)),parent],documents:raw.documents.map(d=>ids.has(d.sourceId)?{...d,sourceId:'iea'}:d)};memo.set(raw,data);return data;
 }
 const grain=r=>[r.contentHash,r.sheet,String(r.cell).replace(/[A-Z]+/gi,'')].join('|');
-const countryName=r=>countries.find(c=>c.code===r.countryCode)?.name||r.country||'未提供';
+const countryNames=new Map(countries.map(c=>[c.code,c.name]));
+const countryName=r=>countryNames.get(r.countryCode)||r.country||'未提供';
 const labels={Dormant:'暂停推进',Concept:'概念阶段','Feasibility study':'可行性研究',DEMO:'示范阶段',FEED:'前端工程设计','Under construction':'建设中','Other Electrolysis':'其他电解技术',ALK:'碱性电解',PEM:'质子交换膜电解',Capture:'捕集','Full chain':'全链条','T&S':'运输与封存',Transport:'运输'};
-export function selectIEA(raw,f={}){
- const records=[];
+function* matchingIEA(raw,f={}){
  for(const d of Object.values(raw.ieaDatasets?.datasets||{}))for(const r of d.records||[]){
   if(f.sourceId&&f.sourceId!=='iea'&&f.sourceId!==r.sourceId)continue;
   if(f.topic&&r.classification?.primary!==f.topic)continue;
@@ -21,13 +21,16 @@ export function selectIEA(raw,f={}){
   // A release/collection date is not a statistical period. Undated project snapshots are omitted under date filters.
   const period=r.period?String(r.period):'';
   if((f.from||f.to)&&(!period||(f.from&&period+(period.length===4?'-12-31':'')<f.from)||(f.to&&period+(period.length===4?'-01-01':'')>f.to)))continue;
-  records.push({...r,sourceId:'iea',dataset:d.name,topic:r.classification?.primary,countryName:countryName(r),statusName:labels[r.status]||r.statusZh||r.status||'未提供',url:r.sourceUrl,archiveUrl:'api/iea-file?hash='+r.contentHash});
+  yield {record:r,dataset:d.name};
  }
- return records;
+}
+export function selectIEA(raw,f={}){
+ return [...matchingIEA(raw,f)].map(({record:r,dataset})=>({...r,sourceId:'iea',dataset,topic:r.classification?.primary,countryName:countryName(r),statusName:labels[r.status]||r.statusZh||r.status||'未提供',url:r.sourceUrl,archiveUrl:'api/iea-file?hash='+r.contentHash}));
 }
 export function ieaSummary(raw,f={}){
- const rows=selectIEA(raw,f),accepted=rows.filter(r=>r.classification?.status==='accepted');
- return {records:rows.length,accepted:accepted.length,projects:new Set(accepted.filter(r=>!r.period).map(grain)).size,candidates:rows.filter(r=>r.classification?.status==='unmatched').length,excluded:rows.filter(r=>r.classification?.status==='excluded').length};
+ let records=0,accepted=0,candidates=0,excluded=0;const projects=new Set();
+ for(const {record:r} of matchingIEA(raw,f)){records++;const status=r.classification?.status;if(status==='accepted'){accepted++;if(!r.period)projects.add(grain(r));}else if(status==='unmatched')candidates++;else if(status==='excluded')excluded++;}
+ return {records,accepted,projects:projects.size,candidates,excluded};
 }
 export function integrateIEACatalog(catalog,raw,f={}){
  const records=selectIEA(raw,f),accepted=records.filter(r=>r.classification?.status==='accepted'),cards=[];

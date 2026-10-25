@@ -45,6 +45,10 @@ export async function hydrateWorkspace(root,readParts){
 // Call with a client already inside a transaction. Readers retain an MVCC
 // snapshot while a concurrent writer replaces the generation.
 export async function readWorkspaceClient(client,previous=null,{fastMetadata=false}={}){
+ if(previous?._readVersion){
+  const current=(await client.query("SELECT updated_at::text AS version FROM ocean_intel.runs WHERE id='current'")).rows[0];
+  if(current?.version===previous._readVersion)return previous;
+ }
  const record=(await client.query("SELECT payload,updated_at::text AS version FROM ocean_intel.runs WHERE id='current'")).rows[0],root=record?.payload;
  if(!root)return root;
  if(previous?._readVersion===record.version)return previous;

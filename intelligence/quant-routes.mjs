@@ -1,4 +1,5 @@
 import {sharedLowCarbon} from './low-carbon/shared-mode.mjs';
+import {createHash} from 'node:crypto';
 import {brandText,isLowCarbon} from './system-profile.mjs';
 import {integrateOfficialCatalog} from './low-carbon/official-catalog.mjs';
 // IEA_UNIFIED_V1
@@ -25,10 +26,10 @@ export async function serveQuant(req,res,url,raw,root){
  }
  if(route==='api/catalog'){
 
-  let catalog;try{catalog=getQuantCatalog(raw,Object.fromEntries(url.searchParams));}catch(error){res.writeHead(503,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify({error:error.message,code:'CLASSIFICATION_RULES_UNAVAILABLE'}));return true;}
+  let catalog;try{const filters=Object.fromEntries(url.searchParams),config=snapshotRules(raw);if(raw._readVersion){const scope=Object.entries(filters).filter(([,v])=>v!==''&&v!==null&&v!==undefined).sort(([a],[b])=>a.localeCompare(b));const tag='\"catalog-'+createHash('sha256').update(JSON.stringify([raw._readVersion,raw._workspaceDelta?.revision,raw.insightRevision,compileRules(config).version,scope])).digest('hex')+'\"';res.setHeader('ETag',tag);if(req.headers?.['if-none-match']===tag){res.writeHead(304);res.end();return true;}}catalog=getQuantCatalog(raw,filters);}catch(error){res.writeHead(503,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify({error:error.message,code:'CLASSIFICATION_RULES_UNAVAILABLE'}));return true;}
   res.setHeader('Content-Type','application/json; charset=utf-8');const payload=JSON.stringify(catalog);res.setHeader('Vary','Accept-Encoding');if(/\bgzip\b/.test(req.headers?.['accept-encoding']||'')){res.setHeader('Content-Encoding','gzip');res.end(gzipSync(payload));}else res.end(payload);return true;
  }
- const assets=['index.html','app.js','entry.js','template-demos.js','iea-view.js','official-charts.js','chart-views.js','chart-rotation.js','chart-caption.js','data-workbench.js','charts.js','style.css'],file=route||'index.html';let target;
+ const assets=['index.html','app.js','catalog-read.js','entry.js','template-demos.js','iea-view.js','official-charts.js','chart-views.js','chart-rotation.js','chart-caption.js','data-workbench.js','charts.js','style.css'],file=route||'index.html';let target;
  if(assets.includes(file))target=path.join(root,'quant-preview',file);
  else if(file==='world.json')target=path.join(root,'public/world.json');
  else if(file==='echarts.js')target=path.join(root,'../node_modules/echarts/dist/echarts.min.js');
@@ -40,7 +41,7 @@ export async function serveQuant(req,res,url,raw,root){
 
 export function getQuantCatalog(raw,filters={}){
  const config=snapshotRules(raw);
-  raw=unifiedIEA(raw);const key=JSON.stringify(filters);let records=cache.get(raw);if(!records){records=new Map();cache.set(raw,records);}let catalog=records.get(key);
+  raw=unifiedIEA(raw);const key=JSON.stringify(Object.entries(filters).filter(([,value])=>value!==''&&value!==null&&value!==undefined).sort(([a],[b])=>a.localeCompare(b)));let records=cache.get(raw);if(!records){records=new Map();cache.set(raw,records);}let catalog=records.get(key);
   if(!catalog){const filtered=filterData({...raw,ieaDatasets:undefined,insightEdits:undefined},filters);filtered.series=selectSeries({...raw,series:classifySnapshot({...raw,ieaDatasets:undefined,insightEdits:undefined,documents:[]},config).series.map(s=>({...s,topic:s.industry.primary||s.topic}))},filters);filtered.assetRegistries=selectRegistries(raw,filters);catalog=buildCatalog(filtered,config);const auditScope=filterData({...raw,insightEdits:undefined,documents:raw.documents.map(({industry,...d})=>industry?.manual||(isLowCarbon&&d.fullBodyAvailable)?{...d,industry}:d)},{...filters,topic:''}),rules=compileRules(config);const auditDocuments=auditScope.documents.map(d=>{const classification=d.industry?.manual||(isLowCarbon&&d.fullBodyAvailable&&d.industry)?d.industry:classifyRecord(d,rules);return {id:d.id,title:d.titleZh||d.title,url:d.url,sourceId:d.sourceId,topic:classification.primary,classification};});catalog={...catalog,...planTemplates(catalog),auditDocuments,ruleSnapshot:{industryRuleConfig:config,industryRuleVersion:raw.industryRuleVersion,industryRulePublication:raw.industryRulePublication},production:true,insightRevision:raw.insightRevision||null};catalog=integrateIEACatalog(catalog,raw,filters);if(isLowCarbon)catalog=integrateOfficialCatalog(catalog,raw,filters);if(records.size>=(sharedLowCarbon?1:21))records.clear();records.set(key,catalog);}
  return catalog;
 }

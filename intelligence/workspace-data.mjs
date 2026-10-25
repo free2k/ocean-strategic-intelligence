@@ -3,6 +3,14 @@
 const documentFields=['id','title','titleZh','url','sourceId','topic','publishedAt','collectedAt','summaryZh','language','translationType','titleTranslation','originalPublisher','manual'];
 const entityFields=['id','name','nameZh','type','aliases'];
 const pick=(row,fields)=>Object.fromEntries(fields.filter(key=>Object.hasOwn(row,key)).map(key=>[key,row[key]]));
+export function workspaceEvidence(evidence,documents){
+ const ids=new Set(documents.map(d=>d.id));
+ return evidence.filter(e=>ids.has(e.documentId));
+}
+export function workspaceCountries(events,dictionary){
+ const codes=new Set(events.flatMap(e=>e.countries));
+ return dictionary.filter(c=>codes.has(c.code));
+}
 export function workspaceData(snapshot,projection){
  if(!projection)return snapshot;
  if(!['summary','signals','relations','full'].includes(projection))throw new RangeError('Unknown workspace projection');

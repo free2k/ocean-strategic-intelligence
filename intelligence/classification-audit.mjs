@@ -2,6 +2,11 @@ import {publicationDates} from './temporal-dates.mjs';
 import {resolveClassificationResult} from './classification-result.mjs';
 ﻿import {createHash} from 'node:crypto';
 export const auditState=c=>c?.status==='accepted'?'accepted':c?.status==='excluded'?'excluded':'pending';
+const inventoryFields=['id','url','title','titleZh','sourceId','sourceName','sourceIds','channelGroup','region','manual','publishedAt','originalPublishedAt','publishedDateSource','scheduledAt','publicationDateStatus','bodyComplete','contentHash','versionId','classification','classificationOrigin','classificationConflict','semanticQueue','state','origins','auditArticleId','auditMpId','auditEvidenceUrl','workingId'];
+export function auditInventory(audit){
+ return {...audit,documents:audit.documents.map(d=>({...Object.fromEntries(inventoryFields.filter(k=>Object.hasOwn(d,k)).map(k=>[k,d[k]])),classificationRecords:(d.classificationRecords||[]).map(r=>({...r,classification:r.classification?{status:r.classification.status,primary:r.classification.primary}:r.classification}))}))};
+}
+export function auditInventoryTag(audit){return audit._auditRevision?'"inventory-'+createHash('sha256').update(audit._auditRevision+'|'+String(audit.observedAt)).digest('hex')+'"':null;}
 export function summarizeAudit(rows){const counts={total:rows.length,accepted:0,excluded:0,pending:0};for(const d of rows)counts[auditState(d.classification)]++;return counts;}
 // Conservative identity: normalize the host/default port and fragment only. Keep query
 // parameters (they can identify articles); never merge reposts just because titles match.
@@ -25,8 +30,14 @@ export function mergeAudit({articles=[],mp=[],evidence=[],working=[],sources=[],
 }
 export function auditBridge(rows){const eligible=rows.filter(d=>d.channelGroup==='mp2rss'&&auditState(d.classification)==='accepted'&&d.bodyComplete),delivered=eligible.filter(d=>d.synced);return {eligible:eligible.length,delivered:delivered.length,translated:delivered.filter(d=>d.language==='zh'||d.translationVersion===d.versionId&&!!d.versionId).length,extracted:delivered.filter(d=>d.autoExtraction?.status==='completed').length};}
 const caches=new WeakMap();
+const revisionTables=['public.articles','public.sources','classification.articles','classification.semantic_queue','mp2rss.items','mp2rss.subscriptions','ocean_intel.documents','ocean_intel.sources','mp2rss.evidence_documents','classification.jobs'];
+const revisionSql='SELECT md5(string_agg(revision,\'|\' ORDER BY scope)) AS _audit_revision FROM ('+revisionTables.map((table,i)=>`SELECT '${i}' scope,md5(coalesce(string_agg(ctid::text||':'||xmin::text,',' ORDER BY ctid),'')) revision FROM ${table}`).concat("SELECT 'chunks' scope,count(*)::text revision FROM public.article_chunks").join(' UNION ALL ')+') revisions';
+async function auditRevision(db){return (await db.query(revisionSql)).rows[0]?._audit_revision||null;}
 export function invalidateAudit(pool){if(pool)caches.delete(pool);}
-export async function cachedAudit(pool){let c=caches.get(pool);if(!c){c={};caches.set(pool,c);}if(c.value&&Date.now()-c.at<15000)return c.value;if(!c.pending)c.pending=readAudit(pool).then(v=>{c.value=v;c.at=Date.now();return v;}).finally(()=>{c.pending=null;});return c.pending;}
+export async function cachedAudit(pool){let c=caches.get(pool);if(!c){c={};caches.set(pool,c);}if(c.value&&Date.now()-c.at<15000)return c.value;if(!c.pending)c.pending=(async()=>{
+ if(c.value?._auditRevision&&Date.now()-c.loadedAt<300000&&Date.now()<c.dateBoundary){const revision=await auditRevision(pool).catch(()=>null);if(revision&&revision===c.value._auditRevision){c.at=Date.now();return c.value;}}
+ const value=await readAudit(pool);c.value=value;c.at=c.loadedAt=Date.now();c.dateBoundary=value.documents.reduce((next,d)=>{const time=Date.parse(d.originalPublishedAt);return d.publicationDateStatus==='future_unverified'&&time>c.at?Math.min(next,time):next;},Infinity);return value;
+ })().finally(()=>{c.pending=null;});return c.pending;}
 // A single read transaction observes all classification states; no import or classification is run.
 export async function readAudit(pool){const db=await pool.connect();try{await db.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');const observedAt=(await db.query('SELECT now() AS at')).rows[0].at;
  const articles=(await db.query(`SELECT a.id,a.title,a.link,a.published_at,a.source_id,a.manual_classify,a.classify_method,a.filter_status,a.matched_topic,a.reject_reason,s.name source_name,s.is_overseas,c.classification,c.updated_at classification_updated_at,CASE WHEN q.article_id IS NOT NULL THEN jsonb_build_object('status',q.status,'version',q.version,'updatedAt',q.updated_at,'nextRetryAt',q.next_retry_at,'attempts',q.attempts,'error',q.error) END semantic_queue FROM public.articles a LEFT JOIN public.sources s ON s.id=a.source_id LEFT JOIN classification.articles c ON c.article_id=a.id LEFT JOIN classification.semantic_queue q ON q.article_id=a.id ORDER BY a.id`)).rows;
@@ -36,7 +47,7 @@ export async function readAudit(pool){const db=await pool.connect();try{await db
  const processing=(await db.query("SELECT (SELECT count(*)::int FROM public.articles WHERE vectorized=true) vectorized, (SELECT count(*)::int FROM public.articles WHERE content IS NULL) missing_content, (SELECT count(*)::int FROM public.sources) registered_sources, (SELECT count(*)::int FROM public.article_chunks) chunks")).rows[0];
  const subscriptions=(await db.query("SELECT id,jsonb_build_object('name',payload->>'name','platform',payload->>'platform') payload,enabled,last_sync,present FROM mp2rss.subscriptions ORDER BY id")).rows;
  const job=(await db.query("SELECT config FROM classification.jobs WHERE status IN ('processing','partial','completed') ORDER BY id DESC LIMIT 1")).rows[0];
- await db.query('COMMIT');return {processing,subscriptions:subscriptions.map(s=>{const rows=mp.filter(i=>i.subscription_id===s.id);return {...s,count:rows.length,ready:rows.filter(i=>i.payload.contentStatus==='complete').length,latest:rows.map(i=>i.payload.publishedAt).filter(Boolean).sort().at(-1)};}),ruleConfig:job?.config,...mergeAudit({articles,mp,evidence,working,sources,observedAt}),mode:'live'};
+ const revision=await auditRevision(db);await db.query('COMMIT');const result={processing,subscriptions:subscriptions.map(s=>{const rows=mp.filter(i=>i.subscription_id===s.id);return {...s,count:rows.length,ready:rows.filter(i=>i.payload.contentStatus==='complete').length,latest:rows.map(i=>i.payload.publishedAt).filter(Boolean).sort().at(-1)};}),ruleConfig:job?.config,...mergeAudit({articles,mp,evidence,working,sources,observedAt}),mode:'live'};Object.defineProperty(result,'_auditRevision',{value:revision,enumerable:false});return result;
  }catch(e){await db.query('ROLLBACK');throw e;}finally{db.release();}}
 
 export function summarizeMpAudit(rows){const byUrl=new Map();for(const r of rows)byUrl.set(r.url||r.id,r);return summarizeAudit([...byUrl.values()]);}

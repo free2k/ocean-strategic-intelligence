@@ -1,0 +1,101 @@
+{
+  "label": "catalog-verified-ocean",
+  "base": "http://49.233.77.111/ocean-intelligence/",
+  "results": [
+    {
+      "tab": "analysis",
+      "ms": 17643,
+      "network": [
+        {
+          "path": "/ocean-intelligence/quant/api/catalog",
+          "ms": 17480,
+          "bytes": 2944736
+        }
+      ],
+      "requests": [
+        {
+          "path": "/ocean-intelligence/quant/api/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/ocean-intelligence/api/insight-data?kind=documents&page=1&pageSize=25",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "research",
+      "ms": 8389,
+      "network": [
+        {
+          "path": "/ocean-intelligence/api/strategy/catalog",
+          "ms": 8336,
+          "bytes": 247481
+        },
+        {
+          "path": "/ocean-intelligence/api/research",
+          "ms": 8292,
+          "bytes": 82105
+        }
+      ],
+      "requests": [
+        {
+          "path": "/ocean-intelligence/api/strategy/catalog?topic=&country=&sourceId=&from=&to=",
+          "method": "GET"
+        },
+        {
+          "path": "/ocean-intelligence/api/research",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "analysis",
+      "ms": 299,
+      "network": [
+        {
+          "path": "/ocean-intelligence/quant/api/catalog",
+          "ms": 210,
+          "bytes": 0
+        }
+      ],
+      "requests": [
+        {
+          "path": "/ocean-intelligence/quant/api/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/ocean-intelligence/api/insight-data?kind=documents&page=1&pageSize=25",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "tab": "research",
+      "ms": 199,
+      "network": [
+        {
+          "path": "/ocean-intelligence/api/research",
+          "ms": 30,
+          "bytes": 82105
+        },
+        {
+          "path": "/ocean-intelligence/api/strategy/catalog",
+          "ms": 133,
+          "bytes": 247481
+        }
+      ],
+      "requests": [
+        {
+          "path": "/ocean-intelligence/api/strategy/catalog?topic=&country=&sourceId=&from=&to=",
+          "method": "GET"
+        },
+        {
+          "path": "/ocean-intelligence/api/research",
+          "method": "GET"
+        }
+      ]
+    }
+  ],
+  "errors": []
+}
