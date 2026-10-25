@@ -2,7 +2,7 @@ import {publicationDates} from './temporal-dates.mjs';
 import {resolveClassificationResult} from './classification-result.mjs';
 ﻿import {createHash} from 'node:crypto';
 export const auditState=c=>c?.status==='accepted'?'accepted':c?.status==='excluded'?'excluded':'pending';
-const inventoryFields=['id','url','title','titleZh','sourceId','sourceName','sourceIds','channelGroup','region','manual','publishedAt','originalPublishedAt','publishedDateSource','scheduledAt','publicationDateStatus','bodyComplete','contentHash','versionId','classification','classificationOrigin','classificationConflict','semanticQueue','state','origins','auditArticleId','auditMpId','auditEvidenceUrl','workingId'];
+const inventoryFields=['id','url','title','titleZh','sourceId','sourceName','sourceIds','channelGroup','region','manual','publishedAt','originalPublishedAt','publishedDateSource','scheduledAt','publicationDateStatus','bodyComplete','synced','contentHash','versionId','classification','classificationOrigin','classificationConflict','semanticQueue','state','origins','auditArticleId','auditMpId','auditEvidenceUrl','workingId'];
 export function auditInventory(audit){
  return {...audit,documents:audit.documents.map(d=>({...Object.fromEntries(inventoryFields.filter(k=>Object.hasOwn(d,k)).map(k=>[k,d[k]])),classificationRecords:(d.classificationRecords||[]).map(r=>({...r,classification:r.classification?{status:r.classification.status,primary:r.classification.primary}:r.classification}))}))};
 }

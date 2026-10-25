@@ -88,9 +88,9 @@ export async function readSensingPage({pool,auditData,readData,collection,shared
 // A ready, private source view is separate from the expensive evidence inventory.
 // Refreshes replace it atomically; menu reads never wait behind a bulk audit.
 export class SensingPageCache{
- constructor({dir,scope,load,identity=()=>'',clock=Date.now,ttl=30000}){Object.assign(this,{dir,scope,load,identity,clock,ttl});this.value=null;this.pending=null;this.error=null;this.epoch=0;}
+ constructor({dir,scope,load,identity=()=>'',clock=Date.now,ttl=30000,filename='sensing-page.json',validate=p=>Array.isArray(p?.subscriptions)&&Array.isArray(p?.rss?.list)}){Object.assign(this,{dir,scope,load,identity,clock,ttl,filename,validate});this.value=null;this.pending=null;this.error=null;this.epoch=0;}
  async init(){
-  if(this.dir)try{const saved=JSON.parse(await fs.readFile(path.join(this.dir,'sensing-page.json'),'utf8'));if(saved.schema===1&&saved.scope===this.scope&&Array.isArray(saved.payload?.subscriptions)&&Array.isArray(saved.payload?.rss?.list)){this.value=saved;this.value.at=0;}}catch{}
+  if(this.dir)try{const saved=JSON.parse(await fs.readFile(path.join(this.dir,this.filename),'utf8'));if(saved.schema===1&&saved.scope===this.scope&&this.validate(saved.payload)){this.value=saved;this.value.at=0;}}catch{}
   if(this.value)void this.refresh().catch(()=>{});else await this.refresh().catch(()=>{});
  }
  async refresh(){
@@ -100,7 +100,7 @@ export class SensingPageCache{
    try{
     const payload=await this.load();if(epoch!==this.epoch)return this.value;
     const version=createHash('sha256').update(JSON.stringify(payload)).digest('hex'),value={schema:1,scope:this.scope,version,payload,identity,at:this.clock()};
-    if(this.dir){await fs.mkdir(this.dir,{recursive:true});const file=path.join(this.dir,'sensing-page.json'),tmp=file+'.'+randomUUID()+'.tmp';try{await fs.writeFile(tmp,JSON.stringify(value),{mode:0o600});await fs.rename(tmp,file);}finally{await fs.rm(tmp,{force:true});}}
+    if(this.dir){await fs.mkdir(this.dir,{recursive:true});const file=path.join(this.dir,this.filename),tmp=file+'.'+randomUUID()+'.tmp';try{await fs.writeFile(tmp,JSON.stringify(value),{mode:0o600});await fs.rename(tmp,file);}finally{await fs.rm(tmp,{force:true});}}
     if(epoch!==this.epoch)return this.value;
     this.value=value;this.error=null;return value;
    }catch(error){this.error='渠道数据更新暂未完成，显示上次成功读取的记录';throw error;}

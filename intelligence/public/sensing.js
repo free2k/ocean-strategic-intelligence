@@ -14,7 +14,8 @@ export async function get(url,{fresh=false}={}){url=systemApi(url);const [path,q
 export function prefetchSources(){get('api/sensing-page').catch(()=>{});}
 function xChannelUrl(s){if(s.platform!=='x')return '';const handle=String(s.handle||s.payload?.handle||'').replace(/^@/,'');if(/^[A-Za-z0-9_]{1,15}$/.test(handle))return 'https://x.com/'+handle;const id=String(s.remoteId||s.payload?.remoteId||s.id?.replace(/^x:/,'')||'');return /^\d+$/.test(id)?'https://x.com/i/user/'+id:'';}
 
-export async function loadSensingPayload(view,query,existing){if(view==='sources')return get('api/sensing-page');if(view==='library')return {auditPromise:get('api/classification-audit?view=inventory').then(audit=>({audit}),e=>({auditError:e.message})),archiveQuery:query};return {documents:existing?.documents||[],sources:existing?.sources||[],subscriptions:[],jobs:[],rss:{list:[]}};}
+function readEvidence(params={},options){if(params.refresh==='1')invalidateSensingCache();return get('api/evidence-page?'+new URLSearchParams(params),options);}
+export async function loadSensingPayload(view,query,existing){if(view==='sources')return get('api/sensing-page');if(view==='library')return {auditPromise:get('api/evidence-page').then(audit=>({audit}),e=>({auditError:e.message})),periodPromise:get('api/evidence-period?preset=7').then(period=>({period}),e=>({periodError:e.message})),loadAudit:readEvidence,loadPeriod:(params={},options)=>get('api/evidence-period?'+new URLSearchParams(params),options),archiveQuery:query};return {documents:existing?.documents||[],sources:existing?.sources||[],subscriptions:[],jobs:[],rss:{list:[]}};}
 export function collectionActivity(c){
  if(c.running){
   if(c.runMode==='processing'||['reconcile-classification.mjs','import-mp2rss.mjs','pipeline-worker.mjs','merging'].includes(c.currentStep))return '分析处理中';

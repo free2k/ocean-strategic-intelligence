@@ -7,7 +7,7 @@ import {Worker} from 'node:worker_threads';
 // The marine release predates the optional low-carbon branding module.
 const {brandText}=process.env.APP_ID==='low-carbon'?await import('./system-profile.mjs'):{brandText:text=>text};
 
-function authenticated(req,{secret,prefix='',cookies=['ocean_auth','site_auth'],allowNoAuth=false}){
+export function authenticated(req,{secret,prefix='',cookies=['ocean_auth','site_auth'],allowNoAuth=false}){
  if(!secret)return allowNoAuth;
  const values=new Map(String(req.headers.cookie||'').split(';').map(part=>{const i=part.indexOf('=');return [part.slice(0,i).trim(),part.slice(i+1)];}));
  const token=cookies.map(name=>values.get(name)).find(Boolean);if(!token)return false;
@@ -67,8 +67,8 @@ export function createSensingPageReader({dir,scope,publicDir,auth={},refresh=asy
  return server;
 }
 
-export async function startSensingPageReader({dir,scope,publicDir,appId='ocean',port,auth,onRefresh,collection=()=>({})}){
- const worker=new Worker(new URL('./sensing-page-worker.mjs',import.meta.url),{workerData:{dir,scope,publicDir,port,auth},env:{APP_ID:appId},execArgv:[]});
+export async function startSensingPageReader({dir,scope,publicDir,appId='ocean',port,auth,onRefresh,collection=()=>({}),workerUrl=new URL('./sensing-page-worker.mjs',import.meta.url),readerData={}}){
+ const worker=new Worker(workerUrl,{workerData:{...readerData,dir,scope,publicDir,port,auth},env:{APP_ID:appId},execArgv:[]});
  let closed=false;
  worker.on('message',async message=>{
   if(closed||message.action!=='refresh')return;

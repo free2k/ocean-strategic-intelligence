@@ -28,6 +28,7 @@ import {relationshipView,quantViews,businessViews,setupEnhancements,eventForm} f
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const modelResourcePolls=new Map();
 document.addEventListener('insight-data-changed',()=>{cacheEpoch++;readCache.clear();pendingReads.clear();invalidateSensingCache();if(activeTab()==='analysis')load();});
+let worldRequest;function ensureWorld(){return worldRequest ||= fetch('world.json').then(r=>{if(!r.ok)throw Error('地图资料读取失败');return r.json();}).then(dictionary=>world=normalizeWorld(dictionary)).catch(error=>{worldRequest=null;throw error;});}
 let data,world=[],tab='home',modelReady=false,pendingQuestion='';const names={home:'首页',monitor:'行业动态监测',dashboard:'全球态势总览',events:'行业动态监测',research:'量化分析工作台',analysis:'行业数据洞察',graph:'产业关联图谱',library:'情报证据中心',sources:'全球信息感知'};
 const metricNotes={articles:'按当前页面范围内入库的文章或文档记录计数（含上传文档和人工录入片段），不是原网站全部文章。查看情报证据中心可核对标题、正文与原始链接。',points:'按当前范围内统计序列的逐期数值记录计数：一个指标在一个统计期的一条值算一条，如月度产量或季度利用率。不同指标条数可计数，但数值不可直接相加；不含文章提取指标。行业数据洞察的源数据清单可核对统计期、数值、单位及原始来源。',sources:'全部已登记渠道的数量，不随领域、国家或日期筛选减少。包含当前没有文章或统计数据、暂停的渠道；不是活跃渠道数，也不是首发媒体去重数。可在全球信息感知查看各渠道状态。',observations:'从文章原文提取的指标记录，如某项目投资额或设计能力；一篇文章可提取多条。它们不是官方统计序列数据；单位、期间、对象及性质通过校验后才能用于图表。',events:'当前范围内的事件与报道线索记录数；一篇文章可以对应多个事件，事件数不等于文章数。',entities:'当前事件关联的实体ID去重数，例如公司、项目、技术及机构。',relations:'当前范围内实体关系记录条数；可回溯原文证据，不等于合作项目数。'};
 const countHelp=(label,note)=>`<span tabindex="0" title="${esc(note)}" style="cursor:help;border-bottom:1px dotted currentColor">${esc(label)}</span>`;
@@ -182,7 +183,7 @@ async function load({navigation=false}={}){
    else{quantView?.dispose();quantView=null;quantHost=null;disposeDashboardCharts();$('#content').innerHTML='<section class="panel" role="status">正在加载当前范围的资料…</section>';setupMapFlow();setupGlobe(world,{},'',()=>{});}
   }
   if(tab==='analysis'){placeQuantFilters($('#quant-native'));quantView?.update('?'+new URLSearchParams(filters()));}
-  const [opts,prefetchedData]=await Promise.all([api('options?'+queryFor(filters())),api(dataPath)]);if(version!==loadVersion)return;
+  const [opts,prefetchedData]=await Promise.all([api('options?'+queryFor(filters())),api(dataPath),ensureWorld()]);if(version!==loadVersion)return;
   const current=$('#country').value,countryList=opts[tab==='monitor'?(parseRoute(location.hash).view==='relations'?'graph':'events'):tab];
   if(countryList){
    $('#country').innerHTML='<option value="">全球视野</option>';countryList.forEach(c=>$('#country').add(new Option(c.name,c.code)));
@@ -213,7 +214,7 @@ document.querySelector('#nav').addEventListener('click',async e=>{
  const next='#'+a.dataset.tab;if(location.hash===next){restoreNavigation();await load({navigation:true});window.scrollTo({top:0,behavior:'instant'});}else location.hash=next;
 });
 $('#close-detail').onclick=()=>$('#detail').close();$('#theme').onclick=()=>{document.body.classList.toggle('light');localStorage.setItem('ocean-theme',document.body.classList.contains('light')?'light':'dark');};if(localStorage.getItem('ocean-theme')==='light')document.body.classList.add('light');$('#logout').onclick=async()=>{strategyDispose();strategyDispose=()=>{};clearStrategyDraft();invalidateSensingCache();clearCountryCache();await api('logout',{});location.reload();};$('#login-form').onsubmit=async e=>{e.preventDefault();try{await api('login',{password:$('#password').value});$('#password').value='';$('#login').hidden=true;await load();}catch(err){$('#login-error').textContent=err.message;}};for(const id of ['topic','country','source','from','to'])$('#'+id).onchange=()=>{pages.events=pages.library=1;saveCurrentNavigation();load();};$('#reset').onclick=()=>{if(activeTab()==='dashboard'){routeState.countryCodes=[];routeState.relationMode='external';}pages.events=pages.library=1;libraryQuery='';for(const id of ['topic','country','source','from','to'])$('#'+id).value='';saveCurrentNavigation();load();};window.onhashchange=async()=>{saveCurrentNavigation(false);restoreNavigation();if(data||$('#login').hidden){await load({navigation:true});window.scrollTo({top:0,behavior:'instant'});}};document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.map-node,.land[data-country],.map-link')){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
-try{const [dictionary,session]=await Promise.all([fetch('world.json').then(r=>r.json()),api('session')]);world=normalizeWorld(dictionary);restoreNavigation();modelReady=session.modelReady;if(session.authenticated)await load();else $('#login').hidden=false;}catch(e){$('#notice').textContent=e.message;}
+try{const dictionary=ensureWorld();dictionary.catch(()=>{});const session=await api('session');restoreNavigation();modelReady=session.modelReady;if(!['sources','library'].includes(activeTab()))await dictionary;if(session.authenticated)await load();else $('#login').hidden=false;}catch(e){$('#notice').textContent=e.message;}
 
 let intakeOpening=false;
 async function openManualIntake(){
