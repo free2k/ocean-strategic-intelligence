@@ -67,12 +67,12 @@ export function createSensingPageReader({dir,scope,publicDir,auth={},refresh=asy
  return server;
 }
 
-export async function startSensingPageReader({dir,scope,publicDir,appId='ocean',port,auth,onRefresh,collection=()=>({}),workerUrl=new URL('./sensing-page-worker.mjs',import.meta.url),readerData={}}){
+export async function startSensingPageReader({dir,scope,publicDir,appId='ocean',port,auth,onRefresh,collection=()=>({}),returnRefresh=false,workerUrl=new URL('./sensing-page-worker.mjs',import.meta.url),readerData={}}){
  const worker=new Worker(workerUrl,{workerData:{...readerData,dir,scope,publicDir,port,auth},env:{APP_ID:appId},execArgv:[]});
  let closed=false;
  worker.on('message',async message=>{
   if(closed||message.action!=='refresh')return;
-  try{await onRefresh();if(!closed)worker.postMessage({id:message.id,ok:true,collection:collection()});}
+  try{const value=await onRefresh(message);if(!closed)worker.postMessage({id:message.id,ok:true,...(returnRefresh?{value}:{}),collection:collection()});}
   catch{if(!closed)worker.postMessage({id:message.id,ok:false});}
  });
  const actualPort=await new Promise((resolve,reject)=>{worker.on('message',m=>{if(m.ready)resolve(m.port);});worker.once('error',reject);worker.once('exit',code=>reject(Error('Source reader exited: '+code)));});

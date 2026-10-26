@@ -44,9 +44,9 @@ export function mountDataWorkbench(host,{state={},sharedQuery='',onChange=()=>{}
   host.querySelectorAll('[data-dw-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.dwView===state.view)));
   renderRows();$('.dw-pagination').innerHTML=`<label>每页 <select name="pageSize" aria-label="每页记录数">${[25,50,100].map(n=>`<option ${n===result.pageSize?'selected':''}>${n}</option>`).join('')}</select> 条</label><div><button data-dw-page="1" ${result.page<=1?'disabled':''}>首页</button><button data-dw-page="${result.page-1}" ${result.page<=1?'disabled':''}>上一页</button><span>${result.page} / ${result.pages}</span><button data-dw-page="${result.page+1}" ${result.page>=result.pages?'disabled':''}>下一页</button><button data-dw-page="${result.pages}" ${result.page>=result.pages?'disabled':''}>末页</button></div>`;
  }
- async function load(){
+ async function load(force=false){
   request?.abort();request=new AbortController();const pending=request;loading=true;$('#dw-records').setAttribute('aria-busy','true');$('#dw-result-label').textContent='读取中…';
-  try{const next=await read(api.href+'?'+params(),{signal:pending.signal});if(life.signal.aborted||pending!==request)return;result=next;state.page=next.page;renderResult();}
+  try{const next=await read(new URL('../api/insight-page',import.meta.url).href+'?'+params()+(force?'&refresh=1':''),{signal:pending.signal});if(life.signal.aborted||pending!==request)return;result=next;state.page=next.page;renderResult();}
   catch(error){if(error.name!=='AbortError'&&!life.signal.aborted){notice(error.message,true);$('#dw-result-label').textContent='读取失败';if(!result)$('#dw-records').innerHTML='<div class="dw-empty"><button data-dw="retry">重新加载</button></div>';}}
   finally{if(!life.signal.aborted&&pending===request){loading=false;$('#dw-records')?.removeAttribute('aria-busy');}}
  }
@@ -82,7 +82,7 @@ export function mountDataWorkbench(host,{state={},sharedQuery='',onChange=()=>{}
  function close(){if(!dialog)return;dialog.close();dialog.remove();dialog=null;selected=null;priorFocus?.focus();}
  async function save(action,patch,note){
   const current=selected;if(!current||dialog.dataset.saving==='true')return;dialog.dataset.saving='true';const errorEl=dialog.querySelector('.dw-dialog-error');errorEl.hidden=true;dialog.querySelectorAll('button').forEach(b=>b.disabled=true);
-  try{await read(api.href+'/record',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:current.kind,key:current.key,revision:current.revision,action,patch,note}),signal:life.signal});if(life.signal.aborted)return;close();const message={edit:'修改已保存，图表已同步更新。',delete:'已移入回收站，可随时恢复。',restore:'记录已恢复。'}[action];state.notice=message;await load();notice(message);onChange(message);}
+  try{await read(api.href+'/record',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:current.kind,key:current.key,revision:current.revision,action,patch,note}),signal:life.signal});if(life.signal.aborted)return;close();const message={edit:'修改已保存，图表已同步更新。',delete:'已移入回收站，可随时恢复。',restore:'记录已恢复。'}[action];state.notice=message;await load(true);notice(message);onChange(message);}
   catch(error){if(error.name!=='AbortError'&&dialog){errorEl.hidden=false;errorEl.textContent=error.message;}}
   finally{if(dialog){delete dialog.dataset.saving;dialog.querySelectorAll('button').forEach(b=>b.disabled=false);}}
  }
@@ -107,7 +107,7 @@ export function mountDataWorkbench(host,{state={},sharedQuery='',onChange=()=>{}
   if(b.dataset.dwView){state.view=b.dataset.dwView;if(result)renderResult();return;}
   if(b.dataset.dwMode){if(dialog?.dataset.saving!=='true')renderDialog(b.dataset.dwMode);return;}
   switch(b.dataset.dw){
-   case 'import':disposeImport?.();disposeImport=mountDataImport(host,{sharedQuery,onImported:async result=>{state.deleted='';state.kind='all';state.page=1;for(const k of ['q','status','state','origin'])state[k]='';state.notice=`已汇入 ${result.documents} 份资料、${result.observations} 条指标、${result.points} 个统计值。${result.duplicates?'跳过 '+result.duplicates+' 条重复记录。':''}${result.conflicts?'有 '+result.conflicts+' 个统计期数值冲突，已保留为指标记录，请核对后编辑。':''}图表已同步更新。`;await load();notice(state.notice);onChange(state.notice);},onClose:()=>{disposeImport=null;}});break;
+   case 'import':disposeImport?.();disposeImport=mountDataImport(host,{sharedQuery,onImported:async result=>{state.deleted='';state.kind='all';state.page=1;for(const k of ['q','status','state','origin'])state[k]='';state.notice=`已汇入 ${result.documents} 份资料、${result.observations} 条指标、${result.points} 个统计值。${result.duplicates?'跳过 '+result.duplicates+' 条重复记录。':''}${result.conflicts?'有 '+result.conflicts+' 个统计期数值冲突，已保留为指标记录，请核对后编辑。':''}图表已同步更新。`;await load(true);notice(state.notice);onChange(state.notice);},onClose:()=>{disposeImport=null;}});break;
    case 'close':if(dialog?.dataset.saving!=='true')close();break;
    case 'delete':renderDialog('delete');break;
    case 'restore':save('restore',null,'从数据池回收站恢复');break;

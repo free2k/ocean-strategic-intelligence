@@ -1,3 +1,4 @@
+export const workspaceRowHash=Symbol('workspace-row-hash');
 import {createHash} from 'node:crypto';
 
 export const deltaSchemaSql=`CREATE SEQUENCE IF NOT EXISTS ocean_intel.workspace_revision;
@@ -52,11 +53,11 @@ export async function readDeltas(client,head,previous){
  const maps=new Map(manifest.fields.map(field=>[field,new Map((previous?.[field]||[]).map((value,position)=>[value?.id!=null?'id:'+value.id:'pos:'+position,{value,position}]))]));
  let cursor=[from,'',''];
  for(;;){
-  const rows=(await client.query(`SELECT field,key,position,payload,deleted,revision::text FROM ocean_intel.workspace_rows
+  const rows=(await client.query(`SELECT field,key,position,payload,hash,deleted,revision::text FROM ocean_intel.workspace_rows
    WHERE revision>$1::bigint AND revision<=$2::bigint AND (revision,field,key)>($3::bigint,$4,$5)
    ORDER BY revision,field,key LIMIT 20`,[from,manifest.revision,...cursor])).rows;
   if(!rows.length)break;
-  for(const row of rows){const map=maps.get(row.field);if(map){if(row.deleted)map.delete(row.key);else map.set(row.key,{value:JSON.parse(row.payload),position:row.position});}}
+  for(const row of rows){const map=maps.get(row.field);if(map){if(row.deleted)map.delete(row.key);else{const value=JSON.parse(row.payload);if(value&&typeof value==='object'&&row.hash)Object.defineProperty(value,workspaceRowHash,{value:row.hash});map.set(row.key,{value,position:row.position});}}}
   const last=rows.at(-1);cursor=[last.revision,last.field,last.key];
  }
  for(const [field,map] of maps)data[field]=[...map.values()].sort((a,b)=>a.position-b.position).map(r=>r.value);
